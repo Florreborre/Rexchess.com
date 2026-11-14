@@ -1,12 +1,12 @@
 // Spelvyer: lobby, onlineparti och parti mot datorn.
 import { Chess } from '/vendor/chess.js';
-import { h, state, api, fmtClock, REASONS, playSound, moveSound, roman, go } from './util.js';
+import { h, state, api, fmtClock, REASONS, playSound, moveSound, endSound, roman, go } from './util.js';
 import { gotwCard, topCard } from './social.js';
 import { Board, parseFen } from './board.js';
 import { net, send, on } from './net.js';
 import { BOTS, botMove } from './engine.js';
 
-const TCS = [['1+0', 'Bullet'], ['3+0', 'Blixt'], ['3+2', 'Blixt'], ['5+0', 'Blixt'], ['10+0', 'Snabb'], ['15+10', 'Snabb']];
+const TCS = [['1+0', 'Bullet'], ['2+1', 'Bullet'], ['3+0', 'Blixt'], ['3+2', 'Blixt'], ['5+0', 'Blixt'], ['5+3', 'Blixt'], ['10+0', 'Snabb'], ['10+5', 'Snabb'], ['15+10', 'Snabb']];
 
 function playerBar() {
   const name = h('span.pname'), rating = h('span.prating'), clock = h('span.clock'), title = h('span.title');
@@ -137,6 +137,8 @@ class GameScreen {
       bar.clock.textContent = fmtClock(ms);
       bar.clock.classList.toggle('running', c.running === color);
       bar.clock.classList.toggle('low', ms < 20000);
+      // Varningsljud en gång när den egna klockan går under 10 sekunder.
+      if (bar === this.bottom && c.running === color && ms < 10000 && ms > 0 && !this.lowWarned) { this.lowWarned = true; playSound('lowtime'); }
     }
   }
 }
@@ -165,7 +167,7 @@ function confirmButton(label, onConfirm, cls = '') {
 export function lobbyView() {
   const online = h('div.card');
   const draw = () => {
-    online.replaceChildren(h('h2', 'Spela online'), h('p.muted', 'Rankade partier mot andra spelare. Välj betänketid.'));
+    online.replaceChildren(h('h2', 'Spela online'), h('p.muted', 'Rankade partier mot andra spelare. Välj betänketid: minuter + sekunder som läggs till per drag.'));
     if (!state.user) {
       online.append(h('p', 'Du behöver ett konto för att spela online.'), h('a.btn.primary', { href: '/login' }, 'Logga in / skapa konto'));
     } else if (net.seeking) {
@@ -224,7 +226,7 @@ export function onlineGameView() {
     if (g.over?.ratings) for (const c of ['w', 'b']) P[c].rating = g.over.ratings[c][1];
     let panel;
     if (g.over) {
-      if (!endSounded) { endSounded = true; playSound('end'); }
+      if (!endSounded) { endSounded = true; playSound(endSound(g.over, me)); }
       const r = g.over.ratings?.[me];
       const diff = r ? r[1] - r[0] : 0;
       panel = [h('div.result',
@@ -289,7 +291,7 @@ async function botThink(b) {
   botAfterMove(b);
 }
 function botFinish(b, resigned = false) {
-  playSound('end');
+  playSound(endSound(b.over, b.color));
   if (state.user && b.moves.length >= 2) {
     api('/api/games/bot', { moves: b.moves, playerColor: b.color, botName: b.cfg.name, botRating: b.cfg.rating, resigned })
       .then((r) => { b.savedId = r.id; b.draw?.(); })

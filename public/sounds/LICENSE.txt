@@ -1,0 +1,8 @@
+Ljudfilerna i den här mappen kommer från Lichess (lila) ljuduppsättning "sfx":
+https://github.com/lichess-org/lila/tree/master/public/sound/sfx
+
+Upphovsperson: Enigmahack (https://github.com/Enigmahack)
+Licens: GNU Affero General Public License, version 3 eller senare (AGPLv3+)
+https://www.gnu.org/licenses/agpl-3.0.html
+
+Filerna är oförändrade.

@@ -11,7 +11,7 @@ const { DatabaseSync } = require('node:sqlite');
 
 const PORT = Number(process.env.PORT) || 3000;
 const START_RATING = 1200;
-const TIME_CONTROLS = { '1+0': [60, 0], '3+0': [180, 0], '3+2': [180, 2], '5+0': [300, 0], '10+0': [600, 0], '15+10': [900, 10] };
+const TIME_CONTROLS = { '1+0': [60, 0], '2+1': [120, 1], '3+0': [180, 0], '3+2': [180, 2], '5+0': [300, 0], '5+3': [300, 3], '10+0': [600, 0], '10+5': [600, 5], '15+10': [900, 10] };
 
 // ---------- Databas ----------
 const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, 'data');

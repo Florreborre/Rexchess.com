@@ -1,6 +1,6 @@
 // Startpunkt: router, navigering, inloggning, partihistorik och topplista.
 import { Chess } from '/vendor/chess.js';
-import { h, state, api, go, titleEl } from './util.js';
+import { h, state, api, go, titleEl, playSound } from './util.js';
 import { net, connect, disconnect, on } from './net.js';
 import { lobbyView, onlineGameView, botView } from './game.js';
 import { reviewView } from './review.js';
@@ -176,6 +176,7 @@ function toast(content, ms = 6000) {
 on((m) => {
   if (m.t === 'notice') toast(m.text);
   if (m.t === 'challenge') {
+    playSound('challenge');
     const el = toast([h('p', h('strong', m.from), ` utmanar dig på ett parti (${m.tc}).`),
       h('div.btnrow',
         h('button.primary.small', { onclick: () => { send({ t: 'accept', from: m.from }); el.remove(); } }, 'Acceptera'),

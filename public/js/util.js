@@ -119,8 +119,30 @@ function chime(t, freq, dur, gain = 0.09) {
   o.start(t);
   o.stop(t + dur + 0.02);
 }
-// kind: move | capture | castle | check | promote | start | end
+// Inspelade pjäsljud (Lichess ljuduppsättning "sfx", se public/sounds/LICENSE.txt).
+const SOUND_FILES = {
+  move: 'Move', castle: 'Move', promote: 'Move', capture: 'Capture', check: 'Check', start: 'GenericNotify',
+  victory: 'Victory', defeat: 'Defeat', draw: 'Draw', end: 'Draw', lowtime: 'LowTime', challenge: 'NewChallenge',
+};
+const soundCache = {};
+// kind: move | capture | castle | check | promote | start | victory | defeat | draw | lowtime | challenge
 export function playSound(kind = 'move') {
+  try {
+    const name = SOUND_FILES[kind] || 'Move';
+    const base = (soundCache[name] ??= new Audio(`/sounds/${name}.mp3`));
+    const a = base.cloneNode();
+    a.volume = 0.8;
+    a.play().catch(() => synth(kind)); // går filen inte att spela används det inbyggda reservljudet
+  } catch { synth(kind); }
+}
+// Ljudet när partiet är slut, ur spelarens synvinkel.
+export function endSound(over, myColor) {
+  if (over.result === '1/2-1/2' || over.result === '*') return 'draw';
+  return (over.result === '1-0') === (myColor === 'w') ? 'victory' : 'defeat';
+}
+
+// Reservljud som görs direkt i webbläsaren.
+function synth(kind = 'move') {
   try {
     const t = audioCtx().currentTime + 0.005;
     if (kind === 'capture') { // två pjäser som slår ihop: ett vasst klack följt av ett tyngre
@@ -139,7 +161,7 @@ export function playSound(kind = 'move') {
     } else if (kind === 'start') {
       knock(t, { freq: 800 });
       knock(t + 0.14, { freq: 1000 });
-    } else if (kind === 'end') { // dov klocka
+    } else if (['end', 'victory', 'defeat', 'draw', 'lowtime', 'challenge'].includes(kind)) { // dov klocka
       knock(t, { freq: 600, gain: 0.5, decay: 0.09, thump: 100 });
       chime(t + 0.02, 392, 1.1, 0.09);
       chime(t + 0.02, 587, 0.9, 0.05);

@@ -4,7 +4,7 @@ import { h, state, api, REASONS, go, titleEl } from './util.js';
 import { Board } from './board.js';
 import { net, send, on } from './net.js';
 
-const TCS = ['1+0', '3+0', '3+2', '5+0', '10+0', '15+10'];
+const TCS = ['1+0', '2+1', '3+0', '3+2', '5+0', '5+3', '10+0', '10+5', '15+10'];
 const select = (options, value) => h('select', options.map(([v, label]) => h('option', { value: v, selected: v === value }, label)));
 // Fält för turneringens tider: betänketid (minuter + sekunder per drag), längd och ev. minuter till start.
 function timeFields(init, withStart = true) {
@@ -141,7 +141,7 @@ export function tournamentsView(ctx, showForm) {
         },
         name,
         fields.row,
-        h('p.muted', 'Du kan ändra tiderna i efterhand på turneringens sida.'),
+        h('p.muted', 'Skriv 0 vid "Startar om" för att starta direkt. Du kan också starta i förtid eller ändra tiderna på turneringens sida.'),
         err,
         h('button.primary.big', { type: 'submit' }, 'Skapa en turnering'))));
     }
@@ -224,7 +224,11 @@ export function tournamentView(ctx, id) {
       status,
       t.status === 'finished' && players[0]?.games > 0 && h('p.winner', `🏆 Segrare: ${players[0].username} med ${players[0].score} poäng`),
       action,
-      canEdit && (editForm || h('button', { onclick: openEdit }, 'Ändra tider')),
+      canEdit && (editForm || h('div.btnrow',
+        t.status === 'open' && h('button.primary', {
+          onclick: () => api(`/api/tournaments/${t.id}/edit`, { tc: t.tc, duration: t.duration, startsIn: 0 }).then(load).catch((e) => alert(e.message)),
+        }, 'Starta nu'),
+        h('button', { onclick: openEdit }, 'Ändra tider'))),
       h('h3', `Ställning (${players.length} spelare)`),
       players.length ? h('div.tablewrap', h('table',
         h('thead', h('tr', ['#', 'Spelare', 'Poäng', 'Partier', 'V / R / F'].map((x) => h('th', x)))),
