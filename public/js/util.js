@@ -128,12 +128,24 @@ const soundCache = {};
 // kind: move | capture | castle | check | promote | start | victory | defeat | draw | lowtime | challenge
 export function playSound(kind = 'move') {
   try {
-    const name = SOUND_FILES[kind] || 'Move';
-    const base = (soundCache[name] ??= new Audio(`/sounds/${name}.mp3`));
-    const a = base.cloneNode();
-    a.volume = 0.8;
-    a.play().catch(() => synth(kind)); // går filen inte att spela används det inbyggda reservljudet
+    const wood = WOOD[SOUND_FILES[kind]];
+    if (wood && canOgg()) {
+      // Drag och slag: en träpjäs som sätts ner. Fem inspelningar var, slumpvis vald så att det inte låter likadant varje gång.
+      const knock = (delay) => setTimeout(() => play(`${wood}${1 + Math.floor(Math.random() * 5)}.ogg`, 0.65, kind), delay);
+      knock(0);
+      if (kind === 'castle') knock(120); // kung och torn
+      return;
+    }
+    play(`${SOUND_FILES[kind] || 'Move'}.mp3`, 0.8, kind);
   } catch { synth(kind); }
+}
+const WOOD = { Move: 'move', Capture: 'capture' };
+let oggOk = null;
+const canOgg = () => (oggOk ??= !!new Audio().canPlayType('audio/ogg; codecs="vorbis"'));
+function play(file, volume, kind) {
+  const a = (soundCache[file] ??= new Audio(`/sounds/${file}`)).cloneNode();
+  a.volume = volume;
+  a.play().catch(() => synth(kind)); // går filen inte att spela används det inbyggda reservljudet
 }
 // Ljudet när partiet är slut, ur spelarens synvinkel.
 export function endSound(over, myColor) {

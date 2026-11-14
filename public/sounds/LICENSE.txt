@@ -6,3 +6,10 @@ Licens: GNU Affero General Public License, version 3 eller senare (AGPLv3+)
 https://www.gnu.org/licenses/agpl-3.0.html
 
 Filerna är oförändrade.
+
+----
+
+Filerna move1–5.ogg och capture1–5.ogg kommer från Kenneys paket "Impact Sounds"
+(impact_wood_light och impact_wood_medium), https://kenney.nl/assets/impact-sounds
+Licens: Creative Commons Zero (CC0 1.0), fritt att använda utan krav.
+Filerna är oförändrade, bara omdöpta.
