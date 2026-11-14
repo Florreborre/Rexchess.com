@@ -1,6 +1,6 @@
 // Vänlista, turneringar, veckans parti och topplistekort.
 import { Chess } from '/vendor/chess.js';
-import { h, state, api, REASONS, go, titleEl } from './util.js';
+import { h, state, api, REASONS, go, titleEl, userLink } from './util.js';
 import { Board } from './board.js';
 import { net, send, on } from './net.js';
 
@@ -37,7 +37,7 @@ export function gotwCard() {
     el.replaceChildren(title, h('div.gotwrow',
       h('div.miniboard', board.el),
       h('div.gotwinfo',
-        h('p', h('strong', g.white_name), h('span.prating', ` (${g.white_rating})`), ' mot ', h('strong', g.black_name), h('span.prating', ` (${g.black_rating})`)),
+        h('p', userLink(g.white_name), h('span.prating', ` (${g.white_rating})`), ' mot ', userLink(g.black_name), h('span.prating', ` (${g.black_rating})`)),
         h('p', `${g.result} · ${REASONS[g.reason] || g.reason} · ${Math.ceil(sans.length / 2)} drag`),
         h('p.muted', `Träffsäkerhet: ${g.white_acc.toFixed(1)} / ${g.black_acc.toFixed(1)}`),
         h('a.btn.primary', { href: `/review/${g.id}` }, 'Se partiet'))));
@@ -50,7 +50,7 @@ export function topCard() {
   const el = h('div.card', title, h('p.muted', 'Laddar…'));
   api('/api/leaderboard').then(({ players }) => {
     el.replaceChildren(title,
-      players.length ? h('ol.toplist', players.slice(0, 5).map((p) => h('li', h('strong', p.username), h('span', p.rating))))
+      players.length ? h('ol.toplist', players.slice(0, 5).map((p) => h('li', userLink(p.username), h('span', p.rating))))
         : h('p.muted', 'Inga spelare ännu.'),
       h('a.btn', { href: '/top' }, 'Hela listan'));
   }).catch(() => {});
@@ -69,7 +69,7 @@ export function friendsView() {
   function row(f, buttons) {
     return h('div.friend',
       h('span.presence' + (f.online ? '.online' : ''), { title: f.online ? 'Online' : 'Offline' }),
-      titleEl(f.title), h('strong', f.username), h('span.prating', ` (${f.rating})`),
+      titleEl(f.title), userLink(f.username), h('span.prating', ` (${f.rating})`),
       f.playing && h('span.muted', ' · spelar'),
       h('span.spacer'), buttons);
   }
@@ -233,7 +233,7 @@ export function tournamentView(ctx, id) {
       players.length ? h('div.tablewrap', h('table',
         h('thead', h('tr', ['#', 'Spelare', 'Poäng', 'Partier', 'V / R / F'].map((x) => h('th', x)))),
         h('tbody', players.map((p, i) => h('tr' + (p.id === state.user?.id ? '.me' : ''),
-          h('td', i + 1), h('td', titleEl(p.title), ' ', h('strong', p.username), h('span.prating', ` (${p.rating})`)), h('td', h('strong', p.score)),
+          h('td', i + 1), h('td', titleEl(p.title), ' ', userLink(p.username), h('span.prating', ` (${p.rating})`)), h('td', h('strong', p.score)),
           h('td', p.games), h('td', `${p.wins} / ${p.draws} / ${p.losses}`))))))
         : h('p.muted', 'Inga anmälda ännu.'),
       games.length && h('h3', 'Senaste partierna'),

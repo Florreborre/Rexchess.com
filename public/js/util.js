@@ -61,6 +61,11 @@ export function go(path) {
   setTimeout(() => window.dispatchEvent(new PopStateEvent('popstate')));
 }
 
+// Spelarnamn som länk till spelarens profil.
+export function userLink(name) {
+  return h('a.user', { href: `/profile/${encodeURIComponent(name)}` }, name);
+}
+
 // Litet märke med spelarens titel (Tiro, Miles, Decurio …).
 export function titleEl(title) {
   return title ? h('span.title', { title: 'Titel' }, title) : null;

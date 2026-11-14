@@ -110,6 +110,8 @@ const q = {
   gamesForUser: db.prepare(`SELECT id, white_id, black_id, white_name, black_name, white_rating, black_rating, white_diff, black_diff,
     result, reason, tc, rated, created_at, moves FROM games WHERE white_id = ?1 OR black_id = ?1 ORDER BY created_at DESC LIMIT 100`),
   gameById: db.prepare('SELECT * FROM games WHERE id = ?'),
+  profileGames: db.prepare(`SELECT id, white_id, black_id, white_name, black_name, white_rating, black_rating, white_diff, black_diff,
+    white_acc, black_acc, result, reason, tc, rated, created_at, moves FROM games WHERE white_id = ?1 OR black_id = ?1 ORDER BY created_at DESC LIMIT 500`),
   leaderboard: db.prepare('SELECT username, rating, peak, trophies, games, wins, losses, draws FROM users ORDER BY rating DESC, games DESC LIMIT 50'),
 };
 
@@ -294,6 +296,21 @@ app.post('/api/logout', (req, res) => {
 });
 
 app.get('/api/me', (req, res) => res.json({ user: publicUser(req.user) || null }));
+// Offentlig profil: spelarens uppgifter och partier (de 16 första halvdragen räcker för att känna igen öppningen).
+app.get('/api/users/:username', (req, res) => {
+  const u = q.userByName.get(String(req.params.username));
+  if (!u) return res.status(404).json({ error: 'Det finns ingen spelare med det namnet.' });
+  const games = q.profileGames.all(u.id).map(({ moves, ...g }) => {
+    const sans = moves ? moves.split(' ') : [];
+    return { ...g, plies: sans.length, opening: sans.slice(0, 16) };
+  });
+  let friend = null;
+  if (req.user && req.user.id !== u.id) {
+    const f = q.friendship.get(req.user.id, u.id);
+    friend = !f ? 'none' : f.status === 'accepted' ? 'accepted' : f.user_id === req.user.id ? 'sent' : 'incoming';
+  }
+  res.json({ user: { ...publicUser(u), created_at: u.created_at, online: sockets.has(u.id), playing: activeGame.has(u.id) }, games, friend });
+});
 app.get('/api/leaderboard', (req, res) => res.json({ players: q.leaderboard.all().map((p) => ({ ...p, title: titleFor(p.peak, p.games) })) }));
 
 app.get('/api/games', (req, res) => {

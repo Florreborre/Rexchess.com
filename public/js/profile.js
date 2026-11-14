@@ -1,0 +1,148 @@
+// Profilsida: en spelares statistik, mest spelade öppningar, ratingkurva och partier.
+import { h, svg, state, api, titleEl, userLink } from './util.js';
+import { matchOpening } from './openings.js';
+
+const pct = (n, total) => (total ? Math.round((100 * n) / total) : 0);
+const timeClass = (tc) => {
+  const min = Number(String(tc).split('+')[0]);
+  return min < 3 ? 'Bullet' : min < 10 ? 'Blixt' : 'Snabb';
+};
+
+// Räknar fram all statistik ur spelarens partier (nyaste först i `games`).
+function compute(user, games) {
+  const rated = { n: 0, w: 0, d: 0, l: 0 };
+  const color = { w: { n: 0, w: 0 }, b: { n: 0, w: 0 } };
+  const classes = {}, openings = { w: new Map(), b: new Map() };
+  const history = [], accs = [];
+  let best = null, streak = 0, longest = 0, run = 0;
+  for (const g of [...games].reverse()) { // äldst först
+    const white = g.white_id === user.id, side = white ? 'w' : 'b';
+    const score = g.result === '1/2-1/2' ? 'd' : (g.result === '1-0') === white ? 'w' : 'l';
+    const name = matchOpening(g.opening).name || 'Övriga öppningar';
+    const o = openings[side].get(name) || { name, n: 0, w: 0, d: 0, l: 0 };
+    o.n++; o[score]++;
+    openings[side].set(name, o);
+    if (!g.rated) continue;
+    rated.n++; rated[score]++;
+    color[side].n++;
+    if (score === 'w') color[side].w++;
+    const cls = (classes[timeClass(g.tc)] ??= { n: 0, w: 0, d: 0, l: 0 });
+    cls.n++; cls[score]++;
+    const [myRating, diff, oppName, oppRating, acc] = white
+      ? [g.white_rating, g.white_diff, g.black_name, g.black_rating, g.white_acc]
+      : [g.black_rating, g.black_diff, g.white_name, g.white_rating, g.black_acc];
+    history.push(myRating + diff);
+    if (acc != null) accs.push(acc);
+    if (score === 'w' && (!best || oppRating > best.rating)) best = { name: oppName, rating: oppRating, id: g.id };
+    run = score === 'w' ? run + 1 : 0;
+    longest = Math.max(longest, run);
+    streak = run;
+  }
+  const top = (m) => [...m.values()].sort((a, b) => b.n - a.n).slice(0, 6);
+  return {
+    rated, color, classes, history, best, streak, longest,
+    accuracy: accs.length ? accs.reduce((a, b) => a + b, 0) / accs.length : null,
+    openings: { w: top(openings.w), b: top(openings.b) },
+  };
+}
+
+function ratingGraph(history) {
+  const pts = [1200, ...history];
+  const min = Math.min(...pts) - 20, max = Math.max(...pts) + 20, W = Math.max(pts.length - 1, 1);
+  const y = (r) => 100 - ((r - min) / (max - min)) * 100;
+  return h('div.rgraph',
+    svg('svg', { viewBox: `0 0 ${W} 100`, preserveAspectRatio: 'none' },
+      svg('polyline', { points: pts.map((r, i) => `${i},${y(r).toFixed(1)}`).join(' '), class: 'rline' })),
+    h('span.rmax', Math.max(...pts)), h('span.rmin', Math.min(...pts)));
+}
+
+function openingList(title, list) {
+  const most = list[0]?.n || 1;
+  return h('div.openings', h('h3', title),
+    list.length ? list.map((o) => h('div.opening',
+      h('div.oname', h('strong', o.name), h('span.muted', ` ${o.n} ${o.n === 1 ? 'parti' : 'partier'}`)),
+      h('div.obar', h('span', { style: { width: `${(100 * o.n) / most}%` } })),
+      h('div.owdl', h('span.up', `${pct(o.w, o.n)} % vinst`), ' · ', h('span.muted', `${pct(o.d, o.n)} % remi`), ' · ', h('span.down', `${pct(o.l, o.n)} % förlust`))))
+      : h('p.muted', 'Inga partier ännu.'));
+}
+
+export function profileView(ctx, rawName) {
+  const name = decodeURIComponent(rawName);
+  const el = h('div.stack', h('div.card.wide', h('p.muted', 'Laddar profilen…')));
+  let alive = true;
+
+  function load() {
+    api(`/api/users/${encodeURIComponent(name)}`).then(({ user, games, friend }) => {
+      if (!alive) return;
+      const s = compute(user, games);
+      const tile = (label, value, sub) => h('div.tile', h('strong', value), h('span', label), sub && h('small', sub));
+      const friendAct = (action) => api(`/api/friends/${action}`, { username: user.username }).then(load).catch((e) => alert(e.message));
+      const friendBtn = !state.user ? null
+        : friend === 'none' ? h('button.primary.small', { onclick: () => friendAct('request') }, 'Lägg till vän')
+        : friend === 'sent' ? h('span.muted', 'Vänförfrågan skickad')
+        : friend === 'incoming' ? h('button.primary.small', { onclick: () => friendAct('accept') }, 'Acceptera vänförfrågan')
+        : friend === 'accepted' ? h('span.gold', '✓ Vän') : null;
+
+      const header = h('div.card.wide.profilehead',
+        h('div.pmain',
+          h('h2', titleEl(user.title), ' ', user.username, user.trophies ? h('span.gold', { title: 'Vunna turneringar' }, ` 🏆${user.trophies > 1 ? '×' + user.trophies : ''}`) : null),
+          h('p.muted', h('span.presence' + (user.online ? '.online' : '')), user.playing ? ' Spelar just nu' : user.online ? ' Online' : ' Offline',
+            ` · Medlem sedan ${new Date(user.created_at).toLocaleDateString('sv-SE')}`),
+          friendBtn),
+        h('div.prate', h('strong', user.rating), h('span', 'Rating'), h('small', `Högsta: ${user.peak}`)));
+
+      const stats = h('div.card.wide',
+        h('h2', 'Statistik'),
+        h('p.muted', 'Gäller rankade partier mot andra spelare.'),
+        h('div.tiles',
+          tile('Partier', s.rated.n),
+          tile('Vinster', `${pct(s.rated.w, s.rated.n)} %`, `${s.rated.w} V · ${s.rated.d} R · ${s.rated.l} F`),
+          tile('Som vit', `${pct(s.color.w.w, s.color.w.n)} %`, `${s.color.w.n} ${s.color.w.n === 1 ? "parti" : "partier"}`),
+          tile('Som svart', `${pct(s.color.b.w, s.color.b.n)} %`, `${s.color.b.n} ${s.color.b.n === 1 ? "parti" : "partier"}`),
+          tile('Träffsäkerhet', s.accuracy != null ? s.accuracy.toFixed(1) : '–', 'snitt i analyserade partier'),
+          tile('Vinstsvit', s.streak, `längsta: ${s.longest}`),
+          s.best && tile('Bästa vinst', s.best.rating, `mot ${s.best.name}`)),
+        s.history.length > 1 && h('h3', 'Ratingutveckling'),
+        s.history.length > 1 && ratingGraph(s.history),
+        Object.keys(s.classes).length > 0 && h('h3', 'Per betänketid'),
+        Object.keys(s.classes).length > 0 && h('div.tablewrap', h('table',
+          h('thead', h('tr', ['Typ', 'Partier', 'V / R / F', 'Vinster'].map((t) => h('th', t)))),
+          h('tbody', ['Bullet', 'Blixt', 'Snabb'].filter((k) => s.classes[k]).map((k) => {
+            const c = s.classes[k];
+            return h('tr', h('td', h('strong', k)), h('td', c.n), h('td', `${c.w} / ${c.d} / ${c.l}`), h('td', `${pct(c.w, c.n)} %`));
+          })))));
+
+      const openings = h('div.card.wide',
+        h('h2', 'Mest spelade öppningar'),
+        h('p.muted', 'Räknat på alla partier, även mot datorn.'),
+        h('div.opencols', openingList('Som vit', s.openings.w), openingList('Som svart', s.openings.b)));
+
+      const rows = games.slice(0, 30).map((g) => {
+        const white = g.white_id === user.id;
+        const score = g.result === '1/2-1/2' ? 'Remi' : (g.result === '1-0') === white ? 'Vinst' : 'Förlust';
+        const [oppName, oppId, oppRating] = white ? [g.black_name, g.black_id, g.black_rating] : [g.white_name, g.white_id, g.white_rating];
+        const diff = white ? g.white_diff : g.black_diff;
+        return h('tr',
+          h('td', new Date(g.created_at).toLocaleDateString('sv-SE')),
+          h('td', h('span.avatar.' + (white ? 'white' : 'black')), ' ', oppId ? userLink(oppName) : oppName, h('span.prating', ` (${oppRating})`)),
+          h('td', h('span.res.' + { Vinst: 'up', Förlust: 'down', Remi: 'draw' }[score], score)),
+          h('td', g.rated ? h('span.' + (diff >= 0 ? 'up' : 'down'), `${diff >= 0 ? '+' : ''}${diff}`) : h('span.muted', 'orankat')),
+          h('td', g.tc || 'Dator'),
+          h('td', matchOpening(g.opening).name || '–'),
+          h('td', h('a.btn.small', { href: `/review/${g.id}` }, 'Se partiet')));
+      });
+      const gameList = h('div.card.wide',
+        h('h2', 'Senaste partierna'),
+        rows.length ? h('div.tablewrap', h('table',
+          h('thead', h('tr', ['Datum', 'Motståndare', 'Resultat', 'Rating', 'Tid', 'Öppning', ''].map((t) => h('th', t)))),
+          h('tbody', rows)))
+          : h('p.muted', 'Inga partier ännu.'));
+
+      el.replaceChildren(header, stats, openings, gameList);
+    }).catch((e) => {
+      if (alive) el.replaceChildren(h('div.card.narrow', h('h2', 'Profil'), h('p.error', e.message), h('a.btn', { href: '/top' }, 'Till topplistan')));
+    });
+  }
+  load();
+  return { el, destroy() { alive = false; } };
+}

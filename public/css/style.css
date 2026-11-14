@@ -205,3 +205,23 @@ tr.me td { background: #eedfae; }
 input.num { width: 68px; padding: 5px 6px; }
 .editbox { background: var(--panel2); border: 1px solid var(--line); border-radius: 3px; padding: 4px 14px 14px; }
 .legend { display: flex; flex-wrap: wrap; gap: 6px 18px; color: var(--muted); font-size: 14px; }
+
+/* Profil och statistik */
+a.user { color: inherit; font-weight: 700; } a.user:hover { color: var(--accent2); text-decoration: underline; }
+#userbox a.user { color: #fff5d6; } #userbox a.user:hover { color: #ffd76a; }
+.profilehead { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
+.profilehead h2 { font-size: 24px; }
+.prate { display: flex; flex-direction: column; align-items: center; background: var(--ink); color: var(--gold-light); border: 1px solid var(--gold); border-radius: 3px; padding: 10px 22px; }
+.prate strong { font-family: var(--display); font-size: 34px; line-height: 1.1; } .prate span { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; } .prate small { opacity: .75; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin-top: 10px; }
+.tile { background: var(--panel2); border: 1px solid var(--line); border-radius: 3px; padding: 10px 12px; display: flex; flex-direction: column; }
+.tile strong { font-family: var(--display); font-size: 24px; color: var(--accent); line-height: 1.2; }
+.tile span { font-size: 13px; font-weight: 700; } .tile small { color: var(--muted); font-size: 12px; }
+.rgraph { position: relative; height: 120px; background: #fffaf0; border: 1px solid var(--line); border-radius: 3px; padding: 8px 44px 8px 8px; }
+.rgraph svg { width: 100%; height: 100%; display: block; overflow: visible; }
+.rline { fill: none; stroke: var(--accent); stroke-width: 2; vector-effect: non-scaling-stroke; stroke-linejoin: round; }
+.rmax, .rmin { position: absolute; right: 8px; font-size: 12px; color: var(--muted); font-weight: 700; } .rmax { top: 4px; } .rmin { bottom: 4px; }
+.opencols { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 0 28px; }
+.opening { padding: 8px 0; border-bottom: 1px solid #dccfa9; }
+.obar { height: 6px; background: var(--panel2); border-radius: 3px; margin: 4px 0; overflow: hidden; } .obar span { display: block; height: 100%; background: var(--gold); }
+.owdl { font-size: 13px; }
