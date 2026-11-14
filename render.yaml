@@ -1,0 +1,14 @@
+# Inställningar för webbhotellet Render (gratisnivån).
+services:
+  - type: web
+    name: schackonline
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node server.js
+    healthCheckPath: /api/leaderboard
+    envVars:
+      - key: TURSO_DATABASE_URL
+        sync: false
+      - key: TURSO_AUTH_TOKEN
+        sync: false

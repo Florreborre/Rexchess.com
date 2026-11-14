@@ -1,0 +1,25 @@
+{
+  "name": "schackonline",
+  "version": "1.0.0",
+  "description": "Schack Online – spela schack online, mot datorn och analysera partier",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@libsql/client": "^0.18.0",
+    "chess.js": "^1.4.0",
+    "cm-chessboard": "^8.15.4",
+    "express": "^5.3.0",
+    "stockfish": "^19.0.1",
+    "ws": "^8.23.0"
+  },
+  "private": true,
+  "engines": {
+    "node": ">=22.13"
+  }
+}
