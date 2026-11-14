@@ -39,7 +39,7 @@ p { margin: 6px 0; }
 #nav a:hover, #nav a.active { color: #fff5d6; border-color: var(--gold); background: rgba(0, 0, 0, .22); }
 #nav a.live { color: #ffd76a; }
 #userbox { display: flex; align-items: center; gap: 10px; }
-.me { color: #e3cf9b; } .me strong { color: #fff5d6; }
+#userbox .me { color: #e3cf9b; } #userbox .me strong { color: #fff5d6; }
 main { flex: 1; width: 100%; max-width: 1180px; margin: 0 auto; padding: 24px 16px; }
 .foot { text-align: center; color: var(--muted); font-size: 12px; padding: 14px; border-top: 1px solid var(--line); }
 
@@ -197,3 +197,11 @@ tr.me td { background: #eedfae; }
   .side { margin-top: 0; }
   .gotw { grid-column: auto; }
 }
+
+/* Titlar och turneringsinställningar */
+.title { display: inline-block; font-family: var(--display); font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; line-height: 1.5;
+  background: linear-gradient(#8f2422, #6a1616); color: #fbecc0; border: 1px solid var(--gold); border-radius: 2px; padding: 0 5px; vertical-align: 1px; }
+#userbox .me .title { background: none; color: var(--gold-light); }
+input.num { width: 68px; padding: 5px 6px; }
+.editbox { background: var(--panel2); border: 1px solid var(--line); border-radius: 3px; padding: 4px 14px 14px; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; color: var(--muted); font-size: 14px; }

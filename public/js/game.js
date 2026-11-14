@@ -1,6 +1,6 @@
 // Spelvyer: lobby, onlineparti och parti mot datorn.
 import { Chess } from '/vendor/chess.js';
-import { h, state, api, fmtClock, REASONS, playSound, roman, go } from './util.js';
+import { h, state, api, fmtClock, REASONS, playSound, moveSound, roman, go } from './util.js';
 import { gotwCard, topCard } from './social.js';
 import { Board, parseFen } from './board.js';
 import { net, send, on } from './net.js';
@@ -9,12 +9,14 @@ import { BOTS, botMove } from './engine.js';
 const TCS = [['1+0', 'Bullet'], ['3+0', 'Blixt'], ['3+2', 'Blixt'], ['5+0', 'Blixt'], ['10+0', 'Snabb'], ['15+10', 'Snabb']];
 
 function playerBar() {
-  const name = h('span.pname'), rating = h('span.prating'), clock = h('span.clock');
-  const el = h('div.playerbar', h('div.pinfo', h('span.avatar'), name, rating), clock);
+  const name = h('span.pname'), rating = h('span.prating'), clock = h('span.clock'), title = h('span.title');
+  const el = h('div.playerbar', h('div.pinfo', h('span.avatar'), title, name, rating), clock);
   return {
     el, clock,
     set(p) {
       name.textContent = p.name;
+      title.textContent = p.title || '';
+      title.hidden = !p.title;
       rating.textContent = p.rating ? `(${p.rating})` : '';
       el.querySelector('.avatar').className = 'avatar ' + (p.color === 'w' ? 'white' : 'black');
       clock.hidden = !p.hasClock;
@@ -85,7 +87,7 @@ class GameScreen {
         this.fens.push(this.chess.fen());
       }
       this.viewPly = this.moves.length;
-      if (grew) playSound(this.hist.at(-1).captured ? 'capture' : 'move');
+      if (grew) playSound(moveSound(this.hist.at(-1)));
     }
     if (!model.movable && !model.premovable) this.premove = null;
     // Det har blivit vår tur: spela det förberedda draget om det fortfarande är lagligt.
@@ -197,6 +199,7 @@ export function onlineGameView() {
     return { el: h('div') };
   }
   let endSounded = !!net.game.over;
+  if (!net.game.over && !net.game.moves.length) playSound('start');
   const screen = new GameScreen({
     onMove(from, to, promotion) {
       const g = net.game;
@@ -308,7 +311,7 @@ export function botView(ctx) {
     },
   });
   const players = () => {
-    const me = { name: meName, rating: state.user?.rating, color: b.color };
+    const me = { name: meName, rating: state.user?.rating, title: state.user?.title, color: b.color };
     const it = { name: b.cfg.name, rating: b.cfg.rating, color: b.color === 'w' ? 'b' : 'w' };
     return { me, it };
   };
@@ -369,6 +372,7 @@ function botSetup(ctx) {
         onclick: () => {
           const mine = color === 'r' ? (Math.random() < 0.5 ? 'w' : 'b') : color;
           bot = { cfg: chosen, color: mine, moves: [], over: null, thinking: false, savedId: null, draw: null };
+          playSound('start');
           ctx.refresh();
         },
       }, `Spela mot ${chosen.name}`));

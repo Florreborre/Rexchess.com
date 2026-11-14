@@ -1,11 +1,24 @@
 // Vänlista, turneringar, veckans parti och topplistekort.
 import { Chess } from '/vendor/chess.js';
-import { h, state, api, REASONS, go } from './util.js';
+import { h, state, api, REASONS, go, titleEl } from './util.js';
 import { Board } from './board.js';
 import { net, send, on } from './net.js';
 
 const TCS = ['1+0', '3+0', '3+2', '5+0', '10+0', '15+10'];
 const select = (options, value) => h('select', options.map(([v, label]) => h('option', { value: v, selected: v === value }, label)));
+// Fält för turneringens tider: betänketid (minuter + sekunder per drag), längd och ev. minuter till start.
+function timeFields(init, withStart = true) {
+  const num = (value, min, max) => h('input.num', { type: 'number', min, max, value, required: true });
+  const [m, i] = init.tc.split('+');
+  const min = num(m, 1, 60), inc = num(i, 0, 30), dur = num(init.duration, 5, 240), start = num(init.startsIn, 0, 1440);
+  return {
+    row: h('div.formrow',
+      h('label', 'Betänketid ', min, ' min + ', inc, ' s per drag'),
+      h('label', 'Längd ', dur, ' min'),
+      withStart && h('label', 'Startar om ', start, ' min')),
+    values: () => ({ tc: `${Number(min.value)}+${Number(inc.value)}`, duration: Number(dur.value), startsIn: Number(start.value) }),
+  };
+}
 const loginPrompt = (title, text) => h('div.card.narrow', h('h2', title), h('p.muted', text), h('a.btn.primary', { href: '/login' }, 'Logga in / skapa konto'));
 
 // ---------- Veckans parti ----------
@@ -56,7 +69,7 @@ export function friendsView() {
   function row(f, buttons) {
     return h('div.friend',
       h('span.presence' + (f.online ? '.online' : ''), { title: f.online ? 'Online' : 'Offline' }),
-      h('strong', f.username), h('span.prating', ` (${f.rating})`),
+      titleEl(f.title), h('strong', f.username), h('span.prating', ` (${f.rating})`),
       f.playing && h('span.muted', ' · spelar'),
       h('span.spacer'), buttons);
   }
@@ -112,9 +125,7 @@ export function tournamentsView(ctx, showForm) {
     if (!state.user) stack.append(loginPrompt('Skapa en turnering', 'Du behöver ett konto för att skapa en turnering.'));
     else {
       const name = h('input', { placeholder: 'Turneringens namn', maxlength: 40, value: `${state.user.username}s arena` });
-      const tc = select(TCS.map((t) => [t, t]), '3+2');
-      const duration = select([10, 20, 30, 45, 60, 90, 120].map((d) => [d, `${d} min`]), 30);
-      const startsIn = select([1, 2, 5, 10, 15, 30, 60].map((d) => [d, `om ${d} min`]), 5);
+      const fields = timeFields({ tc: '3+2', duration: 30, startsIn: 5 });
       const err = h('p.error');
       stack.append(h('div.card.wide',
         h('h2', 'Skapa en turnering'),
@@ -123,13 +134,14 @@ export function tournamentsView(ctx, showForm) {
           onsubmit: async (e) => {
             e.preventDefault();
             try {
-              const { id } = await api('/api/tournaments', { name: name.value, tc: tc.value, duration: Number(duration.value), startsIn: Number(startsIn.value) });
+              const { id } = await api('/api/tournaments', { name: name.value, ...fields.values() });
               go(`/tournament/${id}`);
             } catch (ex) { err.textContent = ex.message; }
           },
         },
         name,
-        h('div.formrow', h('label', 'Betänketid ', tc), h('label', 'Längd ', duration), h('label', 'Start ', startsIn)),
+        fields.row,
+        h('p.muted', 'Du kan ändra tiderna i efterhand på turneringens sida.'),
         err,
         h('button.primary.big', { type: 'submit' }, 'Skapa en turnering'))));
     }
@@ -157,7 +169,7 @@ export function tournamentsView(ctx, showForm) {
 
 export function tournamentView(ctx, id) {
   const el = h('div.card.wide', h('p.muted', 'Laddar turneringen…'));
-  let data = null, offset = 0, alive = true;
+  let data = null, offset = 0, alive = true, editForm = null;
   const status = h('p.tstatus');
 
   const tick = () => { if (data) status.textContent = statusText(data.tournament, Date.now() + offset); };
@@ -177,6 +189,27 @@ export function tournamentView(ctx, id) {
     const { tournament: t, players, games, joined } = data;
     const act = (action) => api(`/api/tournaments/${t.id}/${action}`, {}).then(load).catch((e) => alert(e.message));
     const playing = net.game && !net.game.over;
+    // Skaparen kan ändra tiderna: allt före start, betänketid och längd under spel.
+    const openEdit = () => {
+      const fields = timeFields({ tc: t.tc, duration: t.duration, startsIn: Math.max(0, Math.round((t.starts_at - (Date.now() + offset)) / 60000)) }, t.status === 'open');
+      const err = h('p.error');
+      editForm = h('form.editbox', {
+        onsubmit: async (e) => {
+          e.preventDefault();
+          try {
+            await api(`/api/tournaments/${t.id}/edit`, fields.values());
+            editForm = null;
+            load();
+          } catch (ex) { err.textContent = ex.message; }
+        },
+      },
+      h('h3', 'Ändra tider'), fields.row,
+      t.status === 'running' && h('p.muted', 'Ny betänketid gäller partier som startar efter ändringen. Längden räknas från turneringens start.'),
+      err,
+      h('div.btnrow', h('button.primary', { type: 'submit' }, 'Spara'), h('button', { type: 'button', onclick: () => { editForm = null; draw(); } }, 'Avbryt')));
+      draw();
+    };
+    const canEdit = state.user?.id === t.creator_id && t.status !== 'finished';
     let action;
     if (!state.user) action = h('a.btn.primary', { href: '/login' }, 'Logga in för att delta');
     else if (t.status === 'finished') action = null;
@@ -191,11 +224,12 @@ export function tournamentView(ctx, id) {
       status,
       t.status === 'finished' && players[0]?.games > 0 && h('p.winner', `🏆 Segrare: ${players[0].username} med ${players[0].score} poäng`),
       action,
+      canEdit && (editForm || h('button', { onclick: openEdit }, 'Ändra tider')),
       h('h3', `Ställning (${players.length} spelare)`),
       players.length ? h('div.tablewrap', h('table',
         h('thead', h('tr', ['#', 'Spelare', 'Poäng', 'Partier', 'V / R / F'].map((x) => h('th', x)))),
         h('tbody', players.map((p, i) => h('tr' + (p.id === state.user?.id ? '.me' : ''),
-          h('td', i + 1), h('td', h('strong', p.username), h('span.prating', ` (${p.rating})`)), h('td', h('strong', p.score)),
+          h('td', i + 1), h('td', titleEl(p.title), ' ', h('strong', p.username), h('span.prating', ` (${p.rating})`)), h('td', h('strong', p.score)),
           h('td', p.games), h('td', `${p.wins} / ${p.draws} / ${p.losses}`))))))
         : h('p.muted', 'Inga anmälda ännu.'),
       games.length && h('h3', 'Senaste partierna'),

@@ -65,11 +65,13 @@ const SCHEMA = `
   );
 `;
 const TABLES = ['users', 'sessions', 'games', 'friendships', 'tournaments', 'tournament_players'];
-const EXTRA_GAME_COLUMNS = ['tournament_id TEXT', 'white_acc REAL', 'black_acc REAL', 'quality REAL'];
+const EXTRA_COLUMNS = [['games', 'tournament_id TEXT'], ['games', 'white_acc REAL'], ['games', 'black_acc REAL'], ['games', 'quality REAL'],
+  ['users', `peak INTEGER NOT NULL DEFAULT ${START_RATING}`], ['users', 'trophies INTEGER NOT NULL DEFAULT 0']];
 db.exec(SCHEMA);
-for (const col of EXTRA_GAME_COLUMNS) {
-  try { db.exec(`ALTER TABLE games ADD COLUMN ${col}`); } catch { /* kolumnen finns redan */ }
+for (const [table, col] of EXTRA_COLUMNS) {
+  try { db.exec(`ALTER TABLE ${table} ADD COLUMN ${col}`); } catch { /* kolumnen finns redan */ }
 }
+db.exec('UPDATE users SET peak = rating WHERE peak < rating'); // konton från före titlarna: börja från nuvarande rating
 
 const q = {
   userByName: db.prepare('SELECT * FROM users WHERE username = ?'),
@@ -78,10 +80,12 @@ const q = {
   insertSession: db.prepare('INSERT INTO sessions (token_hash, user_id, created_at) VALUES (?, ?, ?)'),
   sessionUser: db.prepare('SELECT u.* FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token_hash = ?'),
   deleteSession: db.prepare('DELETE FROM sessions WHERE token_hash = ?'),
-  updateStats: db.prepare('UPDATE users SET rating = ?, games = games + 1, wins = wins + ?, losses = losses + ?, draws = draws + ? WHERE id = ?'),
+  updateStats: db.prepare('UPDATE users SET rating = ?1, peak = MAX(peak, ?1), games = games + 1, wins = wins + ?2, losses = losses + ?3, draws = draws + ?4 WHERE id = ?5'),
+  addTrophy: db.prepare('UPDATE users SET trophies = trophies + 1 WHERE id = ?'),
+  tUpdate: db.prepare('UPDATE tournaments SET tc = ?, duration = ?, starts_at = ?, ends_at = ? WHERE id = ?'),
   insertGame: db.prepare(`INSERT INTO games (id, white_id, black_id, white_name, black_name, white_rating, black_rating,
     white_diff, black_diff, result, reason, moves, pgn, tc, rated, created_at, tournament_id) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`),
-  friendRows: db.prepare(`SELECT u.id, u.username, u.rating, f.status, f.user_id AS requester FROM friendships f
+  friendRows: db.prepare(`SELECT u.id, u.username, u.rating, u.peak, u.games, f.status, f.user_id AS requester FROM friendships f
     JOIN users u ON u.id = CASE WHEN f.user_id = ?1 THEN f.friend_id ELSE f.user_id END WHERE f.user_id = ?1 OR f.friend_id = ?1`),
   friendship: db.prepare('SELECT * FROM friendships WHERE (user_id = ?1 AND friend_id = ?2) OR (user_id = ?2 AND friend_id = ?1)'),
   insertFriend: db.prepare("INSERT INTO friendships (user_id, friend_id, status, created_at) VALUES (?, ?, 'pending', ?)"),
@@ -93,7 +97,7 @@ const q = {
   tActive: db.prepare("SELECT * FROM tournaments WHERE status IN ('open', 'running')"),
   tInsert: db.prepare("INSERT INTO tournaments (id, name, tc, duration, creator_id, creator_name, status, starts_at, ends_at, created_at) VALUES (?,?,?,?,?,?,'open',?,?,?)"),
   tStatus: db.prepare('UPDATE tournaments SET status = ?, ends_at = ? WHERE id = ?'),
-  tPlayers: db.prepare(`SELECT u.id, u.username, u.rating, p.score, p.games, p.wins, p.draws, p.losses FROM tournament_players p
+  tPlayers: db.prepare(`SELECT u.id, u.username, u.rating, u.peak, u.games AS total_games, u.trophies, p.score, p.games, p.wins, p.draws, p.losses FROM tournament_players p
     JOIN users u ON u.id = p.user_id WHERE p.tournament_id = ? ORDER BY p.score DESC, p.wins DESC, u.rating DESC`),
   tPlayer: db.prepare('SELECT * FROM tournament_players WHERE tournament_id = ? AND user_id = ?'),
   tJoin: db.prepare('INSERT OR IGNORE INTO tournament_players (tournament_id, user_id) VALUES (?, ?)'),
@@ -106,7 +110,7 @@ const q = {
   gamesForUser: db.prepare(`SELECT id, white_id, black_id, white_name, black_name, white_rating, black_rating, white_diff, black_diff,
     result, reason, tc, rated, created_at, moves FROM games WHERE white_id = ?1 OR black_id = ?1 ORDER BY created_at DESC LIMIT 100`),
   gameById: db.prepare('SELECT * FROM games WHERE id = ?'),
-  leaderboard: db.prepare('SELECT username, rating, games, wins, losses, draws FROM users ORDER BY rating DESC, games DESC LIMIT 50'),
+  leaderboard: db.prepare('SELECT username, rating, peak, trophies, games, wins, losses, draws FROM users ORDER BY rating DESC, games DESC LIMIT 50'),
 };
 
 // ---------- Spegling till Turso ----------
@@ -147,7 +151,7 @@ async function flushMirror() {
   mirroring = false;
 }
 for (const name of ['insertUser', 'insertSession', 'deleteSession', 'updateStats', 'insertGame', 'insertFriend', 'acceptFriend',
-  'deleteFriend', 'tInsert', 'tStatus', 'tJoin', 'tLeave', 'tScore', 'setQuality']) {
+  'deleteFriend', 'tInsert', 'tStatus', 'tJoin', 'tLeave', 'tScore', 'setQuality', 'addTrophy', 'tUpdate']) {
   const stmt = q[name];
   q[name] = {
     run(...args) {
@@ -163,9 +167,10 @@ for (const name of ['insertUser', 'insertSession', 'deleteSession', 'updateStats
 async function restoreFromRemote() {
   if (!remote) return;
   await remote.executeMultiple(SCHEMA);
-  for (const col of EXTRA_GAME_COLUMNS) {
-    try { await remote.execute(`ALTER TABLE games ADD COLUMN ${col}`); } catch { /* kolumnen finns redan */ }
+  for (const [table, col] of EXTRA_COLUMNS) {
+    try { await remote.execute(`ALTER TABLE ${table} ADD COLUMN ${col}`); } catch { /* kolumnen finns redan */ }
   }
+  await remote.execute('UPDATE users SET peak = rating WHERE peak < rating');
   if (db.prepare('SELECT COUNT(*) AS c FROM users').get().c > 0) return; // lokal data finns redan – rör den inte
   let total = 0;
   for (const table of TABLES) {
@@ -186,7 +191,14 @@ async function restoreFromRemote() {
 const sha256 = (s) => crypto.createHash('sha256').update(s).digest('hex');
 const hashPassword = (pw, salt) =>
   new Promise((res, rej) => crypto.scrypt(pw, salt, 64, (e, buf) => (e ? rej(e) : res(buf.toString('hex')))));
-const publicUser = (u) => u && { id: u.id, username: u.username, rating: u.rating, games: u.games, wins: u.wins, losses: u.losses, draws: u.draws };
+// Titlar: bygger på spelarens högsta rating någonsin, så en titel man har fått behåller man. Kräver minst 5 rankade partier.
+const TITLES = [[2400, 'Imperator'], [2200, 'Consul'], [2000, 'Praetor'], [1800, 'Legatus'], [1600, 'Tribunus'], [1400, 'Centurio'], [1200, 'Decurio'], [1000, 'Miles']];
+function titleFor(peak, games) {
+  if (games < 5) return 'Tiro';
+  return (TITLES.find(([min]) => peak >= min) || [0, 'Tiro'])[1];
+}
+const publicUser = (u) => u && { id: u.id, username: u.username, rating: u.rating, peak: u.peak, title: titleFor(u.peak, u.games), trophies: u.trophies,
+  games: u.games, wins: u.wins, losses: u.losses, draws: u.draws };
 
 function parseCookies(header) {
   const out = {};
@@ -282,7 +294,7 @@ app.post('/api/logout', (req, res) => {
 });
 
 app.get('/api/me', (req, res) => res.json({ user: publicUser(req.user) || null }));
-app.get('/api/leaderboard', (req, res) => res.json({ players: q.leaderboard.all() }));
+app.get('/api/leaderboard', (req, res) => res.json({ players: q.leaderboard.all().map((p) => ({ ...p, title: titleFor(p.peak, p.games) })) }));
 
 app.get('/api/games', (req, res) => {
   if (!req.user) return res.status(401).json({ error: 'Inte inloggad.' });
@@ -334,7 +346,7 @@ function needUser(req, res) {
 app.get('/api/friends', (req, res) => {
   if (!needUser(req, res)) return;
   const rows = q.friendRows.all(req.user.id);
-  const pub = (r) => ({ username: r.username, rating: r.rating, online: sockets.has(r.id), playing: activeGame.has(r.id) });
+  const pub = (r) => ({ username: r.username, rating: r.rating, title: titleFor(r.peak, r.games), online: sockets.has(r.id), playing: activeGame.has(r.id) });
   res.json({
     friends: rows.filter((r) => r.status === 'accepted').map(pub).sort((a, b) => b.online - a.online || a.username.localeCompare(b.username)),
     incoming: rows.filter((r) => r.status === 'pending' && r.requester !== req.user.id).map(pub),
@@ -370,15 +382,22 @@ app.post('/api/friends/:action', (req, res) => {
 });
 
 // ---------- Turneringar (arena: man paras ihop om och om igen tills tiden är ute) ----------
-const T_DURATIONS = [10, 20, 30, 45, 60, 90, 120];
-const T_STARTS = [1, 2, 5, 10, 15, 30, 60];
+// Betänketid "minuter+sekunder per drag", t.ex. 3+2. Turneringar får välja fritt: 1–60 minuter och 0–30 sekunders tillägg.
+function parseTc(tc) {
+  const m = /^(\d{1,2})\+(\d{1,2})$/.exec(String(tc));
+  if (!m) return null;
+  const [min, inc] = [Number(m[1]), Number(m[2])];
+  return min >= 1 && min <= 60 && inc <= 30 ? [min * 60, inc] : null;
+}
+const validDuration = (d) => Number.isInteger(d) && d >= 5 && d <= 240;
+const validStartsIn = (s) => Number.isInteger(s) && s >= 0 && s <= 1440;
 app.get('/api/tournaments', (req, res) => res.json({ tournaments: q.tList.all(), now: Date.now() }));
 app.post('/api/tournaments', (req, res) => {
   if (!needUser(req, res)) return;
   const name = String(req.body?.name || '').trim();
   const { tc, duration, startsIn } = req.body || {};
   if (name.length < 3 || name.length > 40) return res.status(400).json({ error: 'Namnet måste vara 3–40 tecken.' });
-  if (!TIME_CONTROLS[tc] || !T_DURATIONS.includes(duration) || !T_STARTS.includes(startsIn))
+  if (!parseTc(tc) || !validDuration(duration) || !validStartsIn(startsIn))
     return res.status(400).json({ error: 'Ogiltiga inställningar.' });
   const id = crypto.randomBytes(5).toString('hex');
   const starts = Date.now() + startsIn * 60000;
@@ -392,7 +411,7 @@ app.get('/api/tournaments/:id', (req, res) => {
   const t = q.tById.get(String(req.params.id));
   if (!t) return res.status(404).json({ error: 'Turneringen finns inte.' });
   res.json({
-    tournament: t, players: q.tPlayers.all(t.id), games: q.tGames.all(t.id), now: Date.now(),
+    tournament: t, players: q.tPlayers.all(t.id).map((p) => ({ ...p, title: titleFor(p.peak, p.total_games) })), games: q.tGames.all(t.id), now: Date.now(),
     joined: !!(req.user && q.tPlayer.get(t.id, req.user.id)),
   });
 });
@@ -400,6 +419,25 @@ app.post('/api/tournaments/:id/:action', (req, res) => {
   if (!needUser(req, res)) return;
   const t = q.tById.get(String(req.params.id));
   if (!t) return res.status(404).json({ error: 'Turneringen finns inte.' });
+  if (req.params.action === 'edit') {
+    // Bara skaparen får ändra tiderna. Före start: betänketid, längd och starttid. Under spel: betänketid (för nya partier) och längd.
+    if (t.creator_id !== req.user.id) return res.status(403).json({ error: 'Bara den som skapade turneringen kan ändra den.' });
+    if (t.status === 'finished') return res.status(400).json({ error: 'Turneringen är slut.' });
+    const { tc, duration, startsIn } = req.body || {};
+    if (!parseTc(tc) || !validDuration(duration)) return res.status(400).json({ error: 'Ogiltiga tider.' });
+    let starts = t.starts_at;
+    if (t.status === 'open') {
+      if (!validStartsIn(startsIn)) return res.status(400).json({ error: 'Ogiltig starttid.' });
+      starts = Date.now() + startsIn * 60000;
+    }
+    const begun = t.status === 'open' ? starts : t.ends_at - t.duration * 60000;
+    const ends = begun + duration * 60000;
+    if (t.status === 'running' && ends <= Date.now()) return res.status(400).json({ error: 'Den längden har redan passerats. Välj en längre tid.' });
+    q.tUpdate.run(tc, duration, starts, ends, t.id);
+    scheduleTournament(q.tById.get(t.id));
+    broadcastAll({ t: 'tournament', id: t.id });
+    return res.json({ ok: true });
+  }
   if (req.params.action === 'join') {
     if (t.status === 'finished') return res.status(400).json({ error: 'Turneringen är slut.' });
     q.tJoin.run(t.id, req.user.id);
@@ -515,6 +553,8 @@ function finishTournament(id) {
   const t = q.tById.get(id);
   if (!t || t.status === 'finished') return;
   q.tStatus.run('finished', t.ends_at, id);
+  const winner = q.tPlayers.all(id)[0];
+  if (winner && winner.games > 0) q.addTrophy.run(winner.id);
   tReady.delete(id);
   broadcastAll({ t: 'tournament', id });
 }
@@ -608,10 +648,11 @@ async function runAnalysisQueue() {
 function createGame(aId, bId, tc, tournamentId = null) {
   const [wId, bIdd] = Math.random() < 0.5 ? [aId, bId] : [bId, aId];
   const [w, b] = [q.userById.get(wId), q.userById.get(bIdd)];
-  const [base, inc] = TIME_CONTROLS[tc];
+  const [base, inc] = TIME_CONTROLS[tc] || parseTc(tc);
   const g = {
     id: crypto.randomBytes(6).toString('hex'), tc, inc: inc * 1000, chess: new Chess(),
-    white: { id: w.id, name: w.username, rating: w.rating }, black: { id: b.id, name: b.username, rating: b.rating },
+    white: { id: w.id, name: w.username, rating: w.rating, title: titleFor(w.peak, w.games) },
+    black: { id: b.id, name: b.username, rating: b.rating, title: titleFor(b.peak, b.games) },
     clocks: { w: base * 1000, b: base * 1000 }, lastTs: Date.now(), drawOffer: null, over: null, timer: null, tournamentId,
   };
   cancelSeek(w.id);

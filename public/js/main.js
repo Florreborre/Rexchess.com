@@ -1,6 +1,6 @@
 // Startpunkt: router, navigering, inloggning, partihistorik och topplista.
 import { Chess } from '/vendor/chess.js';
-import { h, state, api, go } from './util.js';
+import { h, state, api, go, titleEl } from './util.js';
 import { net, connect, disconnect, on } from './net.js';
 import { lobbyView, onlineGameView, botView } from './game.js';
 import { reviewView } from './review.js';
@@ -48,7 +48,7 @@ function renderNav() {
     net.game && !net.game.over ? h('a.live', { href: '/game' }, '● Pågående parti') : '');
   const box = document.getElementById('userbox');
   if (state.user) {
-    box.replaceChildren(h('span.me', h('strong', state.user.username), ` ${state.user.rating}`),
+    box.replaceChildren(h('span.me', titleEl(state.user.title), ' ', h('strong', state.user.username), ` ${state.user.rating}`),
       h('button.small', {
         onclick: async () => {
           await api('/api/logout', {});
@@ -62,7 +62,9 @@ function renderNav() {
 }
 
 async function refreshMe() {
+  const before = state.user?.title;
   state.user = (await api('/api/me')).user;
+  if (before && state.user && state.user.title !== before) toast([h('p', 'Ny titel! Du är nu ', titleEl(state.user.title))], 10000);
   renderNav();
 }
 
@@ -147,10 +149,15 @@ function leaderboardView() {
   api('/api/leaderboard').then(({ players }) => {
     el.replaceChildren(h('h2', 'Topplista'),
       players.length ? h('div.tablewrap', h('table',
-        h('thead', h('tr', ['#', 'Spelare', 'Rating', 'Partier', 'V / R / F'].map((t) => h('th', t)))),
+        h('thead', h('tr', ['#', 'Spelare', 'Titel', 'Rating', 'Partier', 'V / R / F'].map((t) => h('th', t)))),
         h('tbody', players.map((p, i) => h('tr' + (p.username === state.user?.username ? '.me' : ''),
-          h('td', i + 1), h('td', h('strong', p.username)), h('td', p.rating), h('td', p.games), h('td', `${p.wins} / ${p.draws} / ${p.losses}`))))))
-        : h('p.muted', 'Inga spelare ännu. Skapa ett konto och bli först!'));
+          h('td', i + 1), h('td', h('strong', p.username), p.trophies ? h('span.gold', { title: 'Vunna turneringar' }, ` 🏆${p.trophies > 1 ? '×' + p.trophies : ''}`) : null),
+          h('td', titleEl(p.title)), h('td', p.rating), h('td', p.games), h('td', `${p.wins} / ${p.draws} / ${p.losses}`))))))
+        : h('p.muted', 'Inga spelare ännu. Skapa ett konto och bli först!'),
+      h('h3', 'Titlar'),
+      h('p.muted', 'Titeln bygger på din högsta rating någonsin, så en titel du har nått behåller du. Du behöver minst 5 rankade partier; innan dess är du Tiro (rekryt). 🏆 visar vunna turneringar.'),
+      h('div.legend', [['Tiro', 'under 1000'], ['Miles', '1000'], ['Decurio', '1200'], ['Centurio', '1400'], ['Tribunus', '1600'], ['Legatus', '1800'], ['Praetor', '2000'], ['Consul', '2200'], ['Imperator', '2400']]
+        .map(([t, r]) => h('span', titleEl(t), ` ${r}`))));
   }).catch(() => {});
   return { el };
 }

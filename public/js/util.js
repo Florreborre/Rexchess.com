@@ -61,6 +61,11 @@ export function go(path) {
   setTimeout(() => window.dispatchEvent(new PopStateEvent('popstate')));
 }
 
+// Litet märke med spelarens titel (Tiro, Miles, Decurio …).
+export function titleEl(title) {
+  return title ? h('span.title', { title: 'Titel' }, title) : null;
+}
+
 export function roman(n) {
   let out = '';
   for (const [v, s] of [[1000, 'M'], [900, 'CM'], [500, 'D'], [400, 'CD'], [100, 'C'], [90, 'XC'], [50, 'L'], [40, 'XL'], [10, 'X'], [9, 'IX'], [5, 'V'], [4, 'IV'], [1, 'I']]) {
@@ -69,17 +74,83 @@ export function roman(n) {
   return out;
 }
 
-let audio;
+// Ljud: görs direkt i webbläsaren. Ett drag låter som en träpjäs som sätts ner på brädet –
+// en kort brusstöt genom ett filter (själva "klacket") plus en dov ton (brädets resonans).
+let audio, noise;
+function audioCtx() {
+  audio ??= new (window.AudioContext || window.webkitAudioContext)();
+  if (audio.state === 'suspended') audio.resume();
+  return audio;
+}
+function knock(t, { freq = 950, gain = 0.55, decay = 0.055, thump = 150 } = {}) {
+  const a = audioCtx();
+  if (!noise) {
+    noise = a.createBuffer(1, Math.floor(a.sampleRate * 0.25), a.sampleRate);
+    const d = noise.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+  }
+  const src = a.createBufferSource(), band = a.createBiquadFilter(), g = a.createGain();
+  src.buffer = noise;
+  band.type = 'bandpass';
+  band.frequency.value = freq;
+  band.Q.value = 2.2;
+  g.gain.setValueAtTime(gain, t);
+  g.gain.exponentialRampToValueAtTime(0.001, t + decay);
+  src.connect(band).connect(g).connect(a.destination);
+  src.start(t, Math.random() * 0.1);
+  src.stop(t + decay + 0.02);
+  const o = a.createOscillator(), og = a.createGain();
+  o.frequency.setValueAtTime(thump * 1.7, t);
+  o.frequency.exponentialRampToValueAtTime(thump, t + 0.045);
+  og.gain.setValueAtTime(gain * 0.8, t);
+  og.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
+  o.connect(og).connect(a.destination);
+  o.start(t);
+  o.stop(t + 0.11);
+}
+function chime(t, freq, dur, gain = 0.09) {
+  const a = audioCtx(), o = a.createOscillator(), g = a.createGain();
+  o.type = 'sine';
+  o.frequency.value = freq;
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(gain, t + 0.01);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  o.connect(g).connect(a.destination);
+  o.start(t);
+  o.stop(t + dur + 0.02);
+}
+// kind: move | capture | castle | check | promote | start | end
 export function playSound(kind = 'move') {
   try {
-    audio ??= new (window.AudioContext || window.webkitAudioContext)();
-    const o = audio.createOscillator(), g = audio.createGain();
-    o.type = 'triangle';
-    o.frequency.value = kind === 'capture' ? 190 : kind === 'end' ? 520 : 300;
-    g.gain.setValueAtTime(0.18, audio.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.001, audio.currentTime + (kind === 'end' ? 0.5 : 0.09));
-    o.connect(g).connect(audio.destination);
-    o.start();
-    o.stop(audio.currentTime + 0.5);
+    const t = audioCtx().currentTime + 0.005;
+    if (kind === 'capture') { // två pjäser som slår ihop: ett vasst klack följt av ett tyngre
+      knock(t, { freq: 1500, gain: 0.7, decay: 0.04, thump: 190 });
+      knock(t + 0.05, { freq: 750, gain: 0.6, decay: 0.08, thump: 115 });
+    } else if (kind === 'castle') { // kung och torn: två drag i följd
+      knock(t);
+      knock(t + 0.12, { freq: 1050, thump: 135 });
+    } else if (kind === 'check') {
+      knock(t, { freq: 1150, gain: 0.65 });
+      chime(t + 0.03, 1320, 0.22, 0.05);
+    } else if (kind === 'promote') {
+      knock(t);
+      chime(t + 0.04, 784, 0.15, 0.06);
+      chime(t + 0.13, 1175, 0.3, 0.06);
+    } else if (kind === 'start') {
+      knock(t, { freq: 800 });
+      knock(t + 0.14, { freq: 1000 });
+    } else if (kind === 'end') { // dov klocka
+      knock(t, { freq: 600, gain: 0.5, decay: 0.09, thump: 100 });
+      chime(t + 0.02, 392, 1.1, 0.09);
+      chime(t + 0.02, 587, 0.9, 0.05);
+    } else knock(t);
   } catch { /* ljud är inte viktigt */ }
+}
+
+// Ljudet för ett drag, utifrån chess.js dragobjekt.
+export function moveSound(mv) {
+  if (/[+#]/.test(mv.san)) return 'check';
+  if (mv.san.startsWith('O-O')) return 'castle';
+  if (mv.promotion) return 'promote';
+  return mv.captured ? 'capture' : 'move';
 }
