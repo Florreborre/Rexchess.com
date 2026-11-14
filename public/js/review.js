@@ -1,6 +1,6 @@
 // Partianalys: Stockfish går igenom varje ställning, varje drag bedöms och spelarna får en träffsäkerhet.
 import { Chess } from '/vendor/chess.js';
-import { h, svg, state, api, REASONS, roman } from './util.js';
+import { h, svg, state, api, REASONS, roman, go as navigate } from './util.js';
 import { Board } from './board.js';
 import { getEngine } from './engine.js';
 import { matchOpening } from './openings.js';
@@ -301,6 +301,12 @@ function mount(root, src) {
       for (let i = ply; i < n; i++) if (KEY_CLASSES.includes(marks[i].cls)) return go(i + 1);
       go(n);
     };
+    // Spelarens egna misstag som övningsuppgifter (alla misstag om det inte är ens eget parti).
+    const mistakes = () => {
+      const mine = state.user && src.white?.name === state.user.username ? 'w' : state.user && src.black?.name === state.user.username ? 'b' : null;
+      return marks.map((m, k) => ({ m, k })).filter(({ m, k }) => ['mistake', 'miss', 'blunder'].includes(m.cls) && pos[k].best && (!mine || hist[k].color === mine))
+        .map(({ m, k }) => ({ fen: fens[k], best: pos[k].best, played: hist[k].san, label: CLASSES[m.cls].phrase }));
+    };
     const header = h('div.revhead',
       h('h2', 'Partianalys'),
       h('label.depth', 'Djup ', h('select', { onchange: (e) => { depth = Number(e.target.value); getEngine().stop(); analyse(); } },
@@ -319,7 +325,8 @@ function mount(root, src) {
     } else {
       progressEl = null;
       side.replaceChildren(...[header, ply === 0 ? summary() : null, comment(), graph(), moveList(), nav,
-        h('button.primary', { onclick: nextKey, disabled: ply >= n }, 'Nästa nyckeldrag ▶')].filter(Boolean));
+        h('button.primary', { onclick: nextKey, disabled: ply >= n }, 'Nästa nyckeldrag ▶'),
+        mistakes().length > 0 && h('button', { onclick: () => { state.training = mistakes(); navigate('/train'); } }, `Träna på misstagen (${mistakes().length})`)].filter(Boolean));
     }
     side.querySelector('.mv.current')?.scrollIntoView({ block: 'nearest' });
   }

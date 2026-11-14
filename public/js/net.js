@@ -13,6 +13,7 @@ export function connect() {
     const m = JSON.parse(e.data);
     if (m.t === 'game') { net.game = m.game; net.game.at = performance.now(); net.seeking = null; }
     if (m.t === 'seeking') net.seeking = m.tc;
+    if (m.t === 'watch' && m.game) m.game.at = performance.now();
     emit(m);
   };
   ws.onclose = () => {

@@ -3,6 +3,7 @@ import { Chess } from '/vendor/chess.js';
 import { h, state, api, REASONS, go, titleEl, userLink } from './util.js';
 import { Board } from './board.js';
 import { net, send, on } from './net.js';
+import { chatBox } from './chat.js';
 
 const TCS = ['1+0', '2+1', '3+0', '3+2', '5+0', '5+3', '10+0', '10+5', '15+10'];
 const select = (options, value) => h('select', options.map(([v, label]) => h('option', { value: v, selected: v === value }, label)));
@@ -114,7 +115,7 @@ function statusText(t, now) {
     return s >= 60 ? `${Math.floor(s / 60)} min ${s % 60} s` : `${s} s`;
   };
   if (t.status === 'open') return `Startar om ${mins(t.starts_at - now)}`;
-  if (t.status === 'running') return `Pågår – ${mins(t.ends_at - now)} kvar`;
+  if (t.status === 'running') return t.format && t.format !== 'arena' ? `Pågår – runda ${t.round}${t.format === 'swiss' ? ` av ${t.rounds}` : ''}` : `Pågår – ${mins(t.ends_at - now)} kvar`;
   return 'Avslutad';
 }
 
@@ -126,6 +127,8 @@ export function tournamentsView(ctx, showForm) {
     else {
       const name = h('input', { placeholder: 'Turneringens namn', maxlength: 40, value: `${state.user.username}s arena` });
       const fields = timeFields({ tc: '3+2', duration: 30, startsIn: 5 });
+      const format = select([['arena', 'Arena'], ['swiss', 'Schweizer'], ['knockout', 'Utslagning']], 'arena');
+      const rounds = h('input.num', { type: 'number', min: 2, max: 9, value: 5 });
       const err = h('p.error');
       stack.append(h('div.card.wide',
         h('h2', 'Skapa en turnering'),
@@ -134,12 +137,14 @@ export function tournamentsView(ctx, showForm) {
           onsubmit: async (e) => {
             e.preventDefault();
             try {
-              const { id } = await api('/api/tournaments', { name: name.value, ...fields.values() });
+              const { id } = await api('/api/tournaments', { name: name.value, ...fields.values(), format: format.value, rounds: Number(rounds.value) });
               go(`/tournament/${id}`);
             } catch (ex) { err.textContent = ex.message; }
           },
         },
         name,
+        h('div.formrow', h('label', 'Format ', format), h('label', 'Rundor (schweizer) ', rounds)),
+        h('p.muted', 'Schweizer: alla spelar ett fast antal rundor mot motståndare med liknande poäng. Utslagning: förloraren åker ut, och vid remi går svart vidare. I båda startar nästa runda när alla partier är klara, och längden nedan används inte.'),
         fields.row,
         h('p.muted', 'Skriv 0 vid "Startar om" för att starta direkt. Du kan också starta i förtid eller ändra tiderna på turneringens sida.'),
         err,
@@ -169,7 +174,7 @@ export function tournamentsView(ctx, showForm) {
 
 export function tournamentView(ctx, id) {
   const el = h('div.card.wide', h('p.muted', 'Laddar turneringen…'));
-  let data = null, offset = 0, alive = true, editForm = null;
+  let data = null, offset = 0, alive = true, editForm = null, chat = null;
   const status = h('p.tstatus');
 
   const tick = () => { if (data) status.textContent = statusText(data.tournament, Date.now() + offset); };
@@ -216,11 +221,12 @@ export function tournamentView(ctx, id) {
     else if (!joined) action = h('button.primary', { onclick: () => act('join') }, 'Gå med');
     else if (t.status === 'open') action = h('div.btnrow', h('span.gold', '✓ Du är anmäld'), h('button', { onclick: () => act('leave') }, 'Lämna'));
     else if (playing) action = h('a.btn.primary', { href: '/game' }, 'Till ditt parti');
+    else if (t.format !== 'arena') action = h('div.seeking', h('span.spinner'), 'Nästa runda startar automatiskt när alla partier är klara. Du skickas till ditt parti.');
     else action = h('div.seeking', h('span.spinner'), 'Väntar på motståndare – du paras ihop automatiskt. Stanna kvar på sidan.');
     tick();
     el.replaceChildren(...[
       h('div.revhead', h('h2', t.name), h('a.btn.small', { href: '/tournaments' }, 'Alla turneringar')),
-      h('p.muted', `Arena · ${t.tc} · ${t.duration} min · skapad av ${t.creator_name}`),
+      h('p.muted', `${{ arena: 'Arena', swiss: `Schweizer, ${t.rounds} rundor`, knockout: 'Utslagning' }[t.format] || 'Arena'} · ${t.tc}${t.format === 'arena' ? ` · ${t.duration} min` : ''} · skapad av ${t.creator_name}`),
       status,
       t.status === 'finished' && players[0]?.games > 0 && h('p.winner', `🏆 Segrare: ${players[0].username} med ${players[0].score} poäng`),
       action,
@@ -232,13 +238,17 @@ export function tournamentView(ctx, id) {
       h('h3', `Ställning (${players.length} spelare)`),
       players.length ? h('div.tablewrap', h('table',
         h('thead', h('tr', ['#', 'Spelare', 'Poäng', 'Partier', 'V / R / F'].map((x) => h('th', x)))),
-        h('tbody', players.map((p, i) => h('tr' + (p.id === state.user?.id ? '.me' : ''),
+        h('tbody', players.map((p, i) => h('tr' + (p.id === state.user?.id ? '.me' : '') + (p.out ? '.out' : ''),
           h('td', i + 1), h('td', titleEl(p.title), ' ', userLink(p.username), h('span.prating', ` (${p.rating})`)), h('td', h('strong', p.score)),
           h('td', p.games), h('td', `${p.wins} / ${p.draws} / ${p.losses}`))))))
         : h('p.muted', 'Inga anmälda ännu.'),
       games.length && h('h3', 'Senaste partierna'),
       games.length && h('div.tgames', games.map((g) => h('a', { href: `/review/${g.id}` },
         `${g.white_name} – ${g.black_name}`, h('span', g.result)))),
+      data.teams?.length > 0 && h('h3', 'Lagställning (klubbar)'),
+      data.teams?.length > 0 && h('div.tablewrap', h('table', h('thead', h('tr', ['#', 'Klubb', 'Spelare', 'Poäng'].map((x) => h('th', x)))),
+        h('tbody', data.teams.map((c, i) => h('tr', h('td', i + 1), h('td', h('a.user', { href: `/clubs/${c.id}` }, c.name)), h('td', c.players), h('td', h('strong', c.score))))))),
+      (chat ??= chatBox(`tournament:${id}`)).el,
     ].filter(Boolean));
   }
   load();
@@ -247,5 +257,5 @@ export function tournamentView(ctx, id) {
     if (m.t === 'conn' && net.connected) ready();
   });
   const timer = setInterval(tick, 1000);
-  return { el, destroy() { alive = false; off(); clearInterval(timer); send({ t: 'tleave' }); } };
+  return { el, destroy() { alive = false; off(); clearInterval(timer); chat?.destroy(); send({ t: 'tleave' }); } };
 }

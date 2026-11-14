@@ -1,5 +1,24 @@
 // Små hjälpfunktioner som delas av hela klienten.
-export const state = { user: null, review: null };
+export const state = { user: null, review: null, training: null, after: null };
+
+// Inställningar som sparas i webbläsaren (per enhet).
+export const BOARD_THEMES = {
+  marmor: ['Marmor', '#f1e7cf', '#b07f56'], oliv: ['Oliv', '#ecebd0', '#7d9a5f'], hav: ['Hav', '#e6ebf0', '#6f8fad'],
+  sten: ['Sten', '#e6e3dc', '#8f8a80'], valnot: ['Valnöt', '#e9cfa6', '#9c6a3c'],
+};
+export const settings = { board: 'marmor', sound: true, volume: 0.8, autoQueen: false, hints: true, coords: true };
+try { Object.assign(settings, JSON.parse(localStorage.getItem('settings') || '{}')); } catch { /* standardvärden */ }
+export function applySettings() {
+  const [, light, dark] = BOARD_THEMES[settings.board] || BOARD_THEMES.marmor;
+  document.documentElement.style.setProperty('--light-sq', light);
+  document.documentElement.style.setProperty('--dark-sq', dark);
+  document.body.classList.toggle('nocoords', !settings.coords);
+}
+export function saveSettings(change) {
+  Object.assign(settings, change);
+  try { localStorage.setItem('settings', JSON.stringify(settings)); } catch { /* går inte att spara */ }
+  applySettings();
+}
 
 export function h(tag, props, ...kids) {
   const [t, ...cls] = tag.split('.');
@@ -132,6 +151,7 @@ const SOUND_FILES = {
 const soundCache = {};
 // kind: move | capture | castle | check | promote | start | victory | defeat | draw | lowtime | challenge
 export function playSound(kind = 'move') {
+  if (!settings.sound) return;
   try {
     const wood = WOOD[SOUND_FILES[kind]];
     if (wood && canOgg()) {
@@ -149,7 +169,7 @@ let oggOk = null;
 const canOgg = () => (oggOk ??= !!new Audio().canPlayType('audio/ogg; codecs="vorbis"'));
 function play(file, volume, kind) {
   const a = (soundCache[file] ??= new Audio(`/sounds/${file}`)).cloneNode();
-  a.volume = volume;
+  a.volume = Math.max(0, Math.min(1, volume * (settings.volume / 0.8)));
   a.play().catch(() => synth(kind)); // går filen inte att spela används det inbyggda reservljudet
 }
 // Ljudet när partiet är slut, ur spelarens synvinkel.

@@ -83,17 +83,33 @@ export function profileView(ctx, rawName) {
         : friend === 'incoming' ? h('button.primary.small', { onclick: () => friendAct('accept') }, 'Acceptera vänförfrågan')
         : friend === 'accepted' ? h('span.gold', '✓ Vän') : null;
 
+      const own = state.user?.id === user.id;
+      const extras = h('div.btnrow.left',
+        user.club && h('a.btn.small', { href: `/clubs/${user.club.id}` }, `Klubb: ${user.club.name}`),
+        user.gameId && h('a.btn.small.primary', { href: `/watch/${user.gameId}` }, 'Titta på partiet'),
+        own && h('a.btn.small', { href: '/settings' }, 'Inställningar och konto'),
+        state.user && !own && h('button.small', { onclick: () => api(`/api/block/${user.blocked ? 'unblock' : 'block'}`, { username: user.username }).then(load) }, user.blocked ? 'Sluta blockera' : 'Blockera'),
+        state.user && !own && h('button.small', {
+          onclick: () => {
+            const reason = prompt(`Varför rapporterar du ${user.username}?`);
+            if (reason) api('/api/report', { username: user.username, reason }).then(() => alert('Tack, rapporten är skickad till administratören.')).catch((e) => alert(e.message));
+          },
+        }, 'Rapportera'),
+        state.user?.admin && !own && h('button.small', { onclick: () => api(`/api/admin/${user.banned ? 'unban' : 'ban'}`, { username: user.username }).then(load).catch((e) => alert(e.message)) }, user.banned ? 'Häv avstängningen' : 'Stäng av kontot'));
       const header = h('div.card.wide.profilehead',
         h('div.pmain',
           h('h2', titleEl(user.title), ' ', user.username, user.trophies ? h('span.gold', { title: 'Vunna turneringar' }, ` 🏆${user.trophies > 1 ? '×' + user.trophies : ''}`) : null),
           h('p.muted', h('span.presence' + (user.online ? '.online' : '')), user.playing ? ' Spelar just nu' : user.online ? ' Online' : ' Offline',
             ` · Medlem sedan ${new Date(user.created_at).toLocaleDateString('sv-SE')}`),
-          friendBtn),
+          friendBtn, extras),
         h('div.prate', h('strong', user.rating), h('span', 'Rating'), h('small', `Högsta: ${user.peak}`)));
 
       const stats = h('div.card.wide',
         h('h2', 'Statistik'),
-        h('p.muted', 'Gäller rankade partier mot andra spelare.'),
+        h('div.tiles', [['bullet', 'Bullet'], ['blitz', 'Blixt'], ['rapid', 'Snabb']].map(([k, label]) =>
+          tile(label, user.ratings[k].games ? user.ratings[k].rating : '–', `${user.ratings[k].games} ${user.ratings[k].games === 1 ? 'parti' : 'partier'}`)),
+          tile('Problem', user.puzzleRating, `${user.puzzlesSolved} lösta`)),
+        h('p.muted', 'Rating per betänketid: bullet (under 3 min), blixt (3–9 min) och snabb (10 min och längre). Siffrorna nedan gäller alla rankade partier.'),
         h('div.tiles',
           tile('Partier', s.rated.n),
           tile('Vinster', `${pct(s.rated.w, s.rated.n)} %`, `${s.rated.w} V · ${s.rated.d} R · ${s.rated.l} F`),
@@ -138,7 +154,10 @@ export function profileView(ctx, rawName) {
           h('tbody', rows)))
           : h('p.muted', 'Inga partier ännu.'));
 
-      el.replaceChildren(header, stats, openings, gameList);
+      const badges = h('div.card.wide', h('h2', 'Prestationer'),
+        user.achievements.length ? h('div.achs', user.achievements.map((a) => h('div.ach', h('strong', '🏅 ' + a.name), h('small', a.desc))))
+          : h('p.muted', 'Inga prestationer ännu.'));
+      el.replaceChildren(header, stats, badges, openings, gameList);
     }).catch((e) => {
       if (alive) el.replaceChildren(h('div.card.narrow', h('h2', 'Profil'), h('p.error', e.message), h('a.btn', { href: '/top' }, 'Till topplistan')));
     });

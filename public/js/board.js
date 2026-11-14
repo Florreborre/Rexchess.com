@@ -1,5 +1,5 @@
 // Schackbräde: ritar en FEN-ställning och hanterar klick/drag, premoves, egna pilar, markeringar och bedömningsmärken.
-import { h, svg, pieceSvg } from './util.js';
+import { h, svg, pieceSvg, settings } from './util.js';
 
 const FILES = 'abcdefgh';
 
@@ -106,7 +106,7 @@ export class Board {
 
   render() {
     const mode = this.mode();
-    const hints = this.selected && mode && !mode.pre ? this.targetsFor(this.selected, false) : [];
+    const hints = this.selected && mode && !mode.pre && settings.hints ? this.targetsFor(this.selected, false) : [];
     const cells = [];
     for (let y = 0; y < 8; y++) {
       for (let x = 0; x < 8; x++) {
@@ -227,6 +227,7 @@ export class Board {
     const promotes = p && p[1] === 'p' && (to[1] === '8' || to[1] === '1');
     this.selected = null;
     if (pre) return this.opts.onPremove?.(from, to, promotes ? 'q' : undefined); // premove förvandlar alltid till dam
+    if (promotes && settings.autoQueen) return this.opts.onMove(from, to, 'q');
     if (promotes) {
       this.render();
       const [x, y] = this.xy(to);

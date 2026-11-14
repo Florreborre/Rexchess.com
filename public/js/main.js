@@ -1,9 +1,11 @@
 // Startpunkt: router, navigering, inloggning, partihistorik och topplista.
 import { Chess } from '/vendor/chess.js';
-import { h, state, api, go, titleEl, playSound, userLink } from './util.js';
+import { h, state, api, go, titleEl, playSound, userLink, applySettings } from './util.js';
 import { profileView } from './profile.js';
 import { net, connect, disconnect, on } from './net.js';
-import { lobbyView, onlineGameView, botView } from './game.js';
+import { lobbyView, onlineGameView, botView, watchView } from './game.js';
+import { puzzlesView, mistakesView, analysisView, openingsView, endgamesView, trainingView } from './train.js';
+import { settingsView, clubsView, adminView, liveView, joinView, corrView } from './more.js';
 import { reviewView } from './review.js';
 import { friendsView, tournamentsView, tournamentView } from './social.js';
 import { send } from './net.js';
@@ -23,6 +25,19 @@ const routes = [
   [/^\/tournament\/([\w-]+)$/, tournamentView],
   [/^\/login$/, loginView],
   [/^\/profile\/([^/]+)$/, profileView],
+  [/^\/watch\/([\w-]+)$/, watchView],
+  [/^\/live$/, liveView],
+  [/^\/join\/([\w-]+)$/, joinView],
+  [/^\/training$/, trainingView],
+  [/^\/puzzles(\/daily)?$/, puzzlesView],
+  [/^\/train$/, mistakesView],
+  [/^\/analysis$/, analysisView],
+  [/^\/openings$/, openingsView],
+  [/^\/endgames$/, endgamesView],
+  [/^\/settings$/, settingsView],
+  [/^\/clubs(?:\/([\w-]+))?$/, clubsView],
+  [/^\/corr(?:\/([\w-]+))?$/, corrView],
+  [/^\/admin$/, adminView],
 ];
 
 function render() {
@@ -45,13 +60,15 @@ function renderNav() {
   const hash = location.pathname;
   const link = (href, label) => h('a' + (hash.startsWith(href) ? '.active' : ''), { href }, label);
   document.getElementById('nav').replaceChildren(
-    link('/play', 'Spela'), link('/bot', 'Mot datorn'), link('/tournament', 'Turneringar'), link('/friends', 'Vänner'),
-    link('/games', 'Mina partier'), link('/top', 'Topplista'),
+    link('/play', 'Spela'), link('/training', 'Träna'), link('/tournament', 'Turneringar'), link('/clubs', 'Klubbar'), link('/friends', 'Vänner'),
+    link('/top', 'Topplista'), link('/games', 'Mina partier'),
     state.user ? link(`/profile/${encodeURIComponent(state.user.username)}`, 'Min profil') : '',
     net.game && !net.game.over ? h('a.live', { href: '/game' }, '● Pågående parti') : '');
   const box = document.getElementById('userbox');
   if (state.user) {
     box.replaceChildren(h('span.me', titleEl(state.user.title), ' ', userLink(state.user.username), ` ${state.user.rating}`),
+      state.user.admin ? h('a.btn.small', { href: '/admin' }, 'Admin') : '',
+      h('a.btn.small', { href: '/settings', title: 'Inställningar' }, '⚙'),
       h('button.small', {
         onclick: async () => {
           await api('/api/logout', {});
@@ -61,7 +78,7 @@ function renderNav() {
           render();
         },
       }, 'Logga ut'));
-  } else box.replaceChildren(h('a.btn.small.primary', { href: '/login' }, 'Logga in'));
+  } else box.replaceChildren(h('a.btn.small', { href: '/settings', title: 'Inställningar' }, '⚙'), h('a.btn.small.primary', { href: '/login' }, 'Logga in'));
 }
 
 async function refreshMe() {
@@ -89,7 +106,8 @@ function loginView() {
           try {
             state.user = (await api(mode === 'login' ? '/api/login' : '/api/register', { username: user.value, password: pass.value })).user;
             connect();
-            go('/play');
+            go(state.after || '/play'); // tillbaka dit man var på väg, t.ex. en inbjudningslänk
+            state.after = null;
           } catch (err) { draw(err.message); }
         },
       },
@@ -149,20 +167,34 @@ function gamesView() {
 
 // ---------- Topplista ----------
 function leaderboardView() {
+  let by = '';
   const el = h('div.card.wide', h('h2', 'Topplista'), h('p.muted', 'Laddar…'));
-  api('/api/leaderboard').then(({ players }) => {
-    el.replaceChildren(h('h2', 'Topplista'),
+  const tabs = () => h('div.tabs.small', [['', 'Totalt'], ['bullet', 'Bullet'], ['blitz', 'Blixt'], ['rapid', 'Snabb'], ['season', 'Säsong']].map(([k, label]) =>
+    h('button' + (by === k ? '.active' : ''), { onclick: () => { by = k; load(); } }, label)));
+  const loadSeason = () => api('/api/seasons').then((s) => {
+    el.replaceChildren(...[h('h2', 'Topplista'), tabs(),
+      h('p.muted', `Säsong ${s.id}. Rankade partier ger 3 poäng för vinst och 1 för remi. Listan nollställs ${new Date(s.endsAt).toLocaleDateString('sv-SE')}, och vinnaren får en pokal.`),
+      s.standings.length ? h('div.tablewrap', h('table',
+        h('thead', h('tr', ['#', 'Spelare', 'Poäng', 'Partier', 'Vinster'].map((t) => h('th', t)))),
+        h('tbody', s.standings.map((p, i) => h('tr' + (p.username === state.user?.username ? '.me' : ''), h('td', i + 1), h('td', userLink(p.username)), h('td', h('strong', p.points)), h('td', p.games), h('td', p.wins))))))
+        : h('p.muted', 'Inga rankade partier har spelats den här säsongen ännu.'),
+      s.past.length > 0 && h('h3', 'Tidigare säsongsmästare'),
+      s.past.map((p) => h('p', h('strong', p.id), ': ', userLink(p.winner_name), ` (${p.points} poäng)`))].flat().filter(Boolean));
+  }).catch(() => {});
+  const load = () => (by === 'season' ? loadSeason() : api('/api/leaderboard' + (by ? `?by=${by}` : '')).then(({ players }) => {
+    el.replaceChildren(h('h2', 'Topplista'), tabs(),
       players.length ? h('div.tablewrap', h('table',
         h('thead', h('tr', ['#', 'Spelare', 'Titel', 'Rating', 'Partier', 'V / R / F'].map((t) => h('th', t)))),
         h('tbody', players.map((p, i) => h('tr' + (p.username === state.user?.username ? '.me' : ''),
           h('td', i + 1), h('td', userLink(p.username), p.trophies ? h('span.gold', { title: 'Vunna turneringar' }, ` 🏆${p.trophies > 1 ? '×' + p.trophies : ''}`) : null),
-          h('td', titleEl(p.title)), h('td', p.rating), h('td', p.games), h('td', `${p.wins} / ${p.draws} / ${p.losses}`))))))
-        : h('p.muted', 'Inga spelare ännu. Skapa ett konto och bli först!'),
+          h('td', titleEl(p.title)), h('td', p.rating), h('td', p.class_games ?? p.games), h('td', `${p.wins} / ${p.draws} / ${p.losses}`))))))
+        : h('p.muted', by ? 'Ingen har spelat rankade partier med den betänketiden ännu.' : 'Inga spelare ännu. Skapa ett konto och bli först!'),
       h('h3', 'Titlar'),
       h('p.muted', 'Titeln bygger på din högsta rating någonsin, så en titel du har nått behåller du. Du behöver minst 5 rankade partier; innan dess är du Tiro (rekryt). 🏆 visar vunna turneringar.'),
       h('div.legend', [['Tiro', 'under 1000'], ['Miles', '1000'], ['Decurio', '1200'], ['Centurio', '1400'], ['Tribunus', '1600'], ['Legatus', '1800'], ['Praetor', '2000'], ['Consul', '2200'], ['Imperator', '2400']]
         .map(([t, r]) => h('span', titleEl(t), ` ${r}`))));
-  }).catch(() => {});
+  }).catch(() => {}));
+  load();
   return { el };
 }
 
@@ -186,6 +218,15 @@ on((m) => {
         h('button.primary.small', { onclick: () => { send({ t: 'accept', from: m.from }); el.remove(); } }, 'Acceptera'),
         h('button.small', { onclick: () => { send({ t: 'reject', from: m.from }); el.remove(); } }, 'Avböj'))], 60000);
   }
+  if (m.t === 'achievement') {
+    playSound('victory');
+    toast([h('p', '🏅 Ny prestation: ', h('strong', m.name)), h('p.muted', m.desc)], 10000);
+  }
+  if (m.t === 'rematch') {
+    const el = toast([h('p', h('strong', m.from), ' vill ha returmatch.'),
+      h('div.btnrow', h('button.primary.small', { onclick: () => { send({ t: 'rematch', id: m.id }); el.remove(); } }, 'Acceptera'), h('button.small', { onclick: () => el.remove() }, 'Avböj'))], 60000);
+  }
+  if (m.t === 'corr' && location.pathname !== `/corr/${m.id}`) toast([h('p', m.text), h('a.btn.small.primary', { href: `/corr/${m.id}` }, 'Öppna partiet')], 15000);
   if (m.t === 'game') {
     if (!m.game.over && location.pathname !== '/game') go('/game');
     if (m.game.over) refreshMe().catch(() => {});
@@ -203,6 +244,8 @@ document.addEventListener('click', (e) => {
 // Gamla adresser med # (t.ex. /#/play) och startsidan pekas om till de nya.
 if (location.hash.startsWith('#/')) history.replaceState(null, '', location.hash.slice(1));
 else if (location.pathname === '/') history.replaceState(null, '', '/play');
+applySettings();
+if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('/sw.js').catch(() => {});
 refreshMe().catch(() => {}).then(() => {
   connect();
   render();

@@ -225,3 +225,38 @@ a.user { color: inherit; font-weight: 700; } a.user:hover { color: var(--accent2
 .opening { padding: 8px 0; border-bottom: 1px solid #dccfa9; }
 .obar { height: 6px; background: var(--panel2); border-radius: 3px; margin: 4px 0; overflow: hidden; } .obar span { display: block; height: 100%; background: var(--gold); }
 .owdl { font-size: 13px; }
+
+/* Chatt, träning, inställningar, klubbar m.m. */
+.chat h3 { margin-top: 4px; }
+.chatlog { max-height: 170px; min-height: 60px; overflow-y: auto; background: #fffaf0; border: 1px solid var(--line); border-radius: 3px; padding: 6px 8px; margin-bottom: 6px; font-size: 14px; }
+.chatlog p { margin: 2px 0; overflow-wrap: anywhere; }
+.chat form.inline input { padding: 6px 8px; }
+.side.flat { margin-top: 0; }
+.board-col.solo { padding-top: 12px; }
+.verdictline { font-weight: 700; min-height: 1.4em; }
+.bigeval { font-family: var(--display); font-size: 22px; color: var(--accent); }
+.pgnline { font-size: 14px; background: #fffaf0; border: 1px solid var(--line); border-radius: 3px; padding: 6px 8px; max-height: 110px; overflow-y: auto; }
+.tabs.small { margin: 6px 0 12px; flex-wrap: wrap; } .tabs.small button { flex: 0 1 auto; padding: 5px 12px; font-size: 12px; }
+.btnrow.left > * { flex: 0 0 auto; }
+.themes { display: flex; flex-wrap: wrap; gap: 8px; } .themes button { display: flex; align-items: center; gap: 8px; }
+.swatch { width: 26px; height: 26px; border-radius: 3px; border: 1px solid var(--gold); }
+label.check { display: flex; align-items: center; gap: 8px; padding: 4px 0; } label.check input { width: auto; }
+body.nocoords .coord { display: none; }
+.livelist, .tgames { width: 100%; } .livelist { display: flex; flex-direction: column; gap: 6px; }
+.livelist a { display: flex; justify-content: space-between; gap: 8px; padding: 6px 10px; background: var(--panel2); border: 1px solid var(--line); border-radius: 3px; color: var(--ink); }
+.livelist a span { font-weight: 700; color: var(--accent); }
+.endgames { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 14px; margin-top: 12px; }
+.endgame { display: flex; gap: 12px; align-items: center; background: var(--panel2); border: 1px solid var(--line); border-radius: 3px; padding: 8px; }
+.endgame .miniboard { width: 130px; }
+.achs { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 8px; }
+.ach { background: var(--panel2); border: 1px solid var(--gold); border-radius: 3px; padding: 8px 10px; display: flex; flex-direction: column; }
+.ach small { color: var(--muted); }
+tr.out td { opacity: .5; text-decoration: line-through; }
+@media (max-width: 600px) {
+  .topbar { padding: 8px 10px 16px; gap: 8px; }
+  #nav a { padding: 5px 7px; font-size: 12px; }
+  main { padding: 14px 8px; }
+  .card { padding: 14px; }
+  th, td { padding: 6px; }
+  .gotwrow { flex-direction: column; align-items: flex-start; }
+}
