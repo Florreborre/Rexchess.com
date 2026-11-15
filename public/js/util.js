@@ -6,14 +6,20 @@ export const BOARD_THEMES = {
   marmor: ['Marmor', '#f1e7cf', '#b07f56'], oliv: ['Oliv', '#ecebd0', '#7d9a5f'], hav: ['Hav', '#e6ebf0', '#6f8fad'],
   sten: ['Sten', '#e6e3dc', '#8f8a80'], valnot: ['Valnöt', '#e9cfa6', '#9c6a3c'],
 };
-export const settings = { board: 'marmor', sound: true, volume: 0.8, autoQueen: false, hints: true, coords: true };
+export const settings = { board: 'marmor', sound: true, volume: 0.8, autoQueen: false, hints: true, coords: true, theme: 'auto', lang: 'sv' };
 try { Object.assign(settings, JSON.parse(localStorage.getItem('settings') || '{}')); } catch { /* standardvärden */ }
 export function applySettings() {
   const [, light, dark] = BOARD_THEMES[settings.board] || BOARD_THEMES.marmor;
   document.documentElement.style.setProperty('--light-sq', light);
   document.documentElement.style.setProperty('--dark-sq', dark);
   document.body.classList.toggle('nocoords', !settings.coords);
+  // Ljust eller mörkt läge; "auto" följer datorns eller telefonens inställning.
+  const darkMode = settings.theme === 'dark' || (settings.theme === 'auto' && window.matchMedia?.('(prefers-color-scheme: dark)').matches);
+  document.documentElement.dataset.theme = darkMode ? 'dark' : 'light';
+  document.documentElement.lang = settings.lang;
 }
+export const isDark = () => document.documentElement.dataset.theme === 'dark';
+window.matchMedia?.('(prefers-color-scheme: dark)').addEventListener?.('change', () => applySettings());
 export function saveSettings(change) {
   Object.assign(settings, change);
   try { localStorage.setItem('settings', JSON.stringify(settings)); } catch { /* går inte att spara */ }
@@ -48,8 +54,19 @@ export function svg(tag, attrs = {}, ...kids) {
   el.append(...kids);
   return el;
 }
+// Pjäsbilderna läggs in i sidan en gång vid start. Då kan brädet ritas om utan att bilderna hämtas på nytt
+// (annars blinkar alla pjäser till varje gång man rör en pjäs).
+let spriteReady = false;
+export const spriteLoaded = fetch('/vendor/pieces.svg').then((r) => r.text()).then((text) => {
+  const holder = document.createElement('div');
+  holder.setAttribute('aria-hidden', 'true');
+  holder.style.cssText = 'position:absolute;width:0;height:0;overflow:hidden';
+  holder.innerHTML = text.slice(text.indexOf('<svg'));
+  document.body.prepend(holder);
+  spriteReady = true;
+}).catch(() => { /* då används filen direkt, som förut */ });
 export function pieceSvg(code) {
-  return svg('svg', { viewBox: '0 0 40 40', class: 'piece' }, svg('use', { href: `/vendor/pieces.svg#${code}` }));
+  return svg('svg', { viewBox: '0 0 40 40', class: 'piece' }, svg('use', { href: spriteReady ? `#${code}` : `/vendor/pieces.svg#${code}` }));
 }
 
 export async function api(path, body) {

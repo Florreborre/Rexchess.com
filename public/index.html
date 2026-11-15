@@ -8,6 +8,13 @@
   <link rel="manifest" href="/manifest.json">
   <link rel="apple-touch-icon" href="/icon-192.png">
   <meta name="theme-color" content="#5a1313">
+  <script>
+    // Sätter ljust/mörkt läge innan sidan ritas, så att den inte blinkar till i fel färg.
+    try {
+      var s = JSON.parse(localStorage.getItem('settings') || '{}'), t = s.theme || 'auto';
+      document.documentElement.dataset.theme = t === 'dark' || (t === 'auto' && matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+    } catch (e) {}
+  </script>
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>

@@ -13,6 +13,12 @@ export function settingsView(ctx) {
   const look = h('div.card.wide',
     h('h2', 'Inställningar'),
     h('p.muted', 'Sparas i den här webbläsaren.'),
+    h('h3', 'Utseende'),
+    h('div.themes', [['light', 'Ljust'], ['dark', 'Mörkt'], ['auto', 'Följ systemet']].map(([key, name]) =>
+      h('button' + (settings.theme === key ? '.active' : ''), { onclick: () => { saveSettings({ theme: key }); ctx.refresh(); } }, name))),
+    h('h3', 'Språk'),
+    h('div.themes', [['sv', 'Svenska'], ['en', 'English']].map(([key, name]) =>
+      h('button' + (settings.lang === key ? '.active' : ''), { onclick: () => { saveSettings({ lang: key }); location.reload(); } }, name))),
     h('h3', 'Brädets färger'),
     h('div.themes', Object.entries(BOARD_THEMES).map(([key, [name, light, dark]]) =>
       h('button' + (settings.board === key ? '.active' : ''), { onclick: () => { saveSettings({ board: key }); ctx.refresh(); } },

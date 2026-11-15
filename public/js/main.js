@@ -1,7 +1,8 @@
 // Startpunkt: router, navigering, inloggning, partihistorik och topplista.
 import { Chess } from '/vendor/chess.js';
-import { h, state, api, go, titleEl, playSound, userLink, applySettings } from './util.js';
+import { h, state, api, go, titleEl, playSound, userLink, applySettings, spriteLoaded, saveSettings, settings, isDark } from './util.js';
 import { profileView } from './profile.js';
+import { initI18n } from './i18n.js';
 import { net, connect, disconnect, on } from './net.js';
 import { lobbyView, onlineGameView, botView, watchView } from './game.js';
 import { puzzlesView, mistakesView, analysisView, openingsView, endgamesView, trainingView } from './train.js';
@@ -65,10 +66,15 @@ function renderNav() {
     state.user ? link(`/profile/${encodeURIComponent(state.user.username)}`, 'Min profil') : '',
     net.game && !net.game.over ? h('a.live', { href: '/game' }, '● Pågående parti') : '');
   const box = document.getElementById('userbox');
+  // Snabbknappar i sidhuvudet: mörkt/ljust läge och språk.
+  const quick = [
+    h('button.small', { title: 'Mörkt eller ljust läge', onclick: () => { saveSettings({ theme: isDark() ? 'light' : 'dark' }); renderNav(); } }, isDark() ? '☀' : '☾'),
+    h('button.small', { title: 'Språk / Language', onclick: () => { saveSettings({ lang: settings.lang === 'sv' ? 'en' : 'sv' }); location.reload(); } }, settings.lang === 'sv' ? 'EN' : 'SV'),
+  ];
   if (state.user) {
     box.replaceChildren(h('span.me', titleEl(state.user.title), ' ', userLink(state.user.username), ` ${state.user.rating}`),
       state.user.admin ? h('a.btn.small', { href: '/admin' }, 'Admin') : '',
-      h('a.btn.small', { href: '/settings', title: 'Inställningar' }, '⚙'),
+      ...quick, h('a.btn.small', { href: '/settings', title: 'Inställningar' }, '⚙'),
       h('button.small', {
         onclick: async () => {
           await api('/api/logout', {});
@@ -78,7 +84,7 @@ function renderNav() {
           render();
         },
       }, 'Logga ut'));
-  } else box.replaceChildren(h('a.btn.small', { href: '/settings', title: 'Inställningar' }, '⚙'), h('a.btn.small.primary', { href: '/login' }, 'Logga in'));
+  } else box.replaceChildren(...quick, h('a.btn.small', { href: '/settings', title: 'Inställningar' }, '⚙'), h('a.btn.small.primary', { href: '/login' }, 'Logga in'));
 }
 
 async function refreshMe() {
@@ -246,7 +252,7 @@ if (location.hash.startsWith('#/')) history.replaceState(null, '', location.hash
 else if (location.pathname === '/') history.replaceState(null, '', '/play');
 applySettings();
 if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('/sw.js').catch(() => {});
-refreshMe().catch(() => {}).then(() => {
+refreshMe().catch(() => {}).then(() => spriteLoaded).then(() => initI18n()).then(() => {
   connect();
   render();
 });
