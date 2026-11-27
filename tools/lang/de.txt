@@ -713,3 +713,65 @@
 796|Spieler online
 797|Partien gerade
 798|registrierte Spieler
+799|gerade eben
+800|vor {1} Min.
+801|vor {1} Std.
+802|Schach-TV
+803|TV
+804|Die am höchsten bewertete Partie gerade live.
+805|Gerade keine Partien
+806|Sobald jemand spielt, erscheint die Partie hier.
+807|Selbst spielen
+808|Melde dich an, um Partien live zu sehen.
+809|Eröffnungs-Explorer
+810|Unbekannte Eröffnung
+811|Ausgangsstellung
+812|Ziehe auf dem Brett oder wähle unten einen Zug.
+813|Theorie
+814|Hier noch nicht gespielt
+815|Einen Zug zurück
+816|{1} Partien auf der Seite haben diese Stellung erreicht.
+817|Weiß · Remis · Schwarz
+818|Von hier wurden noch keine Züge gespielt.
+819|Partien aus dieser Stellung
+820|Nachrichten
+821|Melde dich an, um Nachrichten zu senden und zu lesen.
+822|Du: 
+823|Noch keine Unterhaltungen. Schreibe jemandem über das Profil.
+824|Noch keine Nachrichten. Sag Hallo!
+825|Wähle links eine Unterhaltung.
+826|Benachrichtigungen
+827|Noch keine Benachrichtigungen.
+828|Partie teilen
+829|Link kopieren
+830|Link kopiert.
+831|Bild wird erstellt…
+832|Das Bild konnte nicht erstellt werden.
+833|Mannschaftskämpfe
+834|Herausforderung an euch
+835|Beginnt bald
+836|Läuft
+837|Zurückziehen
+838|Einen anderen Verein herausfordern
+839|Eine Arena, in der eure Mitglieder nur auf die des anderen Vereins treffen. Alle Punkte werden pro Team addiert. Der Leiter des anderen Vereins muss annehmen.
+840|Gegner 
+841|Bedenkzeit 
+842|Dauer 
+843|Start 
+844|in 10 Min.
+845|in 30 Min.
+846|in 1 Std.
+847|in 3 Std.
+848|morgen
+849|Herausforderung senden
+850|Der Verein hat noch keine Mannschaftskämpfe gespielt.
+851|Es braucht mindestens einen weiteren Verein zum Herausfordern.
+852|Nachricht senden
+853|Wertungsverlauf pro Bedenkzeit
+854|Genauigkeit pro Phase
+855|Aktivität
+856|Mittelspiel
+857|Die Genauigkeit pro Phase wird ab jetzt für gewertete Partien mit mindestens acht Zügen berechnet.
+858|{1} Partien an {2} Tagen im letzten Jahr.
+859|Stand
+860|Wartet darauf, dass der andere Verein annimmt.

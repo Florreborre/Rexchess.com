@@ -115,6 +115,7 @@ function statusText(t, now) {
     const s = Math.max(0, Math.round(ms / 1000));
     return s >= 60 ? `${Math.floor(s / 60)} min ${s % 60} s` : `${s} s`;
   };
+  if (t.status === 'proposed') return 'Väntar på svar';
   if (t.status === 'open') return `Startar om ${mins(t.starts_at - now)}`;
   if (t.status === 'running') return t.format && t.format !== 'arena' ? `Pågår – runda ${t.round}${t.format === 'swiss' ? ` av ${t.rounds}` : ''}` : `Pågår – ${mins(t.ends_at - now)} kvar`;
   return 'Avslutad';
@@ -230,6 +231,11 @@ export function tournamentView(ctx, id) {
       h('p.muted', `${{ arena: 'Arena', swiss: `Schweizer, ${t.rounds} rundor`, knockout: 'Utslagning' }[t.format] || 'Arena'} · ${t.tc}${t.format === 'arena' ? ` · ${t.duration} min` : ''} · skapad av ${t.creator_name}`),
       status,
       t.status === 'finished' && players[0]?.games > 0 && h('p.winner', icon('trophy', 20), ' ', `Segrare: ${players[0].username} med ${players[0].score} poäng`),
+      data.match && h('div.matchscore',
+        h('div', h('a.user', { href: `/clubs/${data.match.a.id}` }, data.match.a.name), h('strong', String(data.match.a.score)), h('small', `${data.match.a.players} spelare`)),
+        h('span.vs', 'mot'),
+        h('div', h('a.user', { href: `/clubs/${data.match.b.id}` }, data.match.b.name), h('strong', String(data.match.b.score)), h('small', `${data.match.b.players} spelare`))),
+      t.status === 'proposed' && h('p.muted', 'Lagmatchen väntar på att den utmanade klubbens ledare antar den. Medlemmar i de två klubbarna kan redan anmäla sig.'),
       action,
       canEdit && (editForm || h('div.btnrow',
         t.status === 'open' && h('button.primary', {

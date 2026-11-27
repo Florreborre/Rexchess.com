@@ -304,6 +304,7 @@ export function trainingView() {
       card('Dagens problem', 'Samma problem för alla, ett nytt varje dag.', '/puzzles/daily', 'Dagens problem'),
       card('Analysbräde', 'Ställ upp valfri ställning, flytta fritt och se motorns bedömning.', '/analysis', 'Öppna brädet'),
       card('Öppningsträning', 'Öva in öppningsvarianter. Sajten rättar dig när du går fel.', '/openings', 'Öva öppningar'),
+      card('Öppningsutforskare', 'Se vilka drag som spelas mest i varje ställning och hur det brukar gå, utifrån alla partier på sajten.', '/explorer', 'Utforska öppningar'),
       card('Slutspel', 'Klassiska slutspel mot Stockfish.', '/endgames', 'Välj slutspel'),
       card('Träna på dina misstag', 'Analysera ett parti och få dina misstag som uppgifter.', '/games', 'Mina partier'),
       card('Spela mot datorn', 'Fjorton motståndare från nybörjare till full styrka.', '/bot', 'Välj motståndare')),

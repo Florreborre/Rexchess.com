@@ -718,3 +718,65 @@
 796|jugadores en línea
 797|partidas ahora
 798|jugadores registrados
+799|ahora mismo
+800|hace {1} min
+801|hace {1} h
+802|Ajedrez TV
+803|TV
+804|La partida de mayor nivel ahora mismo, en directo.
+805|No hay partidas ahora
+806|En cuanto alguien empiece a jugar, la partida aparecerá aquí.
+807|Juega tú
+808|Inicia sesión para ver partidas en directo.
+809|Explorador de aperturas
+810|Apertura desconocida
+811|Posición inicial
+812|Haz una jugada en el tablero o elige una abajo.
+813|teoría
+814|Aún no jugada aquí
+815|Atrás una jugada
+816|{1} partidas del sitio han llegado a esta posición.
+817|Blancas · Tablas · Negras
+818|Aún no se han jugado jugadas desde aquí.
+819|Partidas desde esta posición
+820|Mensajes
+821|Inicia sesión para enviar y leer mensajes.
+822|Tú: 
+823|Aún no hay conversaciones. Escribe a alguien desde su perfil.
+824|Aún no hay mensajes. ¡Saluda!
+825|Elige una conversación a la izquierda.
+826|Notificaciones
+827|Aún no hay notificaciones.
+828|Compartir la partida
+829|Copiar enlace
+830|Enlace copiado.
+831|Creando la imagen…
+832|No se pudo crear la imagen.
+833|Partidos por equipos
+834|Desafío para vosotros
+835|Empieza pronto
+836|En curso
+837|Retirar
+838|Desafiar a otro club
+839|Una arena donde vuestros miembros solo se enfrentan a los del otro club. Los puntos se suman por equipo. El líder del otro club debe aceptar el desafío.
+840|Rival 
+841|Ritmo 
+842|Duración 
+843|Inicio 
+844|en 10 min
+845|en 30 min
+846|en 1 h
+847|en 3 h
+848|mañana
+849|Enviar desafío
+850|El club aún no ha jugado partidos por equipos.
+851|Se necesita al menos otro club para desafiar.
+852|Enviar mensaje
+853|Evolución del rating por ritmo
+854|Precisión por fase
+855|Actividad
+856|Medio juego
+857|La precisión por fase se calcula para partidas puntuables de al menos ocho jugadas a partir de ahora.
+858|{1} partidas en {2} días durante el último año.
+859|Marcador
+860|Esperando a que el otro club acepte el desafío.

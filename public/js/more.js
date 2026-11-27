@@ -3,6 +3,7 @@ import { h, state, api, go, titleEl, userLink, crownEl, settings, saveSettings, 
 import { net, send, on, disconnect } from './net.js';
 import { GameScreen } from './game.js';
 import { chatBox } from './chat.js';
+import { clubMatchesCard } from './extra.js';
 
 const needLogin = (title, text) => ({ el: h('div.card.narrow', h('h2', title), h('p.muted', text), h('a.btn.primary', { href: '/login', onclick: () => { state.after = location.pathname; } }, 'Logga in / skapa konto')) });
 const date = (ms) => new Date(ms).toLocaleDateString('sv-SE');
@@ -107,6 +108,7 @@ export function clubsView(ctx, id) {
       if (!alive) return;
       const act = (a) => api(`/api/clubs/${club.id}/${a}`, {}).then(() => (a === 'leave' && members.length === 1 ? go('/clubs') : load())).catch((e) => alert(e.message));
       chat ??= chatBox(`club:${club.id}`);
+      const matchesCard = clubMatchesCard(club, state.user?.id === club.owner_id);
       el.replaceChildren(h('div.card.wide',
         h('div.revhead', h('h2', club.name), h('a.btn.small', { href: '/clubs' }, 'Alla klubbar')),
         club.description && h('p', club.description),
@@ -117,6 +119,7 @@ export function clubsView(ctx, id) {
         h('div.tablewrap', h('table', h('thead', h('tr', ['#', 'Spelare', 'Rating', ''].map((t) => h('th', t)))),
           h('tbody', members.map((m, i) => h('tr', h('td', i + 1), h('td', titleEl(m.title), ' ', userLink(m.username)), h('td', m.rating),
             h('td', h('span.presence' + (m.online ? '.online' : ''))))))))),
+      matchesCard,
       h('div.card.wide', chat.el));
     }).catch((e) => el.replaceChildren(h('div.card.narrow', h('h2', 'Klubb'), h('p.error', e.message), h('a.btn', { href: '/clubs' }, 'Alla klubbar'))));
     load();

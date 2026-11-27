@@ -1,0 +1,91 @@
+/* Stil för Schack-TV, öppningsutforskaren, meddelanden, aviseringar, delning, lagmatcher och profilstatistik. */
+
+/* ---------- Schack-TV ---------- */
+.tvhead { display: flex; align-items: baseline; gap: 14px; margin: 0 0 14px; flex-wrap: wrap; }
+.tvlogo { display: inline-flex; align-items: center; gap: 8px; font-family: var(--serif-display); font-size: 26px; font-weight: 800; color: var(--accent); }
+.tvlogo .ico { color: var(--brass); }
+.center { text-align: center; }
+
+/* ---------- Öppningsutforskaren ---------- */
+.opening-name { font-family: var(--serif-display); font-style: italic; font-size: 19px; color: var(--accent); margin: 2px 0; }
+table.explore tbody tr { cursor: pointer; }
+table.explore td { padding: 7px 10px; }
+.wdlcell { width: 55%; }
+.wdl { display: flex; height: 18px; border-radius: 4px; overflow: hidden; border: 1px solid var(--line); font: 600 10.5px/18px var(--sans); text-align: center; }
+.wdl span { overflow: hidden; white-space: nowrap; }
+.wdl .w { background: #f4ecda; color: #3b2a1c; }
+.wdl .d { background: #9c8a6a; color: #fff; }
+.wdl .b { background: #2b2016; color: #f4ecda; }
+.booktag { margin-left: 6px; font: 600 9.5px/1 var(--sans); letter-spacing: .08em; text-transform: uppercase; color: var(--brass); border: 1px solid color-mix(in srgb, var(--brass) 50%, transparent); border-radius: 3px; padding: 2px 4px; vertical-align: 2px; }
+tr.bookonly td { opacity: .75; }
+
+/* ---------- Meddelanden ---------- */
+.msggrid { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: 16px; min-height: 420px; }
+.convlist { display: flex; flex-direction: column; gap: 4px; border-right: 1px solid var(--line-soft); padding-right: 12px; overflow-y: auto; max-height: 560px; }
+.conv { display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 8px; color: var(--text); }
+.conv:hover, .conv.active { background: var(--panel2); }
+.convtext { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.convtext small { color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pfp-ph { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: var(--panel2); border: 1px solid var(--brass); font-weight: 700; color: var(--accent); flex: none; }
+.convpane { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.convhead { display: flex; align-items: center; gap: 10px; padding-bottom: 8px; border-bottom: 1px solid var(--line-soft); font-size: 16px; }
+.thread { flex: 1; overflow-y: auto; max-height: 440px; display: flex; flex-direction: column; gap: 8px; padding: 4px 2px; }
+.bubble { max-width: 75%; align-self: flex-start; background: var(--panel2); border: 1px solid var(--line-soft); border-radius: 12px 12px 12px 4px; padding: 7px 11px; }
+.bubble.mine { align-self: flex-end; background: linear-gradient(#9a2a27, #6e1717); color: #fbeecb; border-color: #5a1212; border-radius: 12px 12px 4px 12px; }
+.bubble p { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.bubble small { font-size: 11px; opacity: .65; }
+.compose { display: flex; gap: 8px; align-items: flex-end; }
+.compose textarea { resize: vertical; }
+.empty { padding: 30px 0; text-align: center; }
+@media (max-width: 700px) {
+  .msggrid { grid-template-columns: 1fr; }
+  .convlist { border-right: 0; border-bottom: 1px solid var(--line-soft); max-height: 200px; }
+}
+
+/* ---------- Sidhuvudets kuvert och klocka ---------- */
+.bellbtn { position: relative; }
+.badge-n { position: absolute; top: -6px; right: -6px; min-width: 17px; height: 17px; padding: 0 4px; border-radius: 9px; background: #d9362b; color: #fff; font: 700 10px/17px var(--sans); text-align: center; box-shadow: 0 0 0 2px var(--head2); }
+.badge-n[hidden] { display: none; }
+.conv .badge-n { position: static; box-shadow: none; }
+.bellwrap { position: relative; display: inline-flex; }
+.notepanel { position: absolute; right: 0; top: calc(100% + 10px); width: 340px; max-height: 420px; overflow-y: auto; z-index: 80; background: var(--panel); color: var(--text);
+  border: 1px solid var(--brass); border-radius: 12px; box-shadow: 0 20px 50px -10px rgba(0, 0, 0, .5); padding: 8px; white-space: normal; }
+.notepanel[hidden] { display: none; }
+.notehead { padding: 6px 8px 8px; border-bottom: 1px solid var(--line-soft); margin-bottom: 4px; font-family: var(--display); letter-spacing: .06em; }
+.note { display: grid; grid-template-columns: 18px 1fr; gap: 2px 10px; padding: 8px; border-radius: 8px; color: var(--text); font-size: 14px; }
+.note small { grid-column: 2; color: var(--muted); font-size: 11.5px; }
+.note .ico { color: var(--brass); margin-top: 2px; }
+.note.unread { background: color-mix(in srgb, var(--brass) 10%, transparent); }
+a.note:hover { background: var(--panel2); }
+
+/* ---------- Dela partiet ---------- */
+.sharebar { border-top: 1px solid var(--line-soft); padding-top: 10px; display: flex; flex-direction: column; gap: 4px; }
+.sharelabel { display: inline-flex; align-items: center; gap: 6px; font: 600 12px/1 var(--sans); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.sharebar button { display: inline-flex; align-items: center; gap: 4px; }
+.sharemsg { font-size: 13px; min-height: 1em; }
+
+/* ---------- Lagmatch: ställningen mellan klubbarna ---------- */
+.matchscore { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px; margin: 12px 0; padding: 14px; border-radius: 12px; text-align: center;
+  background: radial-gradient(120% 140% at 50% 0%, #7a1f1c, #2a0909); color: #fbeecb; border: 1px solid #d9b45a; }
+.matchscore > div { display: flex; flex-direction: column; }
+.matchscore a.user { color: #ffe39a; font-size: 16px; }
+.matchscore strong { font-family: var(--serif-display); font-size: 38px; line-height: 1.1; color: #fff3cf; }
+.matchscore small { color: #d6b98a; }
+.matchscore .vs { font-family: var(--serif-display); font-style: italic; color: #d6b98a; }
+
+/* ---------- Profilstatistik ---------- */
+.legendrow { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 6px; font-size: 13px; color: var(--muted); }
+.legendrow i { display: inline-block; width: 12px; height: 3px; border-radius: 2px; margin-right: 6px; vertical-align: 3px; }
+.heatmap { display: grid; grid-auto-flow: column; grid-template-rows: repeat(7, 11px); gap: 3px; overflow-x: auto; padding-bottom: 4px; }
+.heatmap i { width: 11px; height: 11px; border-radius: 2px; background: color-mix(in srgb, var(--line) 45%, transparent); }
+.heatmap i.l1 { background: color-mix(in srgb, var(--brass) 35%, transparent); }
+.heatmap i.l2 { background: color-mix(in srgb, var(--brass) 65%, transparent); }
+.heatmap i.l3 { background: var(--brass); }
+.heatmap i.l4 { background: #7d1d1d; }
+.small-note { font-size: 12.5px; }
+.phases { display: flex; flex-direction: column; gap: 8px; }
+.phase { display: grid; grid-template-columns: 90px 1fr 48px; align-items: center; gap: 12px; }
+.phase span { font-size: 13px; color: var(--muted); }
+.pbar { height: 10px; border-radius: 5px; background: var(--panel2); border: 1px solid var(--line-soft); overflow: hidden; }
+.pbar b { display: block; height: 100%; background: linear-gradient(90deg, #7d1d1d, var(--brass)); }
+.phase strong { text-align: right; font-family: var(--serif-display); font-size: 18px; color: var(--accent); }

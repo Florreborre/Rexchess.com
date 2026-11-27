@@ -207,7 +207,11 @@ module.exports = (ctx) => {
   function award(userId, key) {
     if (!ACHIEVEMENTS[key] || !userId) return;
     const info = w.award.run(userId, key, Date.now());
-    if (info.changes) sendTo(userId, { t: 'achievement', name: ACHIEVEMENTS[key][0], desc: ACHIEVEMENTS[key][1] });
+    if (info.changes) {
+      sendTo(userId, { t: 'achievement', name: ACHIEVEMENTS[key][0], desc: ACHIEVEMENTS[key][1] });
+      const u = q.userById.get(userId);
+      ctx.notify?.(userId, 'achievement', `Ny prestation: ${ACHIEVEMENTS[key][0]}`, u ? `/profile/${encodeURIComponent(u.username)}` : null);
+    }
   }
   const achievementsOf = (userId) => r.achievements.all(userId).filter((a) => ACHIEVEMENTS[a.key])
     .map((a) => ({ key: a.key, name: ACHIEVEMENTS[a.key][0], desc: ACHIEVEMENTS[a.key][1], at: a.created_at }));
@@ -461,6 +465,7 @@ module.exports = (ctx) => {
   const pairKey = (a, b) => (a < b ? `${a}:${b}` : `${b}:${a}`);
   function startRoundTournament(t) {
     q.tStatus.run('running', Date.now() + DAY, t.id);
+    for (const p of q.tPlayers.all(t.id)) ctx.notify?.(p.id, 'tournament', `Turneringen ${t.name} har startat.`, `/tournament/${t.id}`);
     ctx.scheduleTournament(q.tById.get(t.id));
     startRound(t.id);
   }
@@ -530,7 +535,8 @@ module.exports = (ctx) => {
     const members = r.clubMembers.all(club.id).map((m) => ({ ...m, rating: ctx.shownRating(m.rating, m.games), title: titleFor(m.peak, m.games), online: sockets.has(m.id) }));
     res.json({ club, members, owner: userName(club.owner_id), member: !!(req.user && members.some((m) => m.id === req.user.id)) });
   });
-  app.post('/api/clubs/:id/:action', (req, res) => {
+  app.post('/api/clubs/:id/:action', (req, res, next) => {
+    if (!['join', 'leave'].includes(req.params.action)) return next(); // t.ex. challenge hanteras i features2.js
     if (!needUser(req, res)) return;
     const club = r.club.get(String(req.params.id));
     if (!club) return res.status(404).json({ error: 'Klubben finns inte.' });
@@ -622,6 +628,7 @@ module.exports = (ctx) => {
       const [wu, bu] = Math.random() < 0.5 ? [host, req.user] : [req.user, host];
       w.corrStart.run(wu.id, bu.id, wu.username, bu.username, Date.now(), row.id);
       sendTo(host.id, { t: 'corr', id: row.id, text: `${req.user.username} antog ditt korrespondensparti.` });
+      ctx.notify?.(host.id, 'corr', `${req.user.username} antog ditt korrespondensparti.`, `/corr/${row.id}`);
       return res.json({ ok: true });
     }
     if (a === 'cancel') {
@@ -641,7 +648,7 @@ module.exports = (ctx) => {
       const fresh = r.corr.get(row.id);
       if (c.isCheckmate()) corrFinish(fresh, color === 'w' ? '1-0' : '0-1', 'checkmate');
       else if (c.isDraw()) corrFinish(fresh, '1/2-1/2', c.isStalemate() ? 'stalemate' : c.isInsufficientMaterial() ? 'insufficient' : c.isThreefoldRepetition() ? 'repetition' : 'fifty');
-      else sendTo(other, { t: 'corr', id: row.id, text: `${req.user.username} har dragit i ert korrespondensparti. Din tur.` });
+      else { sendTo(other, { t: 'corr', id: row.id, text: `${req.user.username} har dragit i ert korrespondensparti. Din tur.` }); ctx.notify?.(other, 'corr', `${req.user.username} har dragit i ert korrespondensparti. Din tur.`, `/corr/${row.id}`); }
     } else if (a === 'resign') corrFinish(row, color === 'w' ? '0-1' : '1-0', 'resign');
     else if (a === 'draw') {
       if (row.draw_offer && row.draw_offer !== color) corrFinish(row, '1/2-1/2', 'agreement');

@@ -73,6 +73,11 @@ const SCHEMA = `
   CREATE TABLE IF NOT EXISTS blocks (user_id INTEGER NOT NULL, blocked_id INTEGER NOT NULL, PRIMARY KEY (user_id, blocked_id));
   CREATE TABLE IF NOT EXISTS flags (user_id INTEGER PRIMARY KEY, username TEXT, reason TEXT, created_at INTEGER NOT NULL);
   CREATE TABLE IF NOT EXISTS migrations (id TEXT PRIMARY KEY, ran_at INTEGER NOT NULL);
+  CREATE TABLE IF NOT EXISTS messages (id TEXT PRIMARY KEY, from_id INTEGER NOT NULL, to_id INTEGER NOT NULL, text TEXT NOT NULL, created_at INTEGER NOT NULL, read_at INTEGER);
+  CREATE INDEX IF NOT EXISTS messages_to ON messages(to_id, created_at);
+  CREATE INDEX IF NOT EXISTS messages_from ON messages(from_id, created_at);
+  CREATE TABLE IF NOT EXISTS notifications (id TEXT PRIMARY KEY, user_id INTEGER NOT NULL, kind TEXT, text TEXT NOT NULL, link TEXT, created_at INTEGER NOT NULL, read INTEGER NOT NULL DEFAULT 0);
+  CREATE INDEX IF NOT EXISTS notifications_user ON notifications(user_id, created_at);
   CREATE TABLE IF NOT EXISTS corr_games (
     id TEXT PRIMARY KEY, host_id INTEGER, white_id INTEGER, black_id INTEGER, white_name TEXT, black_name TEXT,
     moves TEXT NOT NULL DEFAULT '', days INTEGER NOT NULL, status TEXT NOT NULL, result TEXT, reason TEXT, draw_offer TEXT,
@@ -80,7 +85,7 @@ const SCHEMA = `
   );
 `;
 const TABLES = ['users', 'sessions', 'games', 'friendships', 'tournaments', 'tournament_players', 'achievements', 'seasons', 'clubs', 'club_members',
-  'reports', 'blocks', 'flags', 'corr_games', 'migrations'];
+  'reports', 'blocks', 'flags', 'corr_games', 'migrations', 'messages', 'notifications'];
 const CLASSES = ['bullet', 'blitz', 'rapid'];
 const EXTRA_COLUMNS = [['games', 'tournament_id TEXT'], ['games', 'white_acc REAL'], ['games', 'black_acc REAL'], ['games', 'quality REAL'],
   ['users', `peak INTEGER NOT NULL DEFAULT ${START_RATING}`], ['users', 'trophies INTEGER NOT NULL DEFAULT 0'],
@@ -89,7 +94,7 @@ const EXTRA_COLUMNS = [['games', 'tournament_id TEXT'], ['games', 'white_acc REA
   // Rating och antal partier per betänketidsklass. 0 i rating betyder "inte spelat än" – då används den sammanlagda ratingen.
   ...CLASSES.flatMap((k) => [['users', `r_${k} INTEGER NOT NULL DEFAULT 0`], ['users', `g_${k} INTEGER NOT NULL DEFAULT 0`]]),
   ['users', 'country TEXT'], ['users', 'avatar TEXT'], ['users', 'avatar_v INTEGER NOT NULL DEFAULT 0'],
-  ['games', 'variant TEXT'], ['games', 'start_fen TEXT'],
+  ['games', 'variant TEXT'], ['games', 'start_fen TEXT'], ['games', 'acc_phases TEXT'], ['tournaments', 'club_a TEXT'], ['tournaments', 'club_b TEXT'],
   ['users', 'crown_until INTEGER NOT NULL DEFAULT 0'], ['users', 'weekly_wins INTEGER NOT NULL DEFAULT 0'], ['tournaments', 'weekly INTEGER NOT NULL DEFAULT 0'],
   ['tournaments', "format TEXT NOT NULL DEFAULT 'arena'"], ['tournaments', 'rounds INTEGER NOT NULL DEFAULT 0'], ['tournaments', 'round INTEGER NOT NULL DEFAULT 0'],
   ['tournament_players', 'out INTEGER NOT NULL DEFAULT 0']];
@@ -137,7 +142,7 @@ const q = {
     result, reason, tc, rated, created_at, moves FROM games WHERE white_id = ?1 OR black_id = ?1 ORDER BY created_at DESC LIMIT 100`),
   gameById: db.prepare('SELECT * FROM games WHERE id = ?'),
   profileGames: db.prepare(`SELECT id, white_id, black_id, white_name, black_name, white_rating, black_rating, white_diff, black_diff,
-    white_acc, black_acc, result, reason, tc, rated, created_at, moves, variant FROM games WHERE white_id = ?1 OR black_id = ?1 ORDER BY created_at DESC LIMIT 500`),
+    white_acc, black_acc, acc_phases, result, reason, tc, rated, created_at, moves, variant FROM games WHERE white_id = ?1 OR black_id = ?1 ORDER BY created_at DESC LIMIT 500`),
   leaderboard: db.prepare('SELECT username, country, rating, peak, trophies, crown_until, games, wins, losses, draws FROM users WHERE games >= 5 AND banned = 0 ORDER BY rating DESC, games DESC LIMIT 50'),
 };
 
@@ -204,6 +209,7 @@ const PLACEMENT_GAMES = 5;
 const setStart = mirrored('UPDATE users SET rating = ?, peak = ?, country = ? WHERE id = ?');
 const setAvatar = mirrored('UPDATE users SET avatar = ?, avatar_v = ? WHERE id = ?');
 const setVariant = mirrored('UPDATE games SET variant = ?, start_fen = ? WHERE id = ?');
+const setPhases = mirrored('UPDATE games SET acc_phases = ? WHERE id = ?');
 const avatarUrl = (u) => (u.avatar_v ? `/api/avatar/${encodeURIComponent(u.username)}?v=${u.avatar_v}` : null);
 const shownRating = (rating, games) => (games < PLACEMENT_GAMES ? '?' : rating);
 const updateClass = Object.fromEntries(CLASSES.map((k) => [k, mirrored(`UPDATE users SET r_${k} = ?1, g_${k} = g_${k} + 1, rating = ?2, peak = MAX(peak, ?1),
@@ -466,11 +472,12 @@ app.post('/api/friends/:action', (req, res) => {
       if (features.isBlocked(other.id, me.id)) return res.status(403).json({ error: 'Den spelaren tar inte emot förfrågningar från dig.' });
       if (existing?.status === 'accepted') return res.status(409).json({ error: 'Ni är redan vänner.' });
       if (existing && existing.user_id === me.id) return res.status(409).json({ error: 'Du har redan skickat en förfrågan.' });
-      if (existing) q.acceptFriend.run(other.id, me.id); // den andra hade redan frågat – bli vänner direkt
-      else q.insertFriend.run(me.id, other.id, Date.now());
+      if (existing) { q.acceptFriend.run(other.id, me.id); features2.notify(other.id, 'friend', `${me.username} och du är nu vänner.`, `/profile/${encodeURIComponent(me.username)}`); } // den andra hade redan frågat
+      else { q.insertFriend.run(me.id, other.id, Date.now()); features2.notify(other.id, 'friend', `${me.username} vill bli din vän.`, '/friends'); }
       break;
     case 'accept':
       q.acceptFriend.run(other.id, me.id);
+      features2.notify(other.id, 'friend', `${me.username} accepterade din vänförfrågan.`, `/profile/${encodeURIComponent(me.username)}`);
       break;
     case 'remove':
       q.deleteFriend.run(me.id, other.id);
@@ -518,7 +525,7 @@ app.get('/api/tournaments/:id', (req, res) => {
   if (!t) return res.status(404).json({ error: 'Turneringen finns inte.' });
   const tp = q.tPlayers.all(t.id).map(({ crown_until, ...p }) => ({ ...p, crown: crown_until > Date.now(), rating: shownRating(p.rating, p.total_games), title: titleFor(p.peak, p.total_games) }));
   res.json({
-    tournament: t, players: tp, teams: features.teamStandings(tp), games: q.tGames.all(t.id), now: Date.now(),
+    tournament: t, players: tp, teams: features.teamStandings(tp), match: features2.matchScore(t, tp), games: q.tGames.all(t.id), now: Date.now(),
     joined: !!(req.user && q.tPlayer.get(t.id, req.user.id)),
   });
 });
@@ -530,6 +537,7 @@ app.post('/api/tournaments/:id/:action', (req, res) => {
     // Bara skaparen får ändra tiderna. Före start: betänketid, längd och starttid. Under spel: betänketid (för nya partier) och längd.
     if (t.creator_id !== req.user.id) return res.status(403).json({ error: 'Bara den som skapade turneringen kan ändra den.' });
     if (t.status === 'finished') return res.status(400).json({ error: 'Turneringen är slut.' });
+    if (t.status === 'proposed') return res.status(400).json({ error: 'Lagmatchen måste antas av den andra klubben först.' });
     const { tc, duration, startsIn } = req.body || {};
     if (!parseTc(tc) || !validDuration(duration)) return res.status(400).json({ error: 'Ogiltiga tider.' });
     let starts = t.starts_at;
@@ -548,6 +556,7 @@ app.post('/api/tournaments/:id/:action', (req, res) => {
   if (req.params.action === 'join') {
     if (t.status === 'finished') return res.status(400).json({ error: 'Turneringen är slut.' });
     if (t.format !== 'arena' && t.status !== 'open') return res.status(400).json({ error: 'Turneringen har redan startat. I rundturneringar anmäler man sig före start.' });
+    if (!features2.canJoin(t, req.user.id)) return res.status(403).json({ error: 'Bara medlemmar i de två klubbarna kan vara med i lagmatchen.' });
     q.tJoin.run(t.id, req.user.id);
   } else if (req.params.action === 'leave') {
     if (t.status !== 'open') return res.status(400).json({ error: 'Turneringen har redan startat.' });
@@ -671,6 +680,7 @@ function startTournament(id) {
   if (!t || t.status !== 'open') return;
   if (t.format !== 'arena') return features.startRoundTournament(t);
   q.tStatus.run('running', Date.now() + t.duration * 60000, id);
+  features2.tournamentStarted(t);
   tReady.set(id, new Set());
   scheduleTournament(q.tById.get(id));
   broadcastAll({ t: 'tournament', id });
@@ -689,12 +699,14 @@ function pairTournament(id) {
   const t = q.tById.get(id), set = tReady.get(id);
   if (!t || t.status !== 'running' || !set) return;
   const scores = new Map(q.tPlayers.all(id).map((p) => [p.id, p.score]));
+  const okPair = features2.pairOk(t);
   const ready = [...set].filter((u) => sockets.has(u) && !inTournamentGame(u, id) && scores.has(u))
     .sort((a, b) => scores.get(b) - scores.get(a));
   while (ready.length >= 2) {
     const a = ready.shift();
-    let i = ready.findIndex((b) => tLastOpp.get(`${id}:${a}`) !== b); // undvik samma motståndare två gånger i rad om det går
-    if (i < 0) i = 0;
+    let i = ready.findIndex((b) => okPair(a, b) && tLastOpp.get(`${id}:${a}`) !== b); // undvik samma motståndare två gånger i rad om det går
+    if (i < 0) i = ready.findIndex((b) => okPair(a, b));
+    if (i < 0) continue; // i en lagmatch finns ingen ledig motståndare från den andra klubben just nu
     const [b] = ready.splice(i, 1);
     set.delete(a);
     set.delete(b);
@@ -762,6 +774,11 @@ async function computeQuality(id, sans, startFen = null) {
   const mean = (a) => a.reduce((x, y) => x + y, 0) / a.length;
   const [wa, ba] = [mean(acc.w), mean(acc.b)];
   q.setQuality.run(wa, ba, (wa + ba) / 2, id);
+  const phases = { w: [[], [], []], b: [[], [], []] };
+  acc.w.forEach((a, i) => phases.w[i < 10 ? 0 : i < 30 ? 1 : 2].push(a));
+  acc.b.forEach((a, i) => phases.b[i < 10 ? 0 : i < 30 ? 1 : 2].push(a));
+  const round = (l) => (l.length ? Math.round(mean(l) * 10) / 10 : null);
+  setPhases.run(JSON.stringify({ w: phases.w.map(round), b: phases.b.map(round), n: { w: phases.w.map((l) => l.length), b: phases.b.map((l) => l.length) } }), id);
   features.afterQuality(id);
 }
 async function runAnalysisQueue() {
@@ -956,10 +973,13 @@ function cancelSeek(userId) {
   for (const [key, id] of seeks) if (id === userId) seeks.delete(key);
 }
 
-const features = require('./features')({
+const ctx = {
   app, db, q, mirrored, sockets, activeGame, gamesOf, gamesById, sendTo, broadcastAll, broadcast, gameState, scheduleFlag, createGame, endGame,
   publicUser, titleFor, shownRating, needUser, parseTc, startTournament, broadcastTournament: (id) => broadcastAll({ t: 'tournament', id }), TIME_CONTROLS, hashPassword, sha256, crypto, Chess, buildPgn, elo, scheduleTournament, finishTournament,
-});
+};
+const features = require('./features')(ctx);
+const features2 = require('./features2')({ ...ctx, features });
+ctx.notify = features2.notify; // så att features.js kan skicka aviseringar (prestationer, korrespondens)
 // Engångsåtgärder på databasen. Varje åtgärd körs en enda gång; att den har körts sparas i tabellen migrations
 // (som också speglas till Turso, så att den inte körs om när webbhotellet startar om med tom lokal databas).
 function runMigrations() {

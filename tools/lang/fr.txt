@@ -719,3 +719,65 @@
 796|joueurs en ligne
 797|parties en ce moment
 798|joueurs inscrits
+799|à l'instant
+800|il y a {1} min
+801|il y a {1} h
+802|Échecs TV
+803|TV
+804|La partie la mieux classée en ce moment, en direct.
+805|Aucune partie en ce moment
+806|Dès que quelqu'un commence à jouer, la partie s'affiche ici.
+807|Jouer soi-même
+808|Connectez-vous pour regarder les parties en direct.
+809|Explorateur d'ouvertures
+810|Ouverture inconnue
+811|Position de départ
+812|Jouez un coup sur l'échiquier ou choisissez-en un ci-dessous.
+813|théorie
+814|Pas encore joué ici
+815|Un coup en arrière
+816|{1} parties du site ont atteint cette position.
+817|Blancs · Nulle · Noirs
+818|Aucun coup joué d'ici pour l'instant.
+819|Parties depuis cette position
+820|Messages
+821|Connectez-vous pour envoyer et lire des messages.
+822|Vous : 
+823|Aucune conversation. Écrivez à quelqu'un depuis son profil.
+824|Pas encore de messages. Dites bonjour !
+825|Choisissez une conversation à gauche.
+826|Notifications
+827|Aucune notification pour l'instant.
+828|Partager la partie
+829|Copier le lien
+830|Lien copié.
+831|Création de l'image…
+832|L'image n'a pas pu être créée.
+833|Matchs par équipes
+834|Défi pour vous
+835|Commence bientôt
+836|En cours
+837|Retirer
+838|Défier un autre club
+839|Une arène où vos membres n'affrontent que ceux de l'autre club. Les points sont additionnés par équipe. Le responsable de l'autre club doit accepter le défi.
+840|Adversaire 
+841|Cadence 
+842|Durée 
+843|Début 
+844|dans 10 min
+845|dans 30 min
+846|dans 1 h
+847|dans 3 h
+848|demain
+849|Envoyer le défi
+850|Le club n'a encore joué aucun match par équipes.
+851|Il faut au moins un autre club pour lancer un défi.
+852|Envoyer un message
+853|Évolution du classement par cadence
+854|Précision par phase
+855|Activité
+856|Milieu de partie
+857|La précision par phase est calculée pour les parties classées d'au moins huit coups jouées à partir de maintenant.
+858|{1} parties sur {2} jours au cours de l'année écoulée.
+859|Score
+860|En attente de l'acceptation de l'autre club.

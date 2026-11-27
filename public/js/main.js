@@ -2,6 +2,7 @@
 import { Chess } from '/vendor/chess.js';
 import { h, state, api, go, titleEl, playSound, userLink, applySettings, spriteLoaded, saveSettings, settings, isDark, flagEl, countrySelect, LANGUAGES, avatarImg, crownEl, icon } from './util.js';
 import { profileView } from './profile.js';
+import { tvView, explorerView, messagesView, headerIcons, refreshBadges } from './extra.js';
 import { initI18n } from './i18n.js';
 import { net, connect, disconnect, on } from './net.js';
 import { lobbyView, onlineGameView, botView, watchView, liveGames } from './game.js';
@@ -39,6 +40,9 @@ const routes = [
   [/^\/clubs(?:\/([\w-]+))?$/, clubsView],
   [/^\/corr(?:\/([\w-]+))?$/, corrView],
   [/^\/admin$/, adminView],
+  [/^\/tv$/, tvView],
+  [/^\/explorer$/, explorerView],
+  [/^\/messages(?:\/([^/]+))?$/, (ctx, u) => messagesView(ctx, u && decodeURIComponent(u))],
 ];
 
 function render() {
@@ -62,7 +66,7 @@ function renderNav() {
   const hash = location.pathname;
   const link = (href, label) => h('a' + (hash.startsWith(href) ? '.active' : ''), { href }, label);
   document.getElementById('nav').replaceChildren(
-    link('/play', 'Spela'), link('/training', 'Träna'), link('/tournament', 'Turneringar'), link('/clubs', 'Klubbar'), link('/friends', 'Vänner'),
+    link('/play', 'Spela'), link('/training', 'Träna'), link('/tv', 'TV'), link('/tournament', 'Turneringar'), link('/clubs', 'Klubbar'), link('/friends', 'Vänner'),
     link('/top', 'Topplista'), link('/games', 'Mina partier'),
     state.user ? link(`/profile/${encodeURIComponent(state.user.username)}`, 'Min profil') : '',
     liveGames().length === 1 ? h('a.live', { href: `/game/${liveGames()[0].id}` }, h('span.livedot'), 'Pågående parti')
@@ -77,7 +81,7 @@ function renderNav() {
   if (state.user) {
     box.replaceChildren(state.user.avatar ? avatarImg(state.user.avatar, 26) : '', h('span.me', titleEl(state.user.title), ' ', crownEl(state.user.crown), userLink(state.user.username), ` ${state.user.provisional ? '?' : state.user.rating}`),
       state.user.admin ? h('a.btn.small', { href: '/admin' }, 'Admin') : '',
-      ...quick, h('a.btn.small.iconbtn', { href: '/settings', title: 'Inställningar' }, icon('settings', 16)),
+      ...headerIcons(), ...quick, h('a.btn.small.iconbtn', { href: '/settings', title: 'Inställningar' }, icon('settings', 16)),
       h('button.small', {
         onclick: async () => {
           await api('/api/logout', {});
@@ -240,6 +244,11 @@ on((m) => {
     const el = toast([h('p', h('strong', m.from), ' vill ha returmatch.'),
       h('div.btnrow', h('button.primary.small', { onclick: () => { send({ t: 'rematch', id: m.id }); el.remove(); } }, 'Acceptera'), h('button.small', { onclick: () => el.remove() }, 'Avböj'))], 60000);
   }
+  if (m.t === 'dm' && m.from && location.pathname !== `/messages/${encodeURIComponent(m.from)}`) {
+    playSound('challenge');
+    toast([h('p', h('strong', m.from), ': ', m.text.slice(0, 120)), h('a.btn.small.primary', { href: `/messages/${encodeURIComponent(m.from)}` }, 'Svara')], 12000);
+  }
+  if (m.t === 'notify' && ['friend', 'club', 'tournament'].includes(m.kind)) toast([h('p', m.text), m.link && h('a.btn.small.primary', { href: m.link }, 'Öppna')], 12000);
   if (m.t === 'corr' && location.pathname !== `/corr/${m.id}`) toast([h('p', m.text), h('a.btn.small.primary', { href: `/corr/${m.id}` }, 'Öppna partiet')], 15000);
   if (m.t === 'game') {
     // Ett nytt parti: gå dit direkt, om man inte redan sitter i ett annat parti – då kommer en avisering i stället.

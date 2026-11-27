@@ -13,10 +13,12 @@ function compute(user, games) {
   const rated = { n: 0, w: 0, d: 0, l: 0 };
   const color = { w: { n: 0, w: 0 }, b: { n: 0, w: 0 } };
   const classes = {}, openings = { w: new Map(), b: new Map() };
-  const history = [], accs = [];
+  const history = [], accs = [], byClass = { Bullet: [], Blixt: [], Snabb: [] }, days = new Map(), phase = { sum: [0, 0, 0], n: [0, 0, 0] };
   let best = null, streak = 0, longest = 0, run = 0;
   for (const g of [...games].reverse()) { // äldst först
     const white = g.white_id === user.id, side = white ? 'w' : 'b';
+    const day = new Date(g.created_at).toDateString();
+    days.set(day, (days.get(day) || 0) + 1);
     const score = g.result === '1/2-1/2' ? 'd' : (g.result === '1-0') === white ? 'w' : 'l';
     const name = matchOpening(g.opening).name || 'Övriga öppningar';
     const o = openings[side].get(name) || { name, n: 0, w: 0, d: 0, l: 0 };
@@ -32,6 +34,13 @@ function compute(user, games) {
       ? [g.white_rating, g.white_diff, g.black_name, g.black_rating, g.white_acc]
       : [g.black_rating, g.black_diff, g.white_name, g.white_rating, g.black_acc];
     history.push(myRating + diff);
+    byClass[timeClass(g.tc)].push({ r: myRating + diff, at: g.created_at });
+    if (g.acc_phases) { // träffsäkerhet i öppning, mittspel och slutspel, viktad med antal drag
+      try {
+        const p = JSON.parse(g.acc_phases);
+        p[side].forEach((v, i) => { if (v != null) { phase.sum[i] += v * p.n[side][i]; phase.n[i] += p.n[side][i]; } });
+      } catch { /* äldre parti utan fasdata */ }
+    }
     if (acc != null) accs.push(acc);
     if (score === 'w' && (!best || oppRating > best.rating)) best = { name: oppName, rating: oppRating, id: g.id };
     run = score === 'w' ? run + 1 : 0;
@@ -40,7 +49,8 @@ function compute(user, games) {
   }
   const top = (m) => [...m.values()].sort((a, b) => b.n - a.n).slice(0, 6);
   return {
-    rated, color, classes, history, best, streak, longest,
+    rated, color, classes, history, best, streak, longest, byClass, days,
+    phases: phase.sum.map((s, i) => (phase.n[i] ? s / phase.n[i] : null)),
     accuracy: accs.length ? accs.reduce((a, b) => a + b, 0) / accs.length : null,
     openings: { w: top(openings.w), b: top(openings.b) },
   };
@@ -54,6 +64,41 @@ function ratingGraph(history) {
     svg('svg', { viewBox: `0 0 ${W} 100`, preserveAspectRatio: 'none' },
       svg('polyline', { points: pts.map((r, i) => `${i},${y(r).toFixed(1)}`).join(' '), class: 'rline' })),
     h('span.rmax', Math.max(...pts)), h('span.rmin', Math.min(...pts)));
+}
+
+// Ratingkurvor per betänketid i samma diagram.
+const CLASS_COLORS = { Bullet: '#c0392b', Blixt: '#b8913a', Snabb: '#3f7d5a' };
+function classGraph(byClass) {
+  const series = Object.entries(byClass).filter(([, pts]) => pts.length > 0);
+  const all = series.flatMap(([, pts]) => pts);
+  if (all.length < 2) return null;
+  const t0 = Math.min(...all.map((p) => p.at)), t1 = Math.max(...all.map((p) => p.at)) || t0 + 1;
+  const lo = Math.min(...all.map((p) => p.r)) - 25, hi = Math.max(...all.map((p) => p.r)) + 25;
+  const x = (t) => ((t - t0) / Math.max(1, t1 - t0)) * 1000, y = (r) => 100 - ((r - lo) / (hi - lo)) * 100;
+  return h('div',
+    h('div.rgraph', svg('svg', { viewBox: '0 0 1000 100', preserveAspectRatio: 'none' },
+      ...series.map(([k, pts]) => svg('polyline', { points: pts.map((p) => `${x(p.at).toFixed(1)},${y(p.r).toFixed(1)}`).join(' '), class: 'rline', style: `stroke: ${CLASS_COLORS[k]}` }))),
+      h('span.rmax', Math.round(hi - 25)), h('span.rmin', Math.round(lo + 25))),
+    h('div.legendrow', series.map(([k, pts]) => h('span', h('i', { style: { background: CLASS_COLORS[k] } }), `${k} ${pts.at(-1).r}`))));
+}
+// Aktivitet: en ruta per dag det senaste året, mörkare ju fler partier.
+function calendar(days) {
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const start = new Date(today); start.setDate(start.getDate() - 364 - ((today.getDay() + 6) % 7));
+  const cells = [];
+  let total = 0, active = 0;
+  for (let d = new Date(start); d <= today; d.setDate(d.getDate() + 1)) {
+    const n = days.get(d.toDateString()) || 0;
+    total += n; if (n) active++;
+    const lvl = n === 0 ? 0 : n < 3 ? 1 : n < 6 ? 2 : n < 10 ? 3 : 4;
+    cells.push(h('i.l' + lvl, { title: `${d.toLocaleDateString('sv-SE')}: ${n} ${n === 1 ? 'parti' : 'partier'}` }));
+  }
+  return h('div', h('div.heatmap', cells), h('p.muted.small-note', `${total} partier på ${active} dagar det senaste året.`));
+}
+function phaseBars(phases) {
+  const names = ['Öppning', 'Mittspel', 'Slutspel'];
+  if (phases.every((p) => p == null)) return h('p.muted', 'Träffsäkerhet per fas räknas ut för rankade partier på minst åtta drag som spelas från och med nu.');
+  return h('div.phases', phases.map((p, i) => h('div.phase', h('span', names[i]), h('div.pbar', h('b', { style: { width: `${p ?? 0}%` } })), h('strong', p == null ? '–' : p.toFixed(1)))));
 }
 
 function openingList(title, list) {
@@ -85,6 +130,7 @@ export function profileView(ctx, rawName) {
 
       const own = state.user?.id === user.id;
       const extras = h('div.btnrow.left',
+        state.user && !(state.user.id === user.id) && h('a.btn.small', { href: `/messages/${encodeURIComponent(user.username)}` }, icon('mail', 15), ' Skicka meddelande'),
         user.club && h('a.btn.small', { href: `/clubs/${user.club.id}` }, `Klubb: ${user.club.name}`),
         user.gameId && h('a.btn.small.primary', { href: `/watch/${user.gameId}` }, 'Titta på partiet'),
         own && h('a.btn.small', { href: '/settings' }, 'Inställningar och konto'),
@@ -122,8 +168,12 @@ export function profileView(ctx, rawName) {
           user.weeklyWins > 0 && tile('Veckosegrar', String(user.weeklyWins), 'vunna veckoturneringar'),
           tile('Vinstsvit', s.streak, `längsta: ${s.longest}`),
           s.best && tile('Bästa vinst', s.best.rating, `mot ${s.best.name}`)),
-        s.history.length > 1 && h('h3', 'Ratingutveckling'),
-        s.history.length > 1 && ratingGraph(s.history),
+        s.history.length > 1 && h('h3', 'Ratingutveckling per betänketid'),
+        s.history.length > 1 && (classGraph(s.byClass) || ratingGraph(s.history)),
+        h('h3', 'Träffsäkerhet per fas'),
+        phaseBars(s.phases),
+        h('h3', 'Aktivitet'),
+        calendar(s.days),
         Object.keys(s.classes).length > 0 && h('h3', 'Per betänketid'),
         Object.keys(s.classes).length > 0 && h('div.tablewrap', h('table',
           h('thead', h('tr', ['Typ', 'Partier', 'V / R / F', 'Vinster'].map((t) => h('th', t)))),

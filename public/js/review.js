@@ -5,6 +5,7 @@ import { Board } from './board.js';
 import { getEngine } from './engine.js';
 import { matchOpening } from './openings.js';
 import { make960 } from './chess960.js';
+import { shareBar } from './extra.js';
 const Chess960 = make960(Chess);
 
 export const CLASSES = {
@@ -93,7 +94,7 @@ export function reviewView(ctx, id) {
       try {
         const { game: g } = await api(`/api/games/${encodeURIComponent(id)}`);
         src = {
-          moves: g.moves.split(' ').filter(Boolean), result: g.result, reason: g.reason, variant: g.variant, startFen: g.start_fen,
+          id: g.id, pgn: g.pgn, moves: g.moves.split(' ').filter(Boolean), result: g.result, reason: g.reason, variant: g.variant, startFen: g.start_fen,
           white: { name: g.white_name, rating: g.white_rating }, black: { name: g.black_name, rating: g.black_rating },
           flip: state.user && g.black_id === state.user.id,
         };
@@ -322,17 +323,19 @@ function mount(root, src) {
 
     if (!marks) {
       progressEl = h('div.progress', h('div'));
-      side.replaceChildren(header, progressEl, h('p.muted', 'Startar motorn…'), moveList(), nav);
+      side.replaceChildren(header, progressEl, h('p.muted', 'Startar motorn…'), moveList(), nav, share());
       renderProgress();
     } else {
       progressEl = null;
       side.replaceChildren(...[header, ply === 0 ? summary() : null, comment(), graph(), moveList(), nav,
         h('button.primary', { onclick: nextKey, disabled: ply >= n }, 'Nästa nyckeldrag'),
-        mistakes().length > 0 && h('button', { onclick: () => { state.training = mistakes(); navigate('/train'); } }, `Träna på misstagen (${mistakes().length})`)].filter(Boolean));
+        mistakes().length > 0 && h('button', { onclick: () => { state.training = mistakes(); navigate('/train'); } }, `Träna på misstagen (${mistakes().length})`), share()].filter(Boolean));
     }
     side.querySelector('.mv.current')?.scrollIntoView({ block: 'nearest' });
   }
 
+  let shareEl = null;
+  const share = () => (shareEl ??= shareBar(src, fens.map((fen, i) => ({ fen, from: hist[i - 1]?.from, to: hist[i - 1]?.to })), orientation));
   analyse();
   return () => {
     run++;

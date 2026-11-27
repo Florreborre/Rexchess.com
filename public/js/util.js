@@ -23,6 +23,16 @@ const ICONS = {
   check: [['path', { d: 'M5 12.5l4.5 4.5L19 7.5', 'stroke-width': 2.2 }]],
   spark: [['path', { d: 'M12 3l1.9 6.1L20 11l-6.1 1.9L12 19l-1.9-6.1L4 11l6.1-1.9z', fill: 'currentColor', stroke: 'none' }]],
   clock: [['circle', { cx: 12, cy: 12, r: 8.5 }], ['path', { d: 'M12 7.5V12l3 2' }]],
+  tv: [['rect', { x: 3, y: 6, width: 18, height: 12.5, rx: 2 }], ['path', { d: 'M8.5 2.5L12 6l3.5-3.5M8 21h8' }]],
+  bell: [['path', { d: 'M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 2h-15z' }], ['path', { d: 'M10 20.5a2 2 0 0 0 4 0' }]],
+  mail: [['rect', { x: 3, y: 5.5, width: 18, height: 13, rx: 2 }], ['path', { d: 'M3.5 7l8.5 6 8.5-6' }]],
+  users: [['circle', { cx: 9, cy: 8.5, r: 3.5 }], ['path', { d: 'M2.5 20a6.5 6.5 0 0 1 13 0M16 5.2a3.5 3.5 0 0 1 0 6.6M18 14.5a6 6 0 0 1 3.5 5.5' }]],
+  shield: [['path', { d: 'M12 3l8 3v5.5c0 4.5-3.4 8.2-8 9.5-4.6-1.3-8-5-8-9.5V6z' }]],
+  share: [['circle', { cx: 6, cy: 12, r: 2.5 }], ['circle', { cx: 18, cy: 6, r: 2.5 }], ['circle', { cx: 18, cy: 18, r: 2.5 }], ['path', { d: 'M8.3 10.8l7.4-3.6M8.3 13.2l7.4 3.6' }]],
+  link: [['path', { d: 'M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1' }]],
+  download: [['path', { d: 'M12 4v11M7.5 10.5L12 15l4.5-4.5M5 19.5h14' }]],
+  film: [['rect', { x: 3.5, y: 4.5, width: 17, height: 15, rx: 2 }], ['path', { d: 'M7.5 4.5v15M16.5 4.5v15M3.5 9h4M3.5 15h4M16.5 9h4M16.5 15h4' }]],
+  compass: [['circle', { cx: 12, cy: 12, r: 8.5 }], ['path', { d: 'M15.5 8.5l-2 5-5 2 2-5z' }]],
 };
 export function icon(name, size = 18, cls = '') {
   return svg('svg', { viewBox: '0 0 24 24', width: size, height: size, class: ('ico ' + cls).trim(), fill: 'none', stroke: 'currentColor', 'stroke-width': 1.8,
