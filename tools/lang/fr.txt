@@ -1,0 +1,622 @@
+0|Jouer
+1|S'entraîner
+2|Tournois
+3|Clubs
+4|Amis
+5|Classement
+6|Mes parties
+7|Mon profil
+8|Se connecter
+9|Se déconnecter
+10|Créer un compte
+11|Paramètres
+13|● Partie en cours
+14|Mode sombre ou clair
+15|Langue / Language
+16|Chargement…
+17|Une erreur s'est produite.
+18|Non connecté.
+19|Introuvable.
+20|Action inconnue.
+21|Annuler
+22|Enregistrer
+23|Ouvrir
+24|Retour
+25|Retirer
+26|Envoyer
+27|Terminé
+28|Accepter
+29|Refuser
+30|Autoriser
+31|Tout afficher
+32|En ligne
+33|Hors ligne
+34|Joue en ce moment
+35|en partie
+36|Moteur : Stockfish (GPLv3) · Pièces : Cburnett / Wikimedia Commons (CC BY-SA 3.0) · Sons : Kenney (CC0), Enigmahack / Lichess (AGPLv3+)
+37|Échecs en ligne
+38|Blancs
+39|Noirs
+40|blancs
+41|noirs
+42|Classement Elo
+43|Parties
+44|Joueur
+45|Titre
+46|Points
+47|Victoires
+48|Date
+49|Adversaire
+50|Résultat
+51|Cadence
+52|Durée
+53|Statut
+54|Nom
+55|Type
+56|État
+57|Coups
+58|Ouverture
+59|Victoire
+60|Défaite
+61|Nulle
+62|V / N / D
+63|{1} V
+64|{1} N
+65|{1} D
+66|non classée
+67|classée
+68|tournoi
+69|Ordinateur
+70|Invité
+71|{1} coups
+72|{1} partie
+73|{1} parties
+76|{1} résolus
+77|à vous de jouer
+78|au tour de l'adversaire
+79|À vous de jouer
+80|Au tour de l'adversaire
+82|Blitz
+83|Rapide
+84|échec et mat
+85|abandon
+86|temps écoulé
+87|pat
+88|matériel insuffisant
+89|triple répétition
+90|règle des 50 coups
+91|accord mutuel
+92|partie annulée
+93|Partie annulée
+94|Nulle – {1}
+95|Vous avez gagné
+96|Vous avez perdu
+97|La partie est terminée
+98|Partie terminée : {1} ({2})
+99|Nom d'utilisateur
+100|Mot de passe
+101|Se connecter / créer un compte
+102|Le nom d'utilisateur doit compter 3 à 20 caractères (lettres, chiffres, _ et -).
+103|Ce nom d'utilisateur est déjà pris.
+104|Le mot de passe doit compter au moins 6 caractères.
+105|Nom d'utilisateur ou mot de passe incorrect.
+106|Trop de tentatives. Patientez un instant.
+107|Ce compte est suspendu.
+108|Jouer en ligne
+109|Parties classées contre d'autres joueurs. Choisissez la cadence : minutes + secondes ajoutées à chaque coup.
+110|Il faut un compte pour jouer en ligne.
+111|Recherche d'un adversaire ({1})…
+112|Connexion au serveur…
+113|Jouer contre l'ordinateur
+114|Choisir un adversaire
+115|Réunissez des joueurs dans une arène : tout le monde est apparié encore et encore jusqu'à la fin du temps. Le plus de points l'emporte.
+116|Créer un tournoi
+117|Problèmes, échiquier d'analyse, ouvertures et finales.
+118|Résoudre des problèmes
+119|Tout l'entraînement
+120|Parties en direct
+121|Aucune partie n'est jouée en ce moment.
+122|Défier par lien
+123|Créez un lien et envoyez-le à un ami. La partie commence dès qu'il l'ouvre.
+124|Créer un lien
+125|Partie de la semaine
+126|Aucune partie classée ne s'est qualifiée ces sept derniers jours. Jouez-en une : la partie la mieux jouée apparaîtra ici pour tous.
+127|contre
+128|Précision : {1} / {2}
+129|Voir la partie
+130|Liste complète
+131|Aucun joueur pour l'instant.
+132|Rejoignez un club ou créez le vôtre. Les clubs s'affrontent par équipes dans les tournois.
+133|Voir les clubs
+134|Correspondance
+135|Parties sans pendule : vous avez un ou plusieurs jours par coup.
+136|Parties par correspondance
+137|Ajoutez des amis, voyez qui est en ligne et défiez-les.
+138|Liste d'amis
+139|Analyser
+140|Revoyez vos parties coup par coup, avec la précision, une appréciation de chaque coup et le meilleur coup.
+141|Aucun coup pour l'instant.
+142|Premier
+143|Précédent
+144|Suivant
+145|Dernier
+146|Proposer nulle
+147|Nulle proposée
+148|Abandonner
+149|Sûr ? Cliquez encore
+150|Reprendre le coup
+151|En attente de réponse
+152|Votre adversaire propose nulle.
+153|Votre adversaire veut reprendre son dernier coup.
+154|Analyser la partie
+155|Revanche
+156|Nouvelle partie
+157|Vers le tournoi
+158|Classement :
+160|Écrire un message…
+161|Seuls les joueurs peuvent écrire ici
+162|Aucun message pour l'instant.
+163|Chargement de la partie…
+164|La partie n'est pas en cours
+165|La partie est terminée ou n'existe pas.
+166|Regarder une partie
+167|Vous devez être connecté pour suivre les parties en direct.
+168|Vous regardez
+169|{1} réfléchit…
+170|Les parties contre l'ordinateur ne comptent pas pour votre classement.
+171|Connectez-vous pour enregistrer vos parties.
+172|Votre couleur
+173|Au hasard
+174|Jouer contre {1}
+175|Vient d'apprendre comment bougent les pièces.
+176|Joue parfois bien, mais laisse souvent des pièces en prise.
+177|Joueur de club qui connaît les bases.
+178|Solide et punit les étourderies.
+179|Fort tacticien.
+180|Niveau maître.
+181|Stockfish à pleine puissance. Bonne chance.
+182|vous défie ({1}).
+183|veut une revanche.
+184|🏅 Nouveau succès :
+185|Nouveau titre ! Vous êtes maintenant
+186|Ouvrir la partie
+187|{1} n'est pas disponible pour le moment.
+188|Défi envoyé à {1}.
+189|{1} a refusé le défi.
+190|Le défi n'est plus valable.
+191|Revanche proposée.
+192|Votre adversaire n'est pas disponible pour une revanche.
+193|La personne qui vous a invité n'est pas disponible pour le moment.
+194|Analyse de la partie
+195|Profondeur
+196|Rapide ({1})
+197|Normale ({1})
+198|Profonde ({1})
+199|Très profonde ({1})
+200|Démarrage du moteur…
+201|Analyse du coup {1} sur {2}…
+202|Précision
+203|Brillant
+204|Excellent coup
+205|Meilleur
+206|Excellent
+207|Bon
+208|Théorie
+209|Forcé
+210|Imprécision
+211|Erreur
+212|Occasion manquée
+213|Gaffe
+214|un coup brillant !
+215|un excellent coup – le seul vraiment bon
+216|le meilleur coup
+217|un excellent coup
+218|un bon coup
+219|un coup théorique
+220|le seul coup légal
+221|une imprécision
+222|une erreur
+223|une occasion manquée
+224|une gaffe
+225|est {1}
+226|Le meilleur était
+227|Meilleure ligne : {1}
+228|La position de départ.
+229|Parcourez la partie avec les flèches ou les touches fléchées.
+230|Ouverture : {1}
+231|Résultat : {1}
+232|Résultat : {1} ({2})
+233|Coup clé suivant ▶
+234|Retourner l'échiquier
+235|S'entraîner sur les erreurs ({1})
+236|Chargement de la partie…
+237|Aucune partie à analyser
+238|Vers mes parties
+239|La partie n'existe pas.
+240|Connectez-vous pour voir vos parties enregistrées.
+241|Vous n'avez encore joué aucune partie.
+242|Mes statistiques et ouvertures
+243|Analyser un PGN
+244|Vous pouvez aussi analyser n'importe quelle partie en la collant ici.
+245|Collez une partie au format PGN…
+246|Impossible de lire la partie. Vérifiez que le PGN est valide.
+247|Général
+248|Saison
+249|Aucun joueur pour l'instant. Créez un compte et soyez le premier !
+250|Personne n'a encore joué de partie classée à cette cadence.
+251|Titres
+252|moins de 1000
+253|Saison {1}. Les parties classées rapportent 3 points pour une victoire et 1 pour une nulle. Le classement repart à zéro le {2}, et le vainqueur reçoit un trophée.
+254|Aucune partie classée n'a encore été jouée cette saison.
+255|Anciens champions de saison
+256|({1} points)
+257|Tournois gagnés
+258|Il faut un compte pour avoir une liste d'amis.
+259|Ajouter un ami
+260|Cadence des défis :
+261|Demandes d'amis
+262|Amis ({1})
+263|Défier
+264|Vous n'avez pas encore d'amis. Ajoutez quelqu'un avec le nom d'utilisateur ci-dessus.
+265|Demandes envoyées
+266|Annuler
+267|Aucun joueur ne porte ce nom.
+268|Vous ne pouvez pas vous ajouter vous-même.
+269|Vous êtes déjà amis.
+270|Vous avez déjà envoyé une demande.
+271|Ce joueur n'accepte pas vos demandes.
+272|Il faut un compte pour créer un tournoi.
+273|Nom du tournoi
+274|Arène : tous les inscrits sont appariés encore et encore pendant le tournoi. Une victoire rapporte 1 point, une nulle ½. Les parties sont classées.
+275|Format
+276|Rondes (système suisse)
+277|Arène
+278|Système suisse
+279|Élimination directe
+280|Système suisse, {1} rondes
+281|Système suisse : tout le monde joue un nombre fixe de rondes contre des adversaires au score proche. Élimination directe : le perdant est éliminé, et en cas de nulle les Noirs passent. Dans les deux cas, la ronde suivante commence quand toutes les parties sont terminées, et la durée ci-dessous n'est pas utilisée.
+282|Cadence
+283|min +
+284|s par coup
+285|Commence dans
+286|min
+287|Indiquez 0 dans « Commence dans » pour démarrer tout de suite. Vous pouvez aussi lancer plus tôt ou modifier les horaires sur la page du tournoi.
+288|Il n'y a pas encore de tournoi. Créez le premier !
+289|par {1}
+290|créé par {1}
+291|Commence dans {1}
+292|En cours – encore {1}
+293|En cours – ronde {1}
+294|En cours – ronde {1} sur {2}
+295|Terminé
+296|Chargement du tournoi…
+297|Tournoi
+298|Tous les tournois
+299|Connectez-vous pour participer
+300|Rejoindre
+301|✓ Vous êtes inscrit
+302|Quitter
+303|Vers votre partie
+304|Démarrer maintenant
+305|Modifier les horaires
+306|En attente d'un adversaire – l'appariement est automatique. Restez sur cette page.
+307|La ronde suivante commence automatiquement quand toutes les parties sont terminées. Vous serez dirigé vers votre partie.
+308|La nouvelle cadence s'applique aux parties commencées après la modification. La durée est comptée depuis le début du tournoi.
+309|Classement ({1} joueurs)
+310|Personne n'est encore inscrit.
+311|Parties récentes
+312|Classement par équipes (clubs)
+313|Club
+314|🏆 Vainqueur : {1} avec {2} points
+315|Le nom doit compter 3 à 40 caractères.
+316|Paramètres non valides.
+317|Le tournoi n'existe pas.
+318|Le tournoi est terminé.
+319|Le tournoi a déjà commencé.
+320|Le tournoi a déjà commencé. Pour les tournois à rondes, on s'inscrit avant le début.
+321|Seul le créateur du tournoi peut le modifier.
+322|Horaires non valides.
+323|Heure de début non valide.
+324|Cette durée est déjà dépassée. Choisissez une durée plus longue.
+325|Chargement du profil…
+326|Profil
+327|Vers le classement
+328|Membre depuis le {1}
+329|Record : {1}
+330|Demande d'ami envoyée
+331|Accepter la demande d'ami
+332|✓ Ami
+333|Club : {1}
+334|Regarder la partie
+335|Paramètres et compte
+336|Bloquer
+337|Débloquer
+338|Signaler
+339|Suspendre le compte
+340|Lever la suspension
+341|Pourquoi signalez-vous {1} ?
+342|Merci, le signalement a été envoyé à l'administrateur.
+343|Décrivez brièvement ce qui s'est passé.
+344|Statistiques
+345|Problèmes
+346|Classement par cadence : bullet (moins de 3 min), blitz (3 à 9 min) et rapide (10 min et plus). Les chiffres ci-dessous portent sur toutes les parties classées.
+347|Avec les Blancs
+348|Avec les Noirs
+349|moyenne des parties analysées
+350|Série de victoires
+351|la plus longue : {1}
+352|Meilleure victoire
+353|contre {1}
+354|Évolution du classement
+355|Par cadence
+356|Succès
+357|Aucun succès pour l'instant.
+358|Ouvertures les plus jouées
+359|Calculé sur toutes les parties, y compris contre l'ordinateur.
+360|Aucune partie pour l'instant.
+361|{1} % de victoires
+362|{1} % de nulles
+363|{1} % de défaites
+364|Autres ouvertures
+365|Première victoire
+366|Gagnez votre première partie classée
+367|Vétéran
+368|Gagnez 10 parties classées
+369|Gagnez 50 parties classées
+370|Gagnez 100 parties classées
+371|Jouez 100 parties classées
+372|Cinq d'affilée
+373|Gagnez cinq parties classées d'affilée
+374|Tueur de géants
+375|Battez un joueur classé au moins 200 points au-dessus de vous
+376|Mat éclair
+377|Donnez mat en 15 coups ou moins
+378|Vainqueur de tournoi
+379|Gagnez un tournoi
+380|Champion de saison
+381|Gagnez une saison mensuelle
+382|Solveur de problèmes
+383|Résolvez 10 problèmes
+384|Tacticien
+385|Résolvez 100 problèmes
+386|Problèmes d'échecs
+387|Trouvez le mat ou la tactique gagnante. Vous avez votre propre classement de problèmes.
+388|Problème du jour
+389|Le même problème pour tous, un nouveau chaque jour.
+390|Échiquier d'analyse
+391|Placez n'importe quelle position, jouez librement et voyez l'évaluation du moteur.
+392|Ouvrir l'échiquier
+393|Entraînement aux ouvertures
+394|Révisez des lignes d'ouverture. Le site vous corrige quand vous vous trompez.
+395|Réviser les ouvertures
+396|Finales
+397|Finales classiques contre Stockfish.
+398|Choisir une finale
+399|Travaillez vos erreurs
+400|Analysez une partie et recevez vos erreurs sous forme d'exercices.
+401|Recherche d'un problème…
+402|difficulté {1}
+403|Mat en {1}
+404|Tactique
+405|Vous jouez les {1}. Trouvez le meilleur coup.
+406|Votre classement de problèmes : {1}
+407|Connectez-vous pour avoir un classement de problèmes.
+408|{1} n'est pas le bon coup. Réessayez.
+409|Résolu !
+410|Résolu – mais pas du premier coup.
+411|Voici la solution.
+412|Indice
+413|Voir la solution
+414|Problème suivant ▶
+415|Plus de problèmes ▶
+416|Il n'y a pas encore de problèmes.
+417|Le problème n'existe pas.
+418|Travailler les erreurs
+419|Analysez d'abord une partie, puis choisissez « S'entraîner sur les erreurs ».
+420|S'entraîner sur les erreurs
+421|C'est fini !
+422|Vous avez trouvé le meilleur coup dans {1} positions sur {2}.
+423|Encore une fois
+424|Position {1} sur {2}
+425|Dans la partie, le coup joué était
+426|, qui était {1}. Trouvez un meilleur coup pour les {2}.
+427|{1} n'est pas le meilleur coup. Réessayez.
+428|Exact – c'était le meilleur coup !
+429|Le voilà.
+430|Voir le coup
+431|Position suivante ▶
+432|Voir le résultat ▶
+433|Évaluation :
+434|Déplacez librement les pièces des deux camps.
+435|◀ Annuler
+436|Rétablir ▶
+437|Retourner
+438|Placer une position
+439|Chaîne FEN
+440|Charger la FEN
+441|Position de départ
+442|Chaîne FEN non valide.
+443|0-1 (mat)
+444|1-0 (mat)
+445|Choisissez une ouverture et jouez les coups de mémoire. Le site joue les coups de l'adversaire et vous corrige si vous vous trompez.
+446|{1} ({2} coups)
+447|Jouez les coups des {1} dans la ligne.
+448|{1} ne fait pas partie de cette ligne. Le bon coup est {2}.
+449|Exact !
+450|Ligne terminée !
+451|Coup {1} sur {2} : {3}
+452|Le coup suivant est {1}.
+453|Voir le coup suivant
+454|Recommencer
+455|Entraînement aux finales
+456|Dame contre roi seul
+457|La finale de mat la plus simple. Repoussez le roi vers le bord.
+458|Tour contre roi seul
+459|Enfermez le roi rangée par rangée avec la tour en vous aidant de votre roi.
+460|Deux tours contre roi seul
+461|Le mat de l'escalier : les tours coupent les rangées à tour de rôle.
+462|Deux fous contre roi seul
+463|Les fous travaillent côte à côte et poussent le roi dans un coin.
+464|Fou et cavalier contre roi seul
+465|La finale élémentaire la plus difficile. Le mat n'est possible que dans le coin du fou.
+466|Roi et pion contre roi
+467|Promouvez le pion. Gardez votre roi devant le pion et prenez l'opposition.
+468|La position de Lucena
+469|La position gagnante la plus importante des finales de tours : construisez un pont avec la tour.
+470|Enregistré dans ce navigateur.
+471|Apparence
+472|Clair
+473|Sombre
+474|Comme le système
+475|Langue
+476|Couleurs de l'échiquier
+477|Marbre
+478|Olive
+479|Mer
+480|Pierre
+481|Noyer
+482|Son
+483|Jouer les sons
+484|Volume
+485|Échiquier
+486|Toujours promouvoir en dame (sans demander)
+487|Montrer où la pièce choisie peut aller
+488|Afficher les lettres et chiffres sur l'échiquier
+489|Compte
+490|Connectez-vous pour changer votre mot de passe ou gérer votre compte.
+491|Connecté en tant que
+492|Ouvrir la page d'administration
+493|Changer le mot de passe
+494|Mot de passe actuel
+495|Nouveau mot de passe (au moins 6 caractères)
+496|Le mot de passe a été changé.
+497|Le mot de passe actuel est incorrect.
+498|Le nouveau mot de passe doit compter au moins 6 caractères.
+499|Aucune adresse e-mail n'est liée au compte : un mot de passe oublié ne peut pas être récupéré. Choisissez-en un dont vous vous souviendrez.
+500|Joueurs bloqués
+501|Vous n'avez bloqué personne.
+502|Vous ne pouvez pas vous bloquer vous-même.
+503|Supprimer le compte
+504|Le compte, votre liste d'amis et vos succès sont supprimés définitivement. Vos parties jouées restent visibles chez vos adversaires.
+505|Votre mot de passe
+506|Supprimer mon compte
+507|Voulez-vous vraiment supprimer votre compte ? C'est irréversible.
+508|Le mot de passe est incorrect.
+509|Un compte administrateur ne peut pas être supprimé.
+510|Terminez d'abord votre partie en cours.
+511|Un club est une équipe. Dans les tournois, les points des quatre meilleurs joueurs du club sont additionnés pour le classement par équipes. On ne peut être que dans un club à la fois.
+512|Votre club :
+513|Membres
+514|Classement moyen
+515|Il n'y a pas encore de club. Créez le premier !
+516|Créer un club
+517|Nom du club
+518|Courte description (facultatif)
+519|Créer le club
+520|Tous les clubs
+521|Fondé le {1}
+522|responsable : {1}
+523|{1} membre
+524|{1} membres
+525|Connectez-vous pour rejoindre
+526|Quitter le club
+527|Le nom du club doit compter 3 à 30 caractères.
+528|Vous êtes déjà dans un club. Quittez-le d'abord.
+529|Un club porte déjà ce nom.
+530|Le club n'existe pas.
+531|Cette page est réservée aux administrateurs.
+532|Réservé aux administrateurs.
+533|Signalements
+534|a signalé
+535|Aucun signalement en attente.
+536|Suspendre
+537|Soupçon de triche
+538|Les comptes sont signalés automatiquement quand la précision est anormalement élevée sur plusieurs longues parties d'affilée. Un signalement est un avertissement, pas une preuve : regardez les parties avant d'agir.
+539|Aucun compte signalé.
+540|Retirer le signalement
+541|Comptes suspendus
+542|Aucun compte suspendu.
+543|Suspendre un compte
+544|Suspendre {1} ? Le compte est déconnecté et ne pourra plus se connecter.
+545|Un administrateur ne peut pas être suspendu.
+546|Précision moyenne de {1} sur les {2} dernières longues parties
+547|Vous êtes invité à une partie
+548|Connectez-vous ou créez un compte, et la partie commence aussitôt.
+549|Envoyez le lien à la personne contre qui vous voulez jouer ({1}). La partie commence dès qu'elle l'ouvre.
+550|Copier le lien
+551|Copié !
+552|En attente d'un adversaire… Restez sur cette page. Le lien est valable 30 minutes.
+553|Partie par lien
+554|vous invite à une partie ({1}).
+555|Lancement de la partie…
+556|Vers l'accueil
+557|Le lien n'est plus valable.
+558|Cadence non valide.
+559|Échecs par correspondance
+560|Il faut un compte pour jouer par correspondance.
+561|Parties sans pendule. Chaque joueur dispose d'un certain nombre de jours par coup ; celui qui dépasse perd au temps. Les parties ne sont pas classées et sont enregistrées dans vos parties une fois terminées.
+562|Vos parties en cours
+563|Vous n'avez aucune partie par correspondance en cours.
+564|Trouver un adversaire
+565|{1} jour par coup
+566|{1} jours par coup
+567|{1} j par coup
+568|Créer une invitation
+569|Votre invitation ({1} j par coup) attend un adversaire.
+570|Invitations ouvertes
+571|Aucune invitation ouverte pour le moment.
+572|Accepter
+573|Terminées
+574|À vous de jouer – encore {1}
+575|à vous de jouer, encore {1}
+576|{1} doit jouer (encore {2})
+577|temps écoulé
+578|Partie par correspondance
+579|L'invitation n'a pas encore été acceptée.
+580|Toutes les parties par correspondance
+581|Voulez-vous abandonner la partie ?
+582|Choisissez 1, 2, 3 ou 7 jours par coup.
+583|Vous avez déjà trois invitations ouvertes.
+584|L'invitation ne peut pas être acceptée.
+585|L'invitation n'existe plus.
+586|Impossible d'annuler.
+587|Vous ne jouez pas dans cette partie.
+588|Ce n'est pas votre tour.
+589|Coup non valide.
+590|Coups non valides.
+591|Partie non valide.
+592|La partie n'est pas terminée.
+593|{1} a accepté votre partie par correspondance.
+594|{1} a joué dans votre partie par correspondance. À vous.
+595|{1} propose nulle dans votre partie par correspondance.
+596|Une partie par correspondance est terminée.
+671|Compétition
+672|Débutant
+673|Amateur
+674|Joueur de club
+675|Avancé
+676|Expert
+677|Élite
+678|Candidat maître
+679|Maître
+680|Grand maître
+681|Quatorze adversaires, du débutant à Stockfish à pleine puissance, ou choisissez votre propre niveau. Non classé.
+682|Quatorze adversaires, du débutant à la pleine puissance.
+683|Presque imbattable.
+684|Niveau personnalisé
+685|Utiliser ce niveau
+686|Ordinateur {1}
+687|Vous jouez les Blancs contre Stockfish à pleine puissance depuis des positions classiques. Si vous gagnez contre la meilleure défense, vous maîtrisez la finale.
+688|Votre titre dépend de votre meilleur classement : un titre atteint est conservé. Les joueurs apparaissent au classement et reçoivent un classement et un titre après cinq parties classées. 🏆 indique les tournois gagnés.
+689|Votre niveau
+690|Pays (facultatif)
+691|Nouveau aux échecs
+692|Intermédiaire
+693|Il suffit d'un nom d'utilisateur et d'un mot de passe, sans e-mail. Indiquez à peu près votre expérience pour avoir des adversaires adaptés. Votre classement s'affiche après cinq parties classées.
+694|Partie de placement : votre classement s'affichera après cinq parties classées.
+695|Placement : {1} parties sur 5
+696|Pas encore de classement
+697|Pays
+698|Grand gagnant
+699|Cent victoires
+700|Cent parties

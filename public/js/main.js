@@ -1,6 +1,6 @@
 // Startpunkt: router, navigering, inloggning, partihistorik och topplista.
 import { Chess } from '/vendor/chess.js';
-import { h, state, api, go, titleEl, playSound, userLink, applySettings, spriteLoaded, saveSettings, settings, isDark } from './util.js';
+import { h, state, api, go, titleEl, playSound, userLink, applySettings, spriteLoaded, saveSettings, settings, isDark, flagEl, countrySelect, LANGUAGES } from './util.js';
 import { profileView } from './profile.js';
 import { initI18n } from './i18n.js';
 import { net, connect, disconnect, on } from './net.js';
@@ -69,10 +69,11 @@ function renderNav() {
   // Snabbknappar i sidhuvudet: mörkt/ljust läge och språk.
   const quick = [
     h('button.small', { title: 'Mörkt eller ljust läge', onclick: () => { saveSettings({ theme: isDark() ? 'light' : 'dark' }); renderNav(); } }, isDark() ? '☀' : '☾'),
-    h('button.small', { title: 'Språk / Language', onclick: () => { saveSettings({ lang: settings.lang === 'sv' ? 'en' : 'sv' }); location.reload(); } }, settings.lang === 'sv' ? 'EN' : 'SV'),
+    h('select.langsel', { title: 'Språk / Language', onchange: (e) => { saveSettings({ lang: e.target.value }); location.reload(); } },
+      Object.keys(LANGUAGES).map((k) => h('option', { value: k, selected: k === settings.lang }, k.toUpperCase()))),
   ];
   if (state.user) {
-    box.replaceChildren(h('span.me', titleEl(state.user.title), ' ', userLink(state.user.username), ` ${state.user.rating}`),
+    box.replaceChildren(h('span.me', titleEl(state.user.title), ' ', userLink(state.user.username), ` ${state.user.provisional ? '?' : state.user.rating}`),
       state.user.admin ? h('a.btn.small', { href: '/admin' }, 'Admin') : '',
       ...quick, h('a.btn.small', { href: '/settings', title: 'Inställningar' }, '⚙'),
       h('button.small', {
@@ -100,6 +101,9 @@ function loginView() {
   const el = h('div.card.narrow');
   const draw = (error) => {
     const user = h('input', { name: 'username', placeholder: 'Användarnamn', autocomplete: 'username', maxlength: 20, required: true });
+    const level = h('select', [['new', 'Ny i schack'], ['beginner', 'Nybörjare'], ['intermediate', 'Medel'], ['advanced', 'Avancerad'], ['expert', 'Expert']]
+      .map(([v, label]) => h('option', { value: v, selected: v === 'intermediate' }, label)));
+    const country = countrySelect('');
     const pass = h('input', { name: 'password', type: 'password', placeholder: 'Lösenord', minlength: 6, required: true,
       autocomplete: mode === 'login' ? 'current-password' : 'new-password' });
     el.replaceChildren(
@@ -110,7 +114,7 @@ function loginView() {
         onsubmit: async (e) => {
           e.preventDefault();
           try {
-            state.user = (await api(mode === 'login' ? '/api/login' : '/api/register', { username: user.value, password: pass.value })).user;
+            state.user = (await api(mode === 'login' ? '/api/login' : '/api/register', { username: user.value, password: pass.value, level: level.value, country: country.value })).user;
             connect();
             go(state.after || '/play'); // tillbaka dit man var på väg, t.ex. en inbjudningslänk
             state.after = null;
@@ -118,7 +122,9 @@ function loginView() {
         },
       },
       user, pass,
-      mode === 'register' && h('p.muted', 'Bara användarnamn och lösenord behövs – ingen e-post. Du börjar på rating 1200.'),
+      mode === 'register' && h('label.depth', 'Din nivå ', level),
+      mode === 'register' && h('label.depth', 'Land (valfritt) ', country),
+      mode === 'register' && h('p.muted', 'Bara användarnamn och lösenord behövs – ingen e-post. Välj ungefär hur van du är, så får du lagom motstånd. Din rating visas efter fem rankade partier.'),
       error && h('p.error', error),
       h('button.primary.big', { type: 'submit' }, mode === 'login' ? 'Logga in' : 'Skapa konto')));
   };
@@ -192,12 +198,12 @@ function leaderboardView() {
       players.length ? h('div.tablewrap', h('table',
         h('thead', h('tr', ['#', 'Spelare', 'Titel', 'Rating', 'Partier', 'V / R / F'].map((t) => h('th', t)))),
         h('tbody', players.map((p, i) => h('tr' + (p.username === state.user?.username ? '.me' : ''),
-          h('td', i + 1), h('td', userLink(p.username), p.trophies ? h('span.gold', { title: 'Vunna turneringar' }, ` 🏆${p.trophies > 1 ? '×' + p.trophies : ''}`) : null),
+          h('td', i + 1), h('td', flagEl(p.country), ' ', userLink(p.username), p.trophies ? h('span.gold', { title: 'Vunna turneringar' }, ` 🏆${p.trophies > 1 ? '×' + p.trophies : ''}`) : null),
           h('td', titleEl(p.title)), h('td', p.rating), h('td', p.class_games ?? p.games), h('td', `${p.wins} / ${p.draws} / ${p.losses}`))))))
         : h('p.muted', by ? 'Ingen har spelat rankade partier med den betänketiden ännu.' : 'Inga spelare ännu. Skapa ett konto och bli först!'),
       h('h3', 'Titlar'),
-      h('p.muted', 'Titeln bygger på din högsta rating någonsin, så en titel du har nått behåller du. Du behöver minst 5 rankade partier; innan dess är du Tiro (rekryt). 🏆 visar vunna turneringar.'),
-      h('div.legend', [['Tiro', 'under 1000'], ['Miles', '1000'], ['Decurio', '1200'], ['Centurio', '1400'], ['Tribunus', '1600'], ['Legatus', '1800'], ['Praetor', '2000'], ['Consul', '2200'], ['Imperator', '2400']]
+      h('p.muted', 'Titeln bygger på din högsta rating någonsin, så en titel du har nått behåller du. Spelare syns på topplistan och får rating och titel efter fem rankade partier. 🏆 visar vunna turneringar.'),
+      h('div.legend', [['Nybörjare', 'under 1000'], ['Amatör', '1000'], ['Klubbspelare', '1200'], ['Avancerad', '1400'], ['Expert', '1600'], ['Elit', '1800'], ['Kandidatmästare', '2000'], ['Mästare', '2200'], ['Stormästare', '2400']]
         .map(([t, r]) => h('span', titleEl(t), ` ${r}`))));
   }).catch(() => {}));
   load();

@@ -1,23 +1,25 @@
 // Spelvyer: lobby, onlineparti och parti mot datorn.
 import { Chess } from '/vendor/chess.js';
-import { h, state, api, fmtClock, REASONS, playSound, moveSound, endSound, roman, go } from './util.js';
+import { h, state, api, fmtClock, REASONS, playSound, moveSound, endSound, roman, go, flagOf } from './util.js';
 import { gotwCard, topCard } from './social.js';
 import { chatBox } from './chat.js';
 import { Board, parseFen } from './board.js';
 import { net, send, on } from './net.js';
-import { BOTS, botMove } from './engine.js';
+import { BOTS, botMove, botFromElo } from './engine.js';
 
 const TCS = [['1+0', 'Bullet'], ['2+1', 'Bullet'], ['3+0', 'Blixt'], ['3+2', 'Blixt'], ['5+0', 'Blixt'], ['5+3', 'Blixt'], ['10+0', 'Snabb'], ['10+5', 'Snabb'], ['15+10', 'Snabb']];
 
 function playerBar() {
-  const name = h('span.pname'), rating = h('span.prating'), clock = h('span.clock'), title = h('span.title');
-  const el = h('div.playerbar', h('div.pinfo', h('span.avatar'), title, name, rating), clock);
+  const name = h('span.pname'), rating = h('span.prating'), clock = h('span.clock'), title = h('span.title'), flag = h('span.flag');
+  const el = h('div.playerbar', h('div.pinfo', h('span.avatar'), title, flag, name, rating), clock);
   return {
     el, clock,
     set(p) {
       name.textContent = p.name;
       title.textContent = p.title || '';
       title.hidden = !p.title;
+      flag.textContent = flagOf(p.country);
+      flag.hidden = !flag.textContent;
       rating.textContent = p.rating ? `(${p.rating})` : '';
       el.querySelector('.avatar').className = 'avatar ' + (p.color === 'w' ? 'white' : 'black');
       clock.hidden = !p.hasClock;
@@ -185,7 +187,7 @@ export function lobbyView() {
   draw();
   const off = on(draw);
   const el = h('div.lobby', online,
-    h('div.card', h('h2', 'Spela mot datorn'), h('p.muted', 'Sju motståndare, från rekryten Tiro till Caesar (full Stockfish). Orankat.'),
+    h('div.card', h('h2', 'Spela mot datorn'), h('p.muted', 'Fjorton motståndare från nybörjare till full Stockfish, eller välj en egen styrka. Orankat.'),
       h('a.btn.primary', { href: '/bot' }, 'Välj motståndare')),
     h('div.card', h('h2', 'Turneringar'), h('p.muted', 'Samla spelare i en arena: alla paras ihop om och om igen tills tiden är ute. Flest poäng vinner.'),
       h('div.btnrow', h('a.btn.primary', { href: '/tournaments/new' }, 'Skapa en turnering'), h('a.btn', { href: '/tournaments' }, 'Visa alla'))),
@@ -256,7 +258,7 @@ export function onlineGameView(ctx) {
     if (g.id !== gameId) return ctx.refresh(); // nytt parti (t.ex. returmatch): bygg om vyn
     const me = g.you, opp = me === 'w' ? 'b' : 'w';
     const P = { w: { ...g.white, color: 'w' }, b: { ...g.black, color: 'b' } };
-    if (g.over?.ratings) for (const c of ['w', 'b']) P[c].rating = g.over.ratings[c][1];
+    if (g.over?.ratings) for (const c of ['w', 'b']) if (g.over.ratings[c]) P[c].rating = g.over.ratings[c][1];
     let panel;
     if (g.over) {
       if (!endSounded) { endSounded = true; playSound(endSound(g.over, me)); }
@@ -264,6 +266,7 @@ export function onlineGameView(ctx) {
       const diff = r ? r[1] - r[0] : 0;
       panel = [h('div.result',
         h('h3', resultText(g.over, me)),
+        !r && g.over.result !== '*' && h('p.muted', 'Placeringsparti: din rating visas när du har spelat fem rankade partier.'),
         r && h('p.ratingchange', 'Rating: ', h('strong', r[1]), ' ', h('span.' + (diff >= 0 ? 'up' : 'down'), `${diff >= 0 ? '+' : ''}${diff}`)),
         h('div.btnrow',
           g.over.result !== '*' && h('a.btn.primary', { href: `/review/${g.id}` }, 'Analysera partiet'),
@@ -379,7 +382,7 @@ export function botView(ctx) {
     },
   });
   const players = () => {
-    const me = { name: meName, rating: state.user?.rating, title: state.user?.title, color: b.color };
+    const me = { name: meName, rating: state.user?.provisional ? null : state.user?.rating, title: state.user?.title, country: state.user?.country, color: b.color };
     const it = { name: b.cfg.name, rating: b.cfg.rating, color: b.color === 'w' ? 'b' : 'w' };
     return { me, it };
   };
@@ -432,14 +435,18 @@ export function startBotGame({ cfg, color, startFen }) {
 }
 
 function botSetup(ctx) {
-  let chosen = BOTS[2], color = 'w';
+  let chosen = BOTS[5], color = 'w';
   const el = h('div.card.wide');
+  const custom = h('input.num', { type: 'number', min: 250, max: 3200, step: 50, value: 1500 });
   const draw = () => {
     el.replaceChildren(
       h('h2', 'Spela mot datorn'),
       h('div.botgrid', BOTS.map((b) =>
         h('button.bot' + (b === chosen ? '.active' : ''), { onclick: () => { chosen = b; draw(); } },
           h('strong', b.name), h('span.prating', b.rating), h('span.muted', b.desc)))),
+      h('h3', 'Egen styrka'),
+      h('form.inline', { onsubmit: (e) => { e.preventDefault(); chosen = botFromElo(Math.max(250, Math.min(3200, Math.round(Number(custom.value)) || 1200))); draw(); } },
+        custom, h('button', { type: 'submit' }, 'Välj den styrkan')),
       h('h3', 'Din färg'),
       h('div.btnrow', [['w', 'Vit'], ['r', 'Slumpa'], ['b', 'Svart']].map(([c, label]) =>
         h('button' + (color === c ? '.active' : ''), { onclick: () => { color = c; draw(); } }, label))),

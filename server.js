@@ -85,6 +85,7 @@ const EXTRA_COLUMNS = [['games', 'tournament_id TEXT'], ['games', 'white_acc REA
   ['users', 'puzzle_rating INTEGER NOT NULL DEFAULT 1200'], ['users', 'puzzles_solved INTEGER NOT NULL DEFAULT 0'],
   // Rating och antal partier per betänketidsklass. 0 i rating betyder "inte spelat än" – då används den sammanlagda ratingen.
   ...CLASSES.flatMap((k) => [['users', `r_${k} INTEGER NOT NULL DEFAULT 0`], ['users', `g_${k} INTEGER NOT NULL DEFAULT 0`]]),
+  ['users', 'country TEXT'],
   ['tournaments', "format TEXT NOT NULL DEFAULT 'arena'"], ['tournaments', 'rounds INTEGER NOT NULL DEFAULT 0'], ['tournaments', 'round INTEGER NOT NULL DEFAULT 0'],
   ['tournament_players', 'out INTEGER NOT NULL DEFAULT 0']];
 db.exec(SCHEMA);
@@ -117,7 +118,7 @@ const q = {
   tActive: db.prepare("SELECT * FROM tournaments WHERE status IN ('open', 'running')"),
   tInsert: db.prepare("INSERT INTO tournaments (id, name, tc, duration, creator_id, creator_name, status, starts_at, ends_at, created_at) VALUES (?,?,?,?,?,?,'open',?,?,?)"),
   tStatus: db.prepare('UPDATE tournaments SET status = ?, ends_at = ? WHERE id = ?'),
-  tPlayers: db.prepare(`SELECT u.id, u.username, u.rating, u.peak, u.games AS total_games, u.trophies, p.score, p.games, p.wins, p.draws, p.losses, p.out FROM tournament_players p
+  tPlayers: db.prepare(`SELECT u.id, u.username, u.country, u.rating, u.peak, u.games AS total_games, u.trophies, p.score, p.games, p.wins, p.draws, p.losses, p.out FROM tournament_players p
     JOIN users u ON u.id = p.user_id WHERE p.tournament_id = ? ORDER BY p.out, p.score DESC, p.wins DESC, u.rating DESC`),
   tPlayer: db.prepare('SELECT * FROM tournament_players WHERE tournament_id = ? AND user_id = ?'),
   tJoin: db.prepare('INSERT OR IGNORE INTO tournament_players (tournament_id, user_id) VALUES (?, ?)'),
@@ -132,7 +133,7 @@ const q = {
   gameById: db.prepare('SELECT * FROM games WHERE id = ?'),
   profileGames: db.prepare(`SELECT id, white_id, black_id, white_name, black_name, white_rating, black_rating, white_diff, black_diff,
     white_acc, black_acc, result, reason, tc, rated, created_at, moves FROM games WHERE white_id = ?1 OR black_id = ?1 ORDER BY created_at DESC LIMIT 500`),
-  leaderboard: db.prepare('SELECT username, rating, peak, trophies, games, wins, losses, draws FROM users ORDER BY rating DESC, games DESC LIMIT 50'),
+  leaderboard: db.prepare('SELECT username, country, rating, peak, trophies, games, wins, losses, draws FROM users WHERE games >= 5 AND banned = 0 ORDER BY rating DESC, games DESC LIMIT 50'),
 };
 
 // ---------- Spegling till Turso ----------
@@ -191,6 +192,12 @@ const mirrored = (sql) => {
   return { run(...args) { const info = stmt.run(...args); mirror(sql, args); return info; } };
 };
 const tFormat = mirrored('UPDATE tournaments SET format = ?, rounds = ? WHERE id = ?');
+// Nya spelare väljer själva ungefär hur starka de är och börjar på motsvarande rating. Ratingen visas först efter
+// PLACEMENT_GAMES rankade partier; fram till dess syns "?" och spelaren står inte på topplistan.
+const START_LEVELS = { new: 600, beginner: 800, intermediate: 1200, advanced: 1600, expert: 2000 };
+const PLACEMENT_GAMES = 5;
+const setStart = mirrored('UPDATE users SET rating = ?, peak = ?, country = ? WHERE id = ?');
+const shownRating = (rating, games) => (games < PLACEMENT_GAMES ? '?' : rating);
 const updateClass = Object.fromEntries(CLASSES.map((k) => [k, mirrored(`UPDATE users SET r_${k} = ?1, g_${k} = g_${k} + 1, rating = ?2, peak = MAX(peak, ?1),
   games = games + 1, wins = wins + ?3, losses = losses + ?4, draws = draws + ?5 WHERE id = ?6`)]));
 // Körs innan servern börjar ta emot besök: skapar tabellerna i Turso och fyller den lokala filen om den är tom.
@@ -222,10 +229,10 @@ const sha256 = (s) => crypto.createHash('sha256').update(s).digest('hex');
 const hashPassword = (pw, salt) =>
   new Promise((res, rej) => crypto.scrypt(pw, salt, 64, (e, buf) => (e ? rej(e) : res(buf.toString('hex')))));
 // Titlar: bygger på spelarens högsta rating någonsin, så en titel man har fått behåller man. Kräver minst 5 rankade partier.
-const TITLES = [[2400, 'Imperator'], [2200, 'Consul'], [2000, 'Praetor'], [1800, 'Legatus'], [1600, 'Tribunus'], [1400, 'Centurio'], [1200, 'Decurio'], [1000, 'Miles']];
+const TITLES = [[2400, 'Stormästare'], [2200, 'Mästare'], [2000, 'Kandidatmästare'], [1800, 'Elit'], [1600, 'Expert'], [1400, 'Avancerad'], [1200, 'Klubbspelare'], [1000, 'Amatör']];
 function titleFor(peak, games) {
-  if (games < 5) return 'Tiro';
-  return (TITLES.find(([min]) => peak >= min) || [0, 'Tiro'])[1];
+  if (games < PLACEMENT_GAMES) return 'Nybörjare';
+  return (TITLES.find(([min]) => peak >= min) || [0, 'Nybörjare'])[1];
 }
 const classRating = (u, k) => u['r_' + k] || u.rating;
 const tcClass = (tc) => {
@@ -233,7 +240,7 @@ const tcClass = (tc) => {
   return min < 3 ? 'bullet' : min < 10 ? 'blitz' : 'rapid';
 };
 const publicUser = (u) => u && { id: u.id, username: u.username, rating: u.rating, peak: u.peak, title: titleFor(u.peak, u.games), trophies: u.trophies,
-  games: u.games, wins: u.wins, losses: u.losses, draws: u.draws, admin: !!u.is_admin, puzzleRating: u.puzzle_rating, puzzlesSolved: u.puzzles_solved,
+  country: u.country || null, provisional: u.games < PLACEMENT_GAMES, games: u.games, wins: u.wins, losses: u.losses, draws: u.draws, admin: !!u.is_admin, puzzleRating: u.puzzle_rating, puzzlesSolved: u.puzzles_solved,
   ratings: Object.fromEntries(CLASSES.map((k) => [k, { rating: classRating(u, k), games: u['g_' + k] }])) };
 
 function parseCookies(header) {
@@ -266,7 +273,7 @@ function rateLimited(req) {
 }
 
 function elo(ra, rb, score, gamesPlayed) {
-  const k = gamesPlayed < 30 ? 40 : 20;
+  const k = gamesPlayed < PLACEMENT_GAMES ? 64 : gamesPlayed < 30 ? 40 : 20; // placeringspartierna flyttar ratingen snabbt
   const expected = 1 / (1 + 10 ** ((rb - ra) / 400));
   return Math.round(ra + k * (score - expected));
 }
@@ -308,6 +315,9 @@ app.post('/api/register', async (req, res) => {
   if (q.userByName.get(username)) return res.status(409).json({ error: 'Användarnamnet är upptaget.' });
   const salt = crypto.randomBytes(16).toString('hex');
   const info = q.insertUser.run(username, await hashPassword(password, salt), salt, Date.now());
+  const start = START_LEVELS[req.body?.level] || START_RATING;
+  const country = /^[A-Z]{2}$/.test(String(req.body?.country || '')) ? String(req.body.country) : null;
+  setStart.run(start, start, country, Number(info.lastInsertRowid));
   startSession(req, res, Number(info.lastInsertRowid));
   res.json({ user: publicUser(q.userById.get(Number(info.lastInsertRowid))) });
 });
@@ -399,7 +409,7 @@ function needUser(req, res) {
 app.get('/api/friends', (req, res) => {
   if (!needUser(req, res)) return;
   const rows = q.friendRows.all(req.user.id);
-  const pub = (r) => ({ username: r.username, rating: r.rating, title: titleFor(r.peak, r.games), online: sockets.has(r.id), playing: activeGame.has(r.id) });
+  const pub = (r) => ({ username: r.username, rating: shownRating(r.rating, r.games), title: titleFor(r.peak, r.games), online: sockets.has(r.id), playing: activeGame.has(r.id) });
   res.json({
     friends: rows.filter((r) => r.status === 'accepted').map(pub).sort((a, b) => b.online - a.online || a.username.localeCompare(b.username)),
     incoming: rows.filter((r) => r.status === 'pending' && r.requester !== req.user.id).map(pub),
@@ -467,7 +477,7 @@ app.post('/api/tournaments', (req, res) => {
 app.get('/api/tournaments/:id', (req, res) => {
   const t = q.tById.get(String(req.params.id));
   if (!t) return res.status(404).json({ error: 'Turneringen finns inte.' });
-  const tp = q.tPlayers.all(t.id).map((p) => ({ ...p, title: titleFor(p.peak, p.total_games) }));
+  const tp = q.tPlayers.all(t.id).map((p) => ({ ...p, rating: shownRating(p.rating, p.total_games), title: titleFor(p.peak, p.total_games) }));
   res.json({
     tournament: t, players: tp, teams: features.teamStandings(tp), games: q.tGames.all(t.id), now: Date.now(),
     joined: !!(req.user && q.tPlayer.get(t.id, req.user.id)),
@@ -719,8 +729,8 @@ function createGame(aId, bId, tc, tournamentId = null, fixedColors = false) {
   const [base, inc] = TIME_CONTROLS[tc] || parseTc(tc);
   const g = {
     id: crypto.randomBytes(6).toString('hex'), tc, inc: inc * 1000, chess: new Chess(),
-    white: { id: w.id, name: w.username, rating: classRating(w, k), title: titleFor(w.peak, w.games) },
-    black: { id: b.id, name: b.username, rating: classRating(b, k), title: titleFor(b.peak, b.games) },
+    white: { id: w.id, name: w.username, rating: shownRating(classRating(w, k), w.games), country: w.country, title: titleFor(w.peak, w.games) },
+    black: { id: b.id, name: b.username, rating: shownRating(classRating(b, k), b.games), country: b.country, title: titleFor(b.peak, b.games) },
     clocks: { w: base * 1000, b: base * 1000 }, lastTs: Date.now(), drawOffer: null, over: null, timer: null, tournamentId,
     spectators: new Set(), cls: k,
   };
@@ -762,7 +772,8 @@ function endGame(g, result, reason) {
   const white = { name: w.username, rating: rw }, black = { name: b.username, rating: rb };
   q.insertGame.run(g.id, w.id, b.id, w.username, b.username, rw, rb, nw - rw, nb - rb,
     result, reason, g.chess.history().join(' '), buildPgn(g.chess, white, black, result, g.tc), g.tc, 1, Date.now(), g.tournamentId);
-  g.over = { result, reason, ratings: { w: [rw, nw], b: [rb, nb] } };
+  // Under placeringspartierna visas ingen rating, så då skickas ingen ändring heller.
+  g.over = { result, reason, ratings: { w: w.games + 1 < PLACEMENT_GAMES ? null : [rw, nw], b: b.games + 1 < PLACEMENT_GAMES ? null : [rb, nb] } };
   broadcast(g);
   if (g.tournamentId) {
     q.tScore.run(sw, sw === 1 ? 1 : 0, sw === 0.5 ? 1 : 0, sw === 0 ? 1 : 0, g.tournamentId, w.id);
@@ -890,7 +901,7 @@ function cancelSeek(userId) {
 
 const features = require('./features')({
   app, db, q, mirrored, sockets, activeGame, gamesById, sendTo, broadcastAll, broadcast, gameState, scheduleFlag, createGame, endGame,
-  publicUser, titleFor, needUser, parseTc, TIME_CONTROLS, hashPassword, sha256, crypto, Chess, buildPgn, elo, scheduleTournament, finishTournament,
+  publicUser, titleFor, shownRating, needUser, parseTc, TIME_CONTROLS, hashPassword, sha256, crypto, Chess, buildPgn, elo, scheduleTournament, finishTournament,
 });
 // Okända /api-adresser ska ge ett tydligt fel i stället för en tom sida.
 app.use('/api', (req, res) => res.status(404).json({ error: 'Finns inte.' }));

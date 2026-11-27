@@ -102,7 +102,26 @@ export function userLink(name) {
   return h('a.user', { href: `/profile/${encodeURIComponent(name)}` }, name);
 }
 
-// Litet märke med spelarens titel (Tiro, Miles, Decurio …).
+// Länder: flagga (som emoji; på Windows visas landskoden i stället) och namn på det valda språket.
+export const LANGUAGES = { sv: 'Svenska', en: 'English', de: 'Deutsch', es: 'Español', fr: 'Français' };
+const COUNTRY_CODES = ('AD AE AF AG AL AM AO AR AT AU AZ BA BB BD BE BF BG BH BI BJ BN BO BR BS BT BW BY BZ CA CD CF CG CH CI CL CM CN CO CR CU CV CY CZ DE DJ DK DM DO DZ EC EE EG ER ES ET '
+  + 'FI FJ FM FO FR GA GB GD GE GH GL GM GN GQ GR GT GW GY HK HN HR HT HU ID IE IL IN IQ IR IS IT JM JO JP KE KG KH KI KM KN KP KR KW KZ LA LB LC LI LK LR LS LT LU LV LY MA MC MD ME MG MH MK '
+  + 'ML MM MN MR MT MU MV MW MX MY MZ NA NE NG NI NL NO NP NR NZ OM PA PE PG PH PK PL PS PT PW PY QA RO RS RU RW SA SB SC SD SE SG SI SK SL SM SN SO SR SS ST SV SY SZ TD TG TH TJ TL TM TN TO '
+  + 'TR TT TV TW TZ UA UG US UY UZ VA VC VE VN VU WS XK YE ZA ZM ZW').split(' ');
+let regionNames = null;
+export function countryName(code) {
+  try { return (regionNames ??= new Intl.DisplayNames([settings.lang], { type: 'region' })).of(code) || code; } catch { return code; }
+}
+export const flagOf = (code) => (/^[A-Z]{2}$/.test(code || '') ? String.fromCodePoint(...[...code].map((c) => 127397 + c.charCodeAt(0))) : '');
+export function flagEl(code) {
+  return flagOf(code) ? h('span.flag', { title: countryName(code) }, flagOf(code)) : null;
+}
+export function countrySelect(value, onchange) {
+  const list = COUNTRY_CODES.map((c) => [c, countryName(c)]).sort((a, b) => a[1].localeCompare(b[1], settings.lang));
+  return h('select', { onchange }, h('option', { value: '' }, '–'), list.map(([c, n]) => h('option', { value: c, selected: c === value }, n)));
+}
+
+// Litet märke med spelarens titel (Nybörjare, Amatör, Klubbspelare …).
 export function titleEl(title) {
   return title ? h('span.title', { title: 'Titel' }, title) : null;
 }

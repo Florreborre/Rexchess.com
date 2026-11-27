@@ -287,3 +287,8 @@ body.nocoords .coord { display: none; }
   th, td { padding: 7px 8px; }
   .gotwrow { flex-direction: column; align-items: flex-start; }
 }
+
+/* Flaggor och språkväljare */
+.flag { font-size: .95em; }
+#userbox select.langsel { width: auto; padding: 4px 6px; font-size: 12.5px; font-weight: 600; border-radius: 6px; background: rgba(255, 255, 255, .08); border-color: rgba(236, 214, 149, .35); color: #f3e3b6; }
+#userbox select.langsel option { color: #222; background: #fff; }

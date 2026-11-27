@@ -51,15 +51,22 @@ export class Engine {
   }
 }
 
+// Gör en datormotståndare med ungefär den angivna styrkan. Under 1320 klarar Stockfish inte att ställas in direkt,
+// så där blandas svaga motordrag med slumpdrag; från 1320 används motorns egen Elo-inställning.
+export function botFromElo(elo, name = `Dator ${elo}`, desc = '') {
+  if (elo >= 3200) return { name, rating: 3200, desc, movetime: 1000 };
+  if (elo >= 1320) return { name, rating: elo, desc, elo: Math.min(elo, 3190), movetime: 250 + Math.round((elo - 1320) / 4) };
+  return { name, rating: elo, desc, random: Math.max(0.03, (1300 - elo) / 1800), skill: elo < 900 ? 0 : 2, depth: elo < 600 ? 1 : elo < 1000 ? 2 : 4 };
+}
 export const BOTS = [
-  { id: 'pelle', name: 'Tiro', rating: 400, desc: 'Har precis lärt sig hur pjäserna går.', random: 0.5, skill: 0, depth: 1 },
-  { id: 'maja', name: 'Servius', rating: 800, desc: 'Spelar ibland bra, men sätter ofta bort pjäser.', random: 0.22, skill: 0, depth: 2 },
-  { id: 'olle', name: 'Marcus', rating: 1200, desc: 'Klubbspelare som kan grunderna.', random: 0.05, skill: 3, depth: 5 },
-  { id: 'saga', name: 'Livia', rating: 1600, desc: 'Stabil och straffar slarv.', elo: 1600, movetime: 300 },
-  { id: 'viktor', name: 'Brutus', rating: 2000, desc: 'Stark taktiker.', elo: 2000, movetime: 500 },
-  { id: 'freja', name: 'Aurelia', rating: 2400, desc: 'Mästarnivå.', elo: 2400, movetime: 700 },
-  { id: 'max', name: 'Caesar', rating: 3200, desc: 'Stockfish på full styrka. Lycka till.', movetime: 1000 },
-];
+  ['Elsa', 250, 'Har precis lärt sig hur pjäserna går.'], ['Oskar', 400, 'Har precis lärt sig hur pjäserna går.'],
+  ['Maja', 600, 'Spelar ibland bra, men sätter ofta bort pjäser.'], ['Hugo', 800, 'Spelar ibland bra, men sätter ofta bort pjäser.'],
+  ['Alice', 1000, 'Klubbspelare som kan grunderna.'], ['Erik', 1200, 'Klubbspelare som kan grunderna.'],
+  ['Sara', 1400, 'Stabil och straffar slarv.'], ['Johan', 1600, 'Stabil och straffar slarv.'],
+  ['Emma', 1800, 'Stark taktiker.'], ['Viktor', 2000, 'Stark taktiker.'],
+  ['Nora', 2200, 'Mästarnivå.'], ['Axel', 2400, 'Mästarnivå.'],
+  ['Ingrid', 2800, 'Nästan omöjlig att slå.'], ['Stockfish', 3200, 'Stockfish på full styrka. Lycka till.'],
+].map(([name, elo, desc]) => botFromElo(elo, name, desc));
 
 // Väljer datorns drag för ställningen i `chess` (en chess.js-instans). Returnerar { from, to, promotion }.
 export async function botMove(bot, chess) {

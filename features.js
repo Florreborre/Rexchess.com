@@ -144,6 +144,12 @@ module.exports = (ctx) => {
     w.setPassword.run(await hashPassword(next, salt), salt, req.user.id);
     res.json({ ok: true });
   });
+  app.post('/api/account/country', (req, res) => {
+    if (!needUser(req, res)) return;
+    const country = /^[A-Z]{2}$/.test(String(req.body?.country || '')) ? String(req.body.country) : null;
+    w.run('UPDATE users SET country = ? WHERE id = ?', country, req.user.id);
+    res.json({ country });
+  });
   app.post('/api/account/delete', async (req, res) => {
     if (!needUser(req, res)) return;
     const u = req.user;
@@ -164,9 +170,9 @@ module.exports = (ctx) => {
   const ACHIEVEMENTS = {
     first_win: ['Första segern', 'Vinn ditt första rankade parti'],
     wins_10: ['Veteran', 'Vinn 10 rankade partier'],
-    wins_50: ['Fältherre', 'Vinn 50 rankade partier'],
-    wins_100: ['Triumfator', 'Vinn 100 rankade partier'],
-    games_100: ['Hundra slag', 'Spela 100 rankade partier'],
+    wins_50: ['Storvinnare', 'Vinn 50 rankade partier'],
+    wins_100: ['Hundra vinster', 'Vinn 100 rankade partier'],
+    games_100: ['Hundra partier', 'Spela 100 rankade partier'],
     streak_5: ['Fem i rad', 'Vinn fem rankade partier i följd'],
     giant: ['Jättedödare', 'Slå en spelare med minst 200 högre rating'],
     mate_fast: ['Blixtmatt', 'Sätt matt inom 15 drag'],
@@ -217,8 +223,8 @@ module.exports = (ctx) => {
 
   // ---------- Topplistor: totalt, per betänketid och säsong ----------
   const CLASSES = ['bullet', 'blitz', 'rapid'];
-  const classBoard = Object.fromEntries(CLASSES.map((k) => [k, one(`SELECT username, r_${k} AS rating, peak, trophies, games, g_${k} AS class_games, wins, losses, draws
-    FROM users WHERE g_${k} > 0 AND banned = 0 ORDER BY r_${k} DESC LIMIT 50`)]));
+  const classBoard = Object.fromEntries(CLASSES.map((k) => [k, one(`SELECT username, country, r_${k} AS rating, peak, trophies, games, g_${k} AS class_games, wins, losses, draws
+    FROM users WHERE g_${k} > 0 AND games >= 5 AND banned = 0 ORDER BY r_${k} DESC LIMIT 50`)]));
   const monthStart = (d) => Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1);
   const monthKey = (d) => `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`;
   function seasonStandings(from, to) {
@@ -294,7 +300,7 @@ module.exports = (ctx) => {
   // ---------- Pågående partier, privata länkar ----------
   app.get('/api/live', (req, res) => {
     const games = [...new Set(activeGame.values())].map((g) => ({ id: g.id, white: g.white, black: g.black, tc: g.tc, plies: g.chess.history().length, tournament: g.tournamentId }));
-    res.json({ games: games.sort((a, b) => b.white.rating + b.black.rating - a.white.rating - a.black.rating) });
+    res.json({ games: games.sort((a, b) => (Number(b.white.rating) || 0) + (Number(b.black.rating) || 0) - (Number(a.white.rating) || 0) - (Number(a.black.rating) || 0)) });
   });
   const invites = new Map(); // id -> { host, tc, at }
   app.post('/api/invites', (req, res) => {
@@ -486,7 +492,7 @@ module.exports = (ctx) => {
   app.get('/api/clubs/:id', (req, res) => {
     const club = r.club.get(String(req.params.id));
     if (!club) return res.status(404).json({ error: 'Klubben finns inte.' });
-    const members = r.clubMembers.all(club.id).map((m) => ({ ...m, title: titleFor(m.peak, m.games), online: sockets.has(m.id) }));
+    const members = r.clubMembers.all(club.id).map((m) => ({ ...m, rating: ctx.shownRating(m.rating, m.games), title: titleFor(m.peak, m.games), online: sockets.has(m.id) }));
     res.json({ club, members, owner: userName(club.owner_id), member: !!(req.user && members.some((m) => m.id === req.user.id)) });
   });
   app.post('/api/clubs/:id/:action', (req, res) => {

@@ -1,0 +1,616 @@
+0|Spielen
+1|Training
+2|Turniere
+3|Vereine
+4|Freunde
+5|Rangliste
+6|Meine Partien
+7|Mein Profil
+8|Anmelden
+9|Abmelden
+10|Konto erstellen
+11|Einstellungen
+13|● Laufende Partie
+14|Dunkler oder heller Modus
+15|Sprache / Language
+16|Lädt…
+17|Etwas ist schiefgelaufen.
+18|Nicht angemeldet.
+19|Nicht gefunden.
+20|Unbekannte Aktion.
+21|Abbrechen
+22|Speichern
+23|Öffnen
+24|Zurück
+25|Entfernen
+26|Senden
+27|Erledigt
+28|Annehmen
+29|Ablehnen
+30|Erlauben
+31|Alle anzeigen
+34|Spielt gerade
+35|spielt
+36|Engine: Stockfish (GPLv3) · Figuren: Cburnett / Wikimedia Commons (CC BY-SA 3.0) · Töne: Kenney (CC0), Enigmahack / Lichess (AGPLv3+)
+37|Schach Online
+38|Weiß
+39|Schwarz
+40|Weiß
+41|Schwarz
+42|Wertung
+43|Partien
+44|Spieler
+45|Titel
+46|Punkte
+47|Siege
+48|Datum
+49|Gegner
+50|Ergebnis
+51|Zeit
+52|Länge
+54|Name
+55|Typ
+56|Stand
+57|Züge
+58|Eröffnung
+59|Sieg
+60|Niederlage
+61|Remis
+62|S / R / N
+63|{1} S
+64|{1} R
+65|{1} N
+66|ungewertet
+67|gewertet
+68|Turnier
+69|Computer
+70|Gast
+71|{1} Züge
+72|{1} Partie
+73|{1} Partien
+76|{1} gelöst
+77|du bist am Zug
+78|Gegner am Zug
+79|Du bist am Zug
+80|Gegner am Zug
+82|Blitz
+83|Schnellschach
+84|Schachmatt
+85|Aufgabe
+86|Zeit abgelaufen
+87|Patt
+88|ungenügendes Material
+89|dreifache Stellungswiederholung
+90|50-Züge-Regel
+91|Einigung
+92|Partie abgebrochen
+93|Partie abgebrochen
+94|Remis – {1}
+95|Du hast gewonnen
+96|Du hast verloren
+97|Die Partie ist beendet
+98|Partie beendet: {1} ({2})
+99|Benutzername
+100|Passwort
+101|Anmelden / Konto erstellen
+102|Der Benutzername muss 3–20 Zeichen lang sein (Buchstaben, Ziffern, _ und -).
+103|Dieser Benutzername ist vergeben.
+104|Das Passwort muss mindestens 6 Zeichen lang sein.
+105|Falscher Benutzername oder falsches Passwort.
+106|Zu viele Versuche. Bitte warte einen Moment.
+107|Dieses Konto ist gesperrt.
+108|Online spielen
+109|Gewertete Partien gegen andere Spieler. Wähle die Bedenkzeit: Minuten + Sekunden, die pro Zug dazukommen.
+110|Du brauchst ein Konto, um online zu spielen.
+111|Suche Gegner ({1})…
+112|Verbinde mit dem Server…
+113|Gegen den Computer
+114|Gegner wählen
+115|Versammle Spieler in einer Arena: Alle werden immer wieder gepaart, bis die Zeit abläuft. Die meisten Punkte gewinnen.
+116|Turnier erstellen
+117|Aufgaben, Analysebrett, Eröffnungen und Endspiele.
+118|Aufgaben lösen
+119|Gesamtes Training
+120|Laufende Partien
+121|Im Moment werden keine Partien gespielt.
+122|Per Link herausfordern
+123|Erstelle einen Link und schicke ihn einem Freund. Die Partie beginnt, sobald er geöffnet wird.
+124|Link erstellen
+125|Partie der Woche
+126|In den letzten sieben Tagen hat sich keine gewertete Partie qualifiziert. Spiele eine – die am besten gespielte Partie erscheint hier für alle.
+127|gegen
+128|Genauigkeit: {1} / {2}
+129|Partie ansehen
+130|Ganze Liste
+131|Noch keine Spieler.
+132|Tritt einem Verein bei oder gründe einen eigenen. Vereine treten in Turnieren als Team an.
+133|Vereine ansehen
+134|Fernschach
+135|Partien ohne Uhr: Du hast einen oder mehrere Tage pro Zug.
+136|Fernschachpartien
+137|Füge Freunde hinzu, sieh, wer online ist, und fordere sie zu einer Partie heraus.
+138|Freundesliste
+139|Analysieren
+140|Gehe deine Partien Zug für Zug durch – mit Genauigkeit, Bewertung jedes Zuges und dem besten Zug.
+141|Noch keine Züge.
+142|Erster
+143|Vorheriger
+144|Nächster
+145|Letzter
+146|Remis anbieten
+147|Remis angeboten
+148|Aufgeben
+149|Sicher? Noch einmal klicken
+150|Zug zurücknehmen
+151|Warte auf Antwort
+152|Dein Gegner bietet Remis an.
+153|Dein Gegner möchte seinen letzten Zug zurücknehmen.
+154|Partie analysieren
+155|Revanche
+156|Neue Partie
+157|Zum Turnier
+158|Wertung:
+160|Nachricht schreiben…
+161|Hier können nur die Spieler schreiben
+162|Noch keine Nachrichten.
+163|Partie wird geladen…
+164|Die Partie läuft nicht
+165|Die Partie ist beendet oder existiert nicht.
+166|Partie ansehen
+167|Du musst angemeldet sein, um Partien live zu verfolgen.
+168|Du schaust zu
+169|{1} denkt nach…
+170|Partien gegen den Computer beeinflussen deine Wertung nicht.
+171|Melde dich an, um deine Partien zu speichern.
+172|Deine Farbe
+173|Zufall
+174|Gegen {1} spielen
+175|Hat gerade gelernt, wie die Figuren ziehen.
+176|Spielt manchmal gut, stellt aber oft Figuren ein.
+177|Vereinsspieler, der die Grundlagen beherrscht.
+178|Solide und bestraft Nachlässigkeit.
+179|Starker Taktiker.
+180|Meisterniveau.
+181|Stockfish in voller Stärke. Viel Glück.
+182|fordert dich zu einer Partie heraus ({1}).
+183|möchte eine Revanche.
+184|🏅 Neuer Erfolg:
+185|Neuer Titel! Du bist jetzt
+186|Partie öffnen
+187|{1} ist gerade nicht verfügbar.
+188|Herausforderung an {1} gesendet.
+189|{1} hat die Herausforderung abgelehnt.
+190|Die Herausforderung ist nicht mehr gültig.
+191|Revanche angeboten.
+192|Dein Gegner ist für eine Revanche nicht verfügbar.
+193|Die Person, die dich eingeladen hat, ist gerade nicht verfügbar.
+194|Partieanalyse
+195|Tiefe
+196|Schnell ({1})
+197|Normal ({1})
+198|Tief ({1})
+199|Sehr tief ({1})
+200|Engine wird gestartet…
+201|Analysiere Zug {1} von {2}…
+202|Genauigkeit
+203|Brillant
+204|Starker Zug
+205|Bester
+206|Ausgezeichnet
+207|Gut
+208|Theorie
+209|Erzwungen
+210|Ungenauigkeit
+211|Fehler
+212|Verpasste Chance
+213|Patzer
+214|ein brillanter Zug!
+215|ein starker Zug – der einzig wirklich gute
+216|der beste Zug
+217|ein ausgezeichneter Zug
+218|ein guter Zug
+219|ein Theoriezug
+220|der einzige legale Zug
+221|eine Ungenauigkeit
+222|ein Fehler
+223|eine verpasste Chance
+224|ein Patzer
+225|ist {1}
+226|Am besten war
+227|Beste Variante: {1}
+228|Die Ausgangsstellung.
+229|Gehe mit den Pfeilen oder den Pfeiltasten durch die Partie.
+230|Eröffnung: {1}
+231|Ergebnis: {1}
+232|Ergebnis: {1} ({2})
+233|Nächster Schlüsselzug ▶
+234|Brett drehen
+235|Fehler üben ({1})
+236|Partie wird geladen…
+237|Keine Partie zum Analysieren
+238|Zu meinen Partien
+239|Die Partie existiert nicht.
+240|Melde dich an, um deine gespeicherten Partien zu sehen.
+241|Du hast noch keine Partien gespielt.
+242|Meine Statistik und Eröffnungen
+243|PGN analysieren
+244|Du kannst auch jede beliebige Partie analysieren, indem du sie hier einfügst.
+245|Partie im PGN-Format einfügen…
+246|Die Partie konnte nicht gelesen werden. Prüfe, ob es gültiges PGN ist.
+247|Gesamt
+248|Saison
+249|Noch keine Spieler. Erstelle ein Konto und sei der Erste!
+250|Mit dieser Bedenkzeit hat noch niemand gewertete Partien gespielt.
+251|Titel
+252|unter 1000
+253|Saison {1}. Gewertete Partien geben 3 Punkte für einen Sieg und 1 für ein Remis. Die Liste wird am {2} zurückgesetzt, und der Sieger erhält einen Pokal.
+254|In dieser Saison wurden noch keine gewerteten Partien gespielt.
+255|Frühere Saisonmeister
+256|({1} Punkte)
+257|Gewonnene Turniere
+258|Du brauchst ein Konto für eine Freundesliste.
+259|Freund hinzufügen
+260|Bedenkzeit für Herausforderungen:
+261|Freundschaftsanfragen
+262|Freunde ({1})
+263|Herausfordern
+264|Du hast noch keine Freunde. Füge jemanden über den Benutzernamen oben hinzu.
+265|Gesendete Anfragen
+266|Rückgängig
+267|Es gibt keinen Spieler mit diesem Namen.
+268|Du kannst dich nicht selbst hinzufügen.
+269|Ihr seid bereits Freunde.
+270|Du hast bereits eine Anfrage gesendet.
+271|Dieser Spieler nimmt keine Anfragen von dir an.
+272|Du brauchst ein Konto, um ein Turnier zu erstellen.
+273|Name des Turniers
+274|Arena: Alle Angemeldeten werden während des Turniers immer wieder gepaart. Ein Sieg gibt 1 Punkt, ein Remis ½. Die Partien sind gewertet.
+276|Runden (Schweizer System)
+278|Schweizer System
+279|K.-o.-System
+280|Schweizer System, {1} Runden
+281|Schweizer System: Alle spielen eine feste Zahl von Runden gegen Gegner mit ähnlicher Punktzahl. K.-o.-System: Der Verlierer scheidet aus, bei Remis kommt Schwarz weiter. In beiden beginnt die nächste Runde, wenn alle Partien beendet sind, und die Länge unten wird nicht verwendet.
+282|Bedenkzeit
+283|Min +
+284|s pro Zug
+285|Beginnt in
+286|Min
+287|Gib bei „Beginnt in“ 0 ein, um sofort zu starten. Du kannst auch vorzeitig starten oder die Zeiten auf der Turnierseite ändern.
+288|Es gibt noch keine Turniere. Erstelle das erste!
+289|von {1}
+290|erstellt von {1}
+291|Beginnt in {1}
+292|Läuft – noch {1}
+293|Läuft – Runde {1}
+294|Läuft – Runde {1} von {2}
+295|Beendet
+296|Turnier wird geladen…
+297|Turnier
+298|Alle Turniere
+299|Anmelden, um teilzunehmen
+300|Beitreten
+301|✓ Du bist angemeldet
+302|Verlassen
+303|Zu deiner Partie
+304|Jetzt starten
+305|Zeiten ändern
+306|Warte auf einen Gegner – du wirst automatisch gepaart. Bleib auf dieser Seite.
+307|Die nächste Runde beginnt automatisch, wenn alle Partien beendet sind. Du wirst zu deiner Partie geleitet.
+308|Eine neue Bedenkzeit gilt für Partien, die nach der Änderung beginnen. Die Länge zählt ab Turnierbeginn.
+309|Tabelle ({1} Spieler)
+310|Noch niemand angemeldet.
+311|Letzte Partien
+312|Mannschaftswertung (Vereine)
+313|Verein
+314|🏆 Sieger: {1} mit {2} Punkten
+315|Der Name muss 3–40 Zeichen lang sein.
+316|Ungültige Einstellungen.
+317|Das Turnier existiert nicht.
+318|Das Turnier ist beendet.
+319|Das Turnier hat bereits begonnen.
+320|Das Turnier hat bereits begonnen. Bei Rundenturnieren meldet man sich vor dem Start an.
+321|Nur der Ersteller des Turniers kann es ändern.
+322|Ungültige Zeiten.
+323|Ungültige Startzeit.
+324|Diese Länge ist bereits überschritten. Wähle eine längere Zeit.
+325|Profil wird geladen…
+326|Profil
+327|Zur Rangliste
+328|Mitglied seit {1}
+329|Höchstwert: {1}
+330|Freundschaftsanfrage gesendet
+331|Freundschaftsanfrage annehmen
+332|✓ Freund
+333|Verein: {1}
+334|Partie ansehen
+335|Einstellungen und Konto
+336|Blockieren
+337|Nicht mehr blockieren
+338|Melden
+339|Konto sperren
+340|Sperre aufheben
+341|Warum meldest du {1}?
+342|Danke, die Meldung wurde an den Administrator gesendet.
+343|Beschreibe kurz, was passiert ist.
+344|Statistik
+345|Aufgaben
+346|Wertung pro Bedenkzeit: Bullet (unter 3 Min), Blitz (3–9 Min) und Schnellschach (10 Min und länger). Die Zahlen unten gelten für alle gewerteten Partien.
+347|Mit Weiß
+348|Mit Schwarz
+349|Durchschnitt in analysierten Partien
+350|Siegesserie
+351|längste: {1}
+352|Bester Sieg
+353|gegen {1}
+354|Wertungsverlauf
+355|Nach Bedenkzeit
+356|Erfolge
+357|Noch keine Erfolge.
+358|Meistgespielte Eröffnungen
+359|Berechnet aus allen Partien, auch gegen den Computer.
+360|Noch keine Partien.
+361|{1} % Siege
+362|{1} % Remis
+363|{1} % Niederlagen
+364|Sonstige Eröffnungen
+365|Erster Sieg
+366|Gewinne deine erste gewertete Partie
+368|Gewinne 10 gewertete Partien
+369|Gewinne 50 gewertete Partien
+370|Gewinne 100 gewertete Partien
+371|Spiele 100 gewertete Partien
+372|Fünf in Folge
+373|Gewinne fünf gewertete Partien hintereinander
+374|Riesentöter
+375|Schlage einen Spieler mit mindestens 200 Punkten höherer Wertung
+376|Blitzmatt
+377|Setze innerhalb von 15 Zügen matt
+378|Turniersieger
+379|Gewinne ein Turnier
+380|Saisonmeister
+381|Gewinne eine Monatssaison
+382|Aufgabenlöser
+383|Löse 10 Aufgaben
+384|Taktiker
+385|Löse 100 Aufgaben
+386|Schachaufgaben
+387|Finde das Matt oder die gewinnende Taktik. Du bekommst eine eigene Aufgabenwertung.
+388|Aufgabe des Tages
+389|Dieselbe Aufgabe für alle, jeden Tag eine neue.
+390|Analysebrett
+391|Baue eine beliebige Stellung auf, ziehe frei und sieh die Bewertung der Engine.
+392|Brett öffnen
+393|Eröffnungstraining
+394|Übe Eröffnungsvarianten. Die Seite korrigiert dich, wenn du falsch ziehst.
+395|Eröffnungen üben
+396|Endspiele
+397|Klassische Endspiele gegen Stockfish.
+398|Endspiel wählen
+399|Übe deine Fehler
+400|Analysiere eine Partie und erhalte deine Fehler als Aufgaben.
+401|Aufgabe wird geladen…
+402|Schwierigkeit {1}
+403|Matt in {1}
+404|Taktik
+405|Du spielst {1}. Finde den besten Zug.
+406|Deine Aufgabenwertung: {1}
+407|Melde dich an, um eine Aufgabenwertung zu bekommen.
+408|{1} ist nicht richtig. Versuch es noch einmal.
+409|Gelöst!
+410|Gelöst – aber nicht im ersten Versuch.
+411|So geht die Lösung.
+412|Tipp
+413|Lösung zeigen
+414|Nächste Aufgabe ▶
+415|Mehr Aufgaben ▶
+416|Es gibt noch keine Aufgaben.
+417|Die Aufgabe existiert nicht.
+418|Fehler üben
+419|Analysiere zuerst eine Partie und wähle dann „Fehler üben“.
+420|Fehler üben
+421|Fertig!
+422|Du hast in {1} von {2} Stellungen den besten Zug gefunden.
+423|Noch einmal
+424|Stellung {1} von {2}
+425|In der Partie wurde gespielt:
+426|, das war {1}. Finde einen besseren Zug für {2}.
+427|{1} ist nicht der beste Zug. Versuch es noch einmal.
+428|Richtig – das war der beste Zug!
+429|Da ist er.
+430|Zug zeigen
+431|Nächste Stellung ▶
+432|Ergebnis zeigen ▶
+433|Bewertung:
+434|Ziehe die Figuren frei für beide Seiten.
+435|◀ Zurück
+436|Wiederholen ▶
+437|Drehen
+438|Stellung aufbauen
+439|FEN-Zeichenfolge
+440|FEN laden
+441|Grundstellung
+442|Ungültige FEN-Zeichenfolge.
+443|0-1 (Matt)
+444|1-0 (Matt)
+445|Wähle eine Eröffnung und spiele die Züge aus dem Gedächtnis. Die Seite spielt die Züge des Gegners und korrigiert dich, wenn du falsch ziehst.
+446|{1} ({2} Züge)
+447|Spiele die Züge von {1} in der Variante.
+448|{1} gehört nicht zu dieser Variante. Der richtige Zug ist {2}.
+449|Richtig!
+450|Variante abgeschlossen!
+451|Zug {1} von {2}: {3}
+452|Der nächste Zug ist {1}.
+453|Nächsten Zug zeigen
+454|Von vorn beginnen
+455|Endspieltraining
+456|Dame gegen blanken König
+457|Das einfachste Mattendspiel. Treibe den König an den Rand.
+458|Turm gegen blanken König
+459|Sperre den König Reihe für Reihe mit dem Turm ein und nimm deinen eigenen König zu Hilfe.
+460|Zwei Türme gegen blanken König
+461|Das Treppenmatt: Die Türme schneiden abwechselnd Reihen ab.
+462|Zwei Läufer gegen blanken König
+463|Die Läufer arbeiten Seite an Seite und zwingen den König in eine Ecke.
+464|Läufer und Springer gegen blanken König
+465|Das schwierigste Grundendspiel. Matt geht nur in der Ecke des Läufers.
+466|König und Bauer gegen König
+467|Verwandle den Bauern. Halte den König vor dem Bauern und nimm die Opposition.
+468|Die Lucena-Stellung
+469|Die wichtigste Gewinnstellung im Turmendspiel: Baue mit dem Turm eine Brücke.
+470|Wird in diesem Browser gespeichert.
+471|Aussehen
+472|Hell
+473|Dunkel
+474|Wie das System
+475|Sprache
+476|Brettfarben
+477|Marmor
+478|Olive
+479|Meer
+480|Stein
+481|Walnuss
+482|Ton
+483|Töne abspielen
+484|Lautstärke
+485|Brett
+486|Bauern immer in eine Dame umwandeln (ohne Nachfrage)
+487|Zeigen, wohin die gewählte Figur ziehen kann
+488|Buchstaben und Zahlen am Brett anzeigen
+489|Konto
+490|Melde dich an, um dein Passwort zu ändern oder dein Konto zu verwalten.
+491|Angemeldet als
+492|Adminseite öffnen
+493|Passwort ändern
+494|Aktuelles Passwort
+495|Neues Passwort (mindestens 6 Zeichen)
+496|Das Passwort wurde geändert.
+497|Das aktuelle Passwort stimmt nicht.
+498|Das neue Passwort muss mindestens 6 Zeichen lang sein.
+499|Mit dem Konto ist keine E-Mail verknüpft, ein vergessenes Passwort lässt sich also nicht wiederherstellen. Wähle eines, das du dir merken kannst.
+500|Blockierte Spieler
+501|Du hast niemanden blockiert.
+502|Du kannst dich nicht selbst blockieren.
+503|Konto löschen
+504|Das Konto, deine Freundesliste und deine Erfolge werden endgültig entfernt. Deine gespielten Partien bleiben bei deinen Gegnern erhalten.
+505|Dein Passwort
+506|Mein Konto löschen
+507|Möchtest du dein Konto wirklich löschen? Das lässt sich nicht rückgängig machen.
+508|Das Passwort stimmt nicht.
+509|Ein Administratorkonto kann nicht gelöscht werden.
+510|Beende zuerst deine laufende Partie.
+511|Ein Verein ist ein Team. In Turnieren werden die Punkte der vier besten Spieler des Vereins zur Mannschaftswertung addiert. Man kann jeweils nur in einem Verein sein.
+512|Dein Verein:
+513|Mitglieder
+514|Durchschnittswertung
+515|Es gibt noch keine Vereine. Gründe den ersten!
+516|Verein gründen
+517|Name des Vereins
+518|Kurze Beschreibung (optional)
+519|Verein gründen
+520|Alle Vereine
+521|Gegründet {1}
+522|Leitung: {1}
+523|{1} Mitglied
+524|{1} Mitglieder
+525|Anmelden, um beizutreten
+526|Verein verlassen
+527|Der Vereinsname muss 3–30 Zeichen lang sein.
+528|Du bist bereits in einem Verein. Verlasse ihn zuerst.
+529|Es gibt bereits einen Verein mit diesem Namen.
+530|Der Verein existiert nicht.
+531|Diese Seite ist nur für Administratoren.
+532|Nur für Administratoren.
+533|Meldungen
+534|meldete
+535|Keine offenen Meldungen.
+536|Sperren
+537|Verdacht auf Betrug
+538|Konten werden automatisch markiert, wenn die Genauigkeit in mehreren längeren Partien hintereinander unglaubwürdig hoch ist. Eine Markierung ist eine Warnung, kein Beweis – sieh dir die Partien an, bevor du handelst.
+539|Keine markierten Konten.
+540|Markierung entfernen
+541|Gesperrte Konten
+542|Keine gesperrten Konten.
+543|Ein Konto sperren
+544|{1} sperren? Das Konto wird abgemeldet und kann sich nicht mehr anmelden.
+545|Ein Administrator kann nicht gesperrt werden.
+546|Durchschnittliche Genauigkeit {1} in den letzten {2} längeren Partien
+547|Du bist zu einer Partie eingeladen
+548|Melde dich an oder erstelle ein Konto, dann beginnt die Partie sofort.
+549|Schicke den Link an die Person, gegen die du spielen möchtest ({1}). Die Partie beginnt, sobald er geöffnet wird.
+550|Link kopieren
+551|Kopiert!
+552|Warte auf einen Gegner… Bleib auf dieser Seite. Der Link ist 30 Minuten gültig.
+553|Partie per Link
+554|hat dich zu einer Partie eingeladen ({1}).
+555|Partie wird gestartet…
+556|Zur Startseite
+557|Der Link ist nicht mehr gültig.
+558|Ungültige Bedenkzeit.
+559|Fernschach
+560|Du brauchst ein Konto, um Fernschach zu spielen.
+561|Partien ohne Uhr. Jeder Spieler hat eine bestimmte Anzahl von Tagen pro Zug; wer es nicht schafft, verliert auf Zeit. Die Partien sind ungewertet und werden nach dem Ende bei deinen Partien gespeichert.
+562|Deine laufenden Partien
+563|Du hast keine laufenden Fernschachpartien.
+564|Gegner finden
+565|{1} Tag pro Zug
+566|{1} Tage pro Zug
+567|{1} T pro Zug
+568|Einladung erstellen
+569|Deine Einladung ({1} T pro Zug) wartet auf einen Gegner.
+570|Offene Einladungen
+571|Im Moment keine offenen Einladungen.
+572|Annehmen
+573|Beendet
+574|Du bist am Zug – noch {1}
+575|du bist am Zug, noch {1}
+576|{1} ist am Zug (noch {2})
+577|Zeit abgelaufen
+578|Fernschachpartie
+579|Die Einladung wurde noch nicht angenommen.
+580|Alle Fernschachpartien
+581|Möchtest du die Partie aufgeben?
+582|Wähle 1, 2, 3 oder 7 Tage pro Zug.
+583|Du hast bereits drei offene Einladungen.
+584|Die Einladung kann nicht angenommen werden.
+585|Die Einladung existiert nicht mehr.
+586|Kann nicht abgebrochen werden.
+587|Du spielst nicht in dieser Partie.
+588|Du bist nicht am Zug.
+589|Ungültiger Zug.
+590|Ungültige Züge.
+591|Ungültige Partie.
+592|Die Partie ist nicht beendet.
+593|{1} hat deine Fernschachpartie angenommen.
+594|{1} hat in eurer Fernschachpartie gezogen. Du bist am Zug.
+595|{1} bietet in eurer Fernschachpartie Remis an.
+596|Eine Fernschachpartie ist beendet.
+671|Wettkampf
+672|Anfänger
+673|Amateur
+674|Vereinsspieler
+675|Fortgeschritten
+676|Experte
+677|Elite
+678|Meisterkandidat
+679|Meister
+680|Großmeister
+681|Vierzehn Gegner vom Anfänger bis zu vollem Stockfish, oder wähle eine eigene Stärke. Ungewertet.
+682|Vierzehn Gegner vom Anfänger bis zur vollen Stärke.
+683|Fast unmöglich zu schlagen.
+684|Eigene Stärke
+685|Diese Stärke wählen
+686|Computer {1}
+687|Du spielst mit Weiß gegen Stockfish in voller Stärke aus klassischen Stellungen. Wenn du gegen die beste Verteidigung gewinnst, beherrschst du das Endspiel.
+688|Dein Titel richtet sich nach deiner höchsten Wertung, einen erreichten Titel behältst du also. Spieler erscheinen nach fünf gewerteten Partien in der Rangliste und erhalten Wertung und Titel. 🏆 zeigt gewonnene Turniere.
+689|Dein Niveau
+690|Land (optional)
+691|Neu im Schach
+692|Mittel
+693|Es werden nur Benutzername und Passwort benötigt – keine E-Mail. Wähle ungefähr, wie erfahren du bist, dann bekommst du passende Gegner. Deine Wertung wird nach fünf gewerteten Partien angezeigt.
+694|Platzierungspartie: Deine Wertung wird angezeigt, sobald du fünf gewertete Partien gespielt hast.
+695|Platzierung: {1} von 5 Partien
+696|Noch keine Wertung
+697|Land
+698|Seriensieger
+699|Hundert Siege
+700|Hundert Partien

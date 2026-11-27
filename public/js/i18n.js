@@ -1,5 +1,5 @@
 // Språkbyte. Sajten är skriven på svenska; när ett annat språk är valt översätts all text som hamnar på sidan
-// med hjälp av en ordlista (lang-en.js). Det sker på ett ställe, här, så att resten av koden inte behöver ändras.
+// med hjälp av en ordlista (lang-en.js, lang-de.js, lang-es.js, lang-fr.js). Det sker på ett ställe, här, så att resten av koden inte behöver ändras.
 import { settings } from './util.js';
 
 let dict = null, templates = [];
@@ -54,8 +54,8 @@ function translateNode(node) {
 }
 
 export async function initI18n() {
-  if (settings.lang !== 'en') return;
-  dict = (await import('./lang-en.js')).default;
+  if (!['en', 'de', 'es', 'fr'].includes(settings.lang)) return; // svenska är originalet
+  try { dict = (await import(`./lang-${settings.lang}.js`)).default; } catch { return; }
   templates = Object.entries(dict).filter(([k]) => /\{\d\}/.test(k)).map(([k, v]) => ({
     re: new RegExp('^' + k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\\\{\d\\\}/g, '(.+?)') + '$'),
     order: [...k.matchAll(/\{(\d)\}/g)].map((m) => Number(m[1])), out: v, literal: k.replace(/\{\d\}/g, '').length,

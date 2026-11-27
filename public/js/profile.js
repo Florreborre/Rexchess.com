@@ -1,5 +1,5 @@
 // Profilsida: en spelares statistik, mest spelade öppningar, ratingkurva och partier.
-import { h, svg, state, api, titleEl, userLink } from './util.js';
+import { h, svg, state, api, titleEl, userLink, flagEl, countryName } from './util.js';
 import { matchOpening } from './openings.js';
 
 const pct = (n, total) => (total ? Math.round((100 * n) / total) : 0);
@@ -98,16 +98,18 @@ export function profileView(ctx, rawName) {
         state.user?.admin && !own && h('button.small', { onclick: () => api(`/api/admin/${user.banned ? 'unban' : 'ban'}`, { username: user.username }).then(load).catch((e) => alert(e.message)) }, user.banned ? 'Häv avstängningen' : 'Stäng av kontot'));
       const header = h('div.card.wide.profilehead',
         h('div.pmain',
-          h('h2', titleEl(user.title), ' ', user.username, user.trophies ? h('span.gold', { title: 'Vunna turneringar' }, ` 🏆${user.trophies > 1 ? '×' + user.trophies : ''}`) : null),
+          h('h2', titleEl(user.title), ' ', flagEl(user.country), ' ', user.username, user.trophies ? h('span.gold', { title: 'Vunna turneringar' }, ` 🏆${user.trophies > 1 ? '×' + user.trophies : ''}`) : null),
           h('p.muted', h('span.presence' + (user.online ? '.online' : '')), user.playing ? ' Spelar just nu' : user.online ? ' Online' : ' Offline',
-            ` · Medlem sedan ${new Date(user.created_at).toLocaleDateString('sv-SE')}`),
+            ` · Medlem sedan ${new Date(user.created_at).toLocaleDateString('sv-SE')}`, user.country ? ` · ${countryName(user.country)}` : ''),
           friendBtn, extras),
-        h('div.prate', h('strong', user.rating), h('span', 'Rating'), h('small', `Högsta: ${user.peak}`)));
+        user.provisional
+          ? h('div.prate', h('strong', '?'), h('span', 'Ingen rating än'), h('small', `Placering: ${user.games} av 5 partier`))
+          : h('div.prate', h('strong', user.rating), h('span', 'Rating'), h('small', `Högsta: ${user.peak}`)));
 
       const stats = h('div.card.wide',
         h('h2', 'Statistik'),
         h('div.tiles', [['bullet', 'Bullet'], ['blitz', 'Blixt'], ['rapid', 'Snabb']].map(([k, label]) =>
-          tile(label, user.ratings[k].games ? user.ratings[k].rating : '–', `${user.ratings[k].games} ${user.ratings[k].games === 1 ? 'parti' : 'partier'}`)),
+          tile(label, user.ratings[k].games && !user.provisional ? user.ratings[k].rating : '–', `${user.ratings[k].games} ${user.ratings[k].games === 1 ? 'parti' : 'partier'}`)),
           tile('Problem', user.puzzleRating, `${user.puzzlesSolved} lösta`)),
         h('p.muted', 'Rating per betänketid: bullet (under 3 min), blixt (3–9 min) och snabb (10 min och längre). Siffrorna nedan gäller alla rankade partier.'),
         h('div.tiles',

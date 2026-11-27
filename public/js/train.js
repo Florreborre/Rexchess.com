@@ -285,7 +285,7 @@ export function endgamesView() {
   const caesar = { ...BOTS.at(-1), movetime: 400 };
   return {
     el: h('div.card.wide', h('h2', 'Slutspelsträning'),
-      h('p.muted', 'Du spelar vit mot Caesar (Stockfish på full styrka) från klassiska ställningar. Lyckas du vinna mot bästa försvar kan du slutspelet.'),
+      h('p.muted', 'Du spelar vit mot Stockfish på full styrka från klassiska ställningar. Lyckas du vinna mot bästa försvar kan du slutspelet.'),
       h('div.endgames', ENDGAMES.map(([name, desc, fen]) => {
         const b = new Board({});
         b.set({ fen });
@@ -306,6 +306,6 @@ export function trainingView() {
       card('Öppningsträning', 'Öva in öppningsvarianter. Sajten rättar dig när du går fel.', '/openings', 'Öva öppningar'),
       card('Slutspel', 'Klassiska slutspel mot Stockfish.', '/endgames', 'Välj slutspel'),
       card('Träna på dina misstag', 'Analysera ett parti och få dina misstag som uppgifter.', '/games', 'Mina partier'),
-      card('Spela mot datorn', 'Sju motståndare från nybörjare till full styrka.', '/bot', 'Välj motståndare')),
+      card('Spela mot datorn', 'Fjorton motståndare från nybörjare till full styrka.', '/bot', 'Välj motståndare')),
   };
 }

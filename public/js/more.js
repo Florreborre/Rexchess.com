@@ -1,5 +1,5 @@
 // Inställningar och konto, klubbar, admin, korrespondensschack, pågående partier och privata länkar.
-import { h, state, api, go, titleEl, userLink, settings, saveSettings, BOARD_THEMES, playSound, REASONS } from './util.js';
+import { h, state, api, go, titleEl, userLink, settings, saveSettings, BOARD_THEMES, playSound, REASONS, countrySelect, LANGUAGES } from './util.js';
 import { net, send, on, disconnect } from './net.js';
 import { GameScreen } from './game.js';
 import { chatBox } from './chat.js';
@@ -17,7 +17,7 @@ export function settingsView(ctx) {
     h('div.themes', [['light', 'Ljust'], ['dark', 'Mörkt'], ['auto', 'Följ systemet']].map(([key, name]) =>
       h('button' + (settings.theme === key ? '.active' : ''), { onclick: () => { saveSettings({ theme: key }); ctx.refresh(); } }, name))),
     h('h3', 'Språk'),
-    h('div.themes', [['sv', 'Svenska'], ['en', 'English']].map(([key, name]) =>
+    h('div.themes', Object.entries(LANGUAGES).map(([key, name]) =>
       h('button' + (settings.lang === key ? '.active' : ''), { onclick: () => { saveSettings({ lang: key }); location.reload(); } }, name))),
     h('h3', 'Brädets färger'),
     h('div.themes', Object.entries(BOARD_THEMES).map(([key, [name, light, dark]]) =>
@@ -47,6 +47,8 @@ export function settingsView(ctx) {
   const account = h('div.card.wide',
     h('h2', 'Konto'),
     h('p', 'Inloggad som ', h('strong', state.user.username), '. ', state.user.admin && h('a', { href: '/admin' }, 'Öppna adminsidan')),
+    h('h3', 'Land'),
+    h('label.check', countrySelect(state.user.country || '', (e) => api('/api/account/country', { country: e.target.value }).then((r) => { state.user.country = r.country; }).catch(() => {}))),
     h('h3', 'Byt lösenord'),
     h('form', {
       onsubmit: async (e) => {

@@ -1,0 +1,621 @@
+0|Jugar
+1|Entrenar
+2|Torneos
+3|Clubes
+4|Amigos
+5|Clasificación
+6|Mis partidas
+7|Mi perfil
+8|Iniciar sesión
+9|Cerrar sesión
+10|Crear cuenta
+11|Ajustes
+13|● Partida en curso
+14|Modo oscuro o claro
+15|Idioma / Language
+16|Cargando…
+17|Algo ha salido mal.
+18|No has iniciado sesión.
+19|No encontrado.
+20|Acción desconocida.
+21|Cancelar
+22|Guardar
+23|Abrir
+24|Volver
+25|Quitar
+26|Enviar
+27|Hecho
+28|Aceptar
+29|Rechazar
+30|Permitir
+31|Ver todo
+32|En línea
+33|Desconectado
+34|Jugando ahora
+35|jugando
+36|Motor: Stockfish (GPLv3) · Piezas: Cburnett / Wikimedia Commons (CC BY-SA 3.0) · Sonidos: Kenney (CC0), Enigmahack / Lichess (AGPLv3+)
+37|Ajedrez Online
+38|Blancas
+39|Negras
+40|blancas
+41|negras
+42|Puntuación
+43|Partidas
+44|Jugador
+45|Título
+46|Puntos
+47|Victorias
+48|Fecha
+49|Rival
+50|Resultado
+51|Tiempo
+52|Duración
+53|Estado
+54|Nombre
+55|Tipo
+56|Situación
+57|Jugadas
+58|Apertura
+59|Victoria
+60|Derrota
+61|Tablas
+62|V / T / D
+63|{1} V
+64|{1} T
+65|{1} D
+66|sin puntuar
+67|puntuada
+68|torneo
+69|Ordenador
+70|Invitado
+71|{1} jugadas
+72|{1} partida
+73|{1} partidas
+76|{1} resueltos
+77|tu turno
+78|turno del rival
+79|Tu turno
+80|Turno del rival
+82|Blitz
+83|Rápida
+84|jaque mate
+85|abandono
+86|se acabó el tiempo
+87|ahogado
+88|material insuficiente
+89|triple repetición
+90|regla de las 50 jugadas
+91|acuerdo
+92|partida cancelada
+93|Partida cancelada
+94|Tablas – {1}
+95|Has ganado
+96|Has perdido
+97|La partida ha terminado
+98|Partida terminada: {1} ({2})
+99|Nombre de usuario
+100|Contraseña
+101|Iniciar sesión / crear cuenta
+102|El nombre de usuario debe tener entre 3 y 20 caracteres (letras, cifras, _ y -).
+103|Ese nombre de usuario ya está en uso.
+104|La contraseña debe tener al menos 6 caracteres.
+105|Nombre de usuario o contraseña incorrectos.
+106|Demasiados intentos. Espera un momento.
+107|Esta cuenta está bloqueada.
+108|Jugar en línea
+109|Partidas puntuadas contra otros jugadores. Elige el ritmo: minutos + segundos que se añaden por jugada.
+110|Necesitas una cuenta para jugar en línea.
+111|Buscando rival ({1})…
+112|Conectando con el servidor…
+113|Jugar contra el ordenador
+114|Elegir rival
+115|Reúne jugadores en una arena: todos se emparejan una y otra vez hasta que se acaba el tiempo. Gana quien suma más puntos.
+116|Crear un torneo
+117|Problemas, tablero de análisis, aperturas y finales.
+118|Resolver problemas
+119|Todo el entrenamiento
+120|Partidas en curso
+121|Ahora mismo no se está jugando ninguna partida.
+122|Retar con un enlace
+123|Crea un enlace y envíaselo a un amigo. La partida empieza cuando lo abra.
+124|Crear enlace
+125|Partida de la semana
+126|Ninguna partida puntuada se ha clasificado en los últimos siete días. Juega una: la mejor jugada aparecerá aquí para todos.
+127|contra
+128|Precisión: {1} / {2}
+129|Ver partida
+130|Lista completa
+131|Aún no hay jugadores.
+132|Únete a un club o crea el tuyo. Los clubes compiten por equipos en los torneos.
+133|Ver clubes
+134|Correspondencia
+135|Partidas sin reloj: tienes uno o varios días por jugada.
+136|Partidas por correspondencia
+137|Añade amigos, mira quién está en línea y rétalos a una partida.
+138|Lista de amigos
+139|Analizar
+140|Repasa tus partidas jugada a jugada, con precisión, valoración de cada jugada y la mejor jugada.
+141|Aún no hay jugadas.
+142|Primera
+143|Anterior
+144|Siguiente
+145|Última
+146|Ofrecer tablas
+147|Tablas ofrecidas
+148|Abandonar
+149|¿Seguro? Pulsa otra vez
+150|Deshacer jugada
+151|Esperando respuesta
+152|Tu rival ofrece tablas.
+153|Tu rival quiere deshacer su última jugada.
+154|Analizar la partida
+155|Revancha
+156|Nueva partida
+157|Al torneo
+158|Puntuación:
+160|Escribe un mensaje…
+161|Aquí solo pueden escribir los jugadores
+162|Aún no hay mensajes.
+163|Cargando la partida…
+164|La partida no está en curso
+165|La partida ha terminado o no existe.
+166|Ver una partida
+167|Debes iniciar sesión para seguir partidas en directo.
+168|Estás mirando
+169|{1} está pensando…
+170|Las partidas contra el ordenador no afectan a tu puntuación.
+171|Inicia sesión para guardar tus partidas.
+172|Tu color
+173|Al azar
+174|Jugar contra {1}
+175|Acaba de aprender cómo se mueven las piezas.
+176|A veces juega bien, pero suele dejarse piezas.
+177|Jugador de club que conoce lo básico.
+178|Sólido y castiga los descuidos.
+179|Buen táctico.
+180|Nivel de maestro.
+181|Stockfish a plena fuerza. Suerte.
+182|te reta a una partida ({1}).
+183|quiere la revancha.
+184|🏅 Nuevo logro:
+185|¡Nuevo título! Ahora eres
+186|Abrir la partida
+187|{1} no está disponible ahora mismo.
+188|Reto enviado a {1}.
+189|{1} ha rechazado el reto.
+190|El reto ya no es válido.
+191|Revancha ofrecida.
+192|Tu rival no está disponible para la revancha.
+193|Quien te invitó no está disponible ahora mismo.
+194|Análisis de la partida
+195|Profundidad
+196|Rápido ({1})
+197|Normal ({1})
+198|Profundo ({1})
+199|Muy profundo ({1})
+200|Iniciando el motor…
+201|Analizando la jugada {1} de {2}…
+202|Precisión
+203|Brillante
+204|Gran jugada
+205|Mejor
+206|Excelente
+207|Buena
+208|Teoría
+209|Forzada
+210|Imprecisión
+211|Error
+212|Ocasión perdida
+213|Error grave
+214|¡una jugada brillante!
+215|una gran jugada: la única realmente buena
+216|la mejor jugada
+217|una jugada excelente
+218|una buena jugada
+219|una jugada de teoría
+220|la única jugada legal
+221|una imprecisión
+222|un error
+223|una ocasión perdida
+224|un error grave
+225|es {1}
+226|Lo mejor era
+227|Mejor línea: {1}
+228|La posición inicial.
+229|Recorre la partida con las flechas o las teclas de dirección.
+230|Apertura: {1}
+231|Resultado: {1}
+232|Resultado: {1} ({2})
+233|Siguiente jugada clave ▶
+234|Girar el tablero
+235|Practicar los errores ({1})
+236|Cargando la partida…
+237|No hay partida que analizar
+238|A mis partidas
+239|La partida no existe.
+240|Inicia sesión para ver tus partidas guardadas.
+241|Aún no has jugado ninguna partida.
+242|Mis estadísticas y aperturas
+243|Analizar un PGN
+244|También puedes analizar cualquier partida pegándola aquí.
+245|Pega una partida en formato PGN…
+246|No se pudo leer la partida. Comprueba que el PGN sea válido.
+247|General
+248|Temporada
+249|Aún no hay jugadores. ¡Crea una cuenta y sé el primero!
+250|Nadie ha jugado todavía partidas puntuadas con ese ritmo.
+251|Títulos
+252|menos de 1000
+253|Temporada {1}. Las partidas puntuadas dan 3 puntos por victoria y 1 por tablas. La lista se reinicia el {2}, y el ganador recibe un trofeo.
+254|Esta temporada aún no se han jugado partidas puntuadas.
+255|Campeones de temporadas anteriores
+256|({1} puntos)
+257|Torneos ganados
+258|Necesitas una cuenta para tener una lista de amigos.
+259|Añadir amigo
+260|Ritmo para los retos:
+261|Solicitudes de amistad
+262|Amigos ({1})
+263|Retar
+264|Aún no tienes amigos. Añade a alguien con el nombre de usuario de arriba.
+265|Solicitudes enviadas
+266|Deshacer
+267|No hay ningún jugador con ese nombre.
+268|No puedes añadirte a ti mismo.
+269|Ya sois amigos.
+270|Ya has enviado una solicitud.
+271|Ese jugador no acepta solicitudes tuyas.
+272|Necesitas una cuenta para crear un torneo.
+273|Nombre del torneo
+274|Arena: todos los inscritos se emparejan una y otra vez durante el torneo. La victoria da 1 punto y las tablas ½. Las partidas son puntuadas.
+275|Formato
+276|Rondas (suizo)
+278|Suizo
+279|Eliminatoria
+280|Suizo, {1} rondas
+281|Suizo: todos juegan un número fijo de rondas contra rivales con puntuación parecida. Eliminatoria: el perdedor queda fuera y, en caso de tablas, pasan las negras. En ambos, la siguiente ronda empieza cuando terminan todas las partidas, y la duración de abajo no se usa.
+282|Ritmo de juego
+283|min +
+284|s por jugada
+285|Empieza en
+286|min
+287|Escribe 0 en «Empieza en» para empezar enseguida. También puedes empezar antes o cambiar los tiempos en la página del torneo.
+288|Aún no hay torneos. ¡Crea el primero!
+289|de {1}
+290|creado por {1}
+291|Empieza en {1}
+292|En curso – quedan {1}
+293|En curso – ronda {1}
+294|En curso – ronda {1} de {2}
+295|Terminado
+296|Cargando el torneo…
+297|Torneo
+298|Todos los torneos
+299|Inicia sesión para participar
+300|Unirse
+301|✓ Estás inscrito
+302|Salir
+303|A tu partida
+304|Empezar ahora
+305|Cambiar tiempos
+306|Esperando rival: se te empareja automáticamente. Quédate en esta página.
+307|La siguiente ronda empieza automáticamente cuando terminan todas las partidas. Se te llevará a tu partida.
+308|El nuevo ritmo se aplica a las partidas que empiecen después del cambio. La duración cuenta desde el inicio del torneo.
+309|Clasificación ({1} jugadores)
+310|Aún no hay inscritos.
+311|Partidas recientes
+312|Clasificación por equipos (clubes)
+313|Club
+314|🏆 Ganador: {1} con {2} puntos
+315|El nombre debe tener entre 3 y 40 caracteres.
+316|Ajustes no válidos.
+317|El torneo no existe.
+318|El torneo ha terminado.
+319|El torneo ya ha empezado.
+320|El torneo ya ha empezado. En los torneos por rondas hay que inscribirse antes del inicio.
+321|Solo quien creó el torneo puede cambiarlo.
+322|Tiempos no válidos.
+323|Hora de inicio no válida.
+324|Esa duración ya se ha superado. Elige un tiempo más largo.
+325|Cargando el perfil…
+326|Perfil
+327|A la clasificación
+328|Miembro desde {1}
+329|Máxima: {1}
+330|Solicitud de amistad enviada
+331|Aceptar solicitud de amistad
+332|✓ Amigo
+333|Club: {1}
+334|Ver la partida
+335|Ajustes y cuenta
+336|Bloquear
+337|Desbloquear
+338|Denunciar
+339|Bloquear cuenta
+340|Levantar el bloqueo
+341|¿Por qué denuncias a {1}?
+342|Gracias, la denuncia se ha enviado al administrador.
+343|Describe brevemente lo ocurrido.
+344|Estadísticas
+345|Problemas
+346|Puntuación por ritmo: bullet (menos de 3 min), blitz (3–9 min) y rápida (10 min o más). Las cifras de abajo incluyen todas las partidas puntuadas.
+347|Con blancas
+348|Con negras
+349|media en partidas analizadas
+350|Racha de victorias
+351|la más larga: {1}
+352|Mejor victoria
+353|contra {1}
+354|Evolución de la puntuación
+355|Por ritmo de juego
+356|Logros
+357|Aún no hay logros.
+358|Aperturas más jugadas
+359|Calculado con todas las partidas, también contra el ordenador.
+360|Aún no hay partidas.
+361|{1} % victorias
+362|{1} % tablas
+363|{1} % derrotas
+364|Otras aperturas
+365|Primera victoria
+366|Gana tu primera partida puntuada
+367|Veterano
+368|Gana 10 partidas puntuadas
+369|Gana 50 partidas puntuadas
+370|Gana 100 partidas puntuadas
+371|Juega 100 partidas puntuadas
+372|Cinco seguidas
+373|Gana cinco partidas puntuadas seguidas
+374|Matagigantes
+375|Vence a un jugador con al menos 200 puntos más
+376|Mate relámpago
+377|Da jaque mate en 15 jugadas o menos
+378|Ganador de torneo
+379|Gana un torneo
+380|Campeón de temporada
+381|Gana una temporada mensual
+382|Solucionador de problemas
+383|Resuelve 10 problemas
+384|Táctico
+385|Resuelve 100 problemas
+386|Problemas de ajedrez
+387|Encuentra el mate o la táctica ganadora. Tendrás tu propia puntuación de problemas.
+388|Problema del día
+389|El mismo problema para todos, uno nuevo cada día.
+390|Tablero de análisis
+391|Coloca cualquier posición, mueve con libertad y mira la valoración del motor.
+392|Abrir el tablero
+393|Entrenador de aperturas
+394|Practica líneas de apertura. El sitio te corrige cuando te equivocas.
+395|Practicar aperturas
+396|Finales
+397|Finales clásicos contra Stockfish.
+398|Elegir final
+399|Practica tus errores
+400|Analiza una partida y recibe tus errores como ejercicios.
+401|Buscando un problema…
+402|dificultad {1}
+403|Mate en {1}
+404|Táctica
+405|Juegas con {1}. Encuentra la mejor jugada.
+406|Tu puntuación de problemas: {1}
+407|Inicia sesión para tener una puntuación de problemas.
+408|{1} no es correcta. Inténtalo de nuevo.
+409|¡Resuelto!
+410|Resuelto, pero no a la primera.
+411|Esta es la solución.
+412|Pista
+413|Mostrar la solución
+414|Siguiente problema ▶
+415|Más problemas ▶
+416|Aún no hay problemas.
+417|El problema no existe.
+418|Practicar errores
+419|Analiza primero una partida y luego elige «Practicar los errores».
+420|Practicar los errores
+421|¡Listo!
+422|Has encontrado la mejor jugada en {1} de {2} posiciones.
+423|Otra vez
+424|Posición {1} de {2}
+425|En la partida se jugó
+426|, que fue {1}. Encuentra una jugada mejor para las {2}.
+427|{1} no es la mejor jugada. Inténtalo de nuevo.
+428|¡Correcto: era la mejor jugada!
+429|Ahí está.
+430|Mostrar la jugada
+431|Siguiente posición ▶
+432|Ver resultado ▶
+433|Valoración:
+434|Mueve las piezas libremente para ambos bandos.
+435|◀ Deshacer
+436|Rehacer ▶
+437|Girar
+438|Colocar una posición
+439|Cadena FEN
+440|Cargar FEN
+441|Posición inicial
+442|Cadena FEN no válida.
+443|0-1 (mate)
+444|1-0 (mate)
+445|Elige una apertura y juega las jugadas de memoria. El sitio juega las jugadas del rival y te corrige si te equivocas.
+446|{1} ({2} jugadas)
+447|Juega las jugadas de las {1} en la línea.
+448|{1} no pertenece a esta línea. La jugada correcta es {2}.
+449|¡Correcto!
+450|¡Línea completada!
+451|Jugada {1} de {2}: {3}
+452|La siguiente jugada es {1}.
+453|Mostrar la siguiente jugada
+454|Empezar de nuevo
+455|Entrenamiento de finales
+456|Dama contra rey solo
+457|El final de mate más sencillo. Lleva al rey hacia el borde.
+458|Torre contra rey solo
+459|Encierra al rey fila a fila con la torre y ayúdate de tu propio rey.
+460|Dos torres contra rey solo
+461|El mate de la escalera: las torres se turnan para cortar filas.
+462|Dos alfiles contra rey solo
+463|Los alfiles trabajan juntos y obligan al rey a ir a un rincón.
+464|Alfil y caballo contra rey solo
+465|El final básico más difícil. El mate solo es posible en el rincón del alfil.
+466|Rey y peón contra rey
+467|Corona el peón. Mantén el rey delante del peón y toma la oposición.
+468|La posición de Lucena
+469|La posición ganadora más importante de los finales de torres: construye un puente con la torre.
+470|Se guarda en este navegador.
+471|Apariencia
+472|Claro
+473|Oscuro
+474|Según el sistema
+475|Idioma
+476|Colores del tablero
+477|Mármol
+478|Oliva
+479|Mar
+480|Piedra
+481|Nogal
+482|Sonido
+483|Reproducir sonidos
+484|Volumen
+485|Tablero
+486|Coronar siempre dama (sin preguntar)
+487|Mostrar adónde puede ir la pieza seleccionada
+488|Mostrar letras y números en el tablero
+489|Cuenta
+490|Inicia sesión para cambiar tu contraseña o gestionar tu cuenta.
+491|Sesión iniciada como
+492|Abrir la página de administración
+493|Cambiar contraseña
+494|Contraseña actual
+495|Nueva contraseña (al menos 6 caracteres)
+496|La contraseña se ha cambiado.
+497|La contraseña actual no es correcta.
+498|La nueva contraseña debe tener al menos 6 caracteres.
+499|La cuenta no tiene ningún correo asociado, así que una contraseña olvidada no se puede recuperar. Elige una que recuerdes.
+500|Jugadores bloqueados
+501|No has bloqueado a nadie.
+502|No puedes bloquearte a ti mismo.
+503|Eliminar la cuenta
+504|La cuenta, tu lista de amigos y tus logros se eliminan para siempre. Tus partidas jugadas siguen disponibles para tus rivales.
+505|Tu contraseña
+506|Eliminar mi cuenta
+507|¿De verdad quieres eliminar tu cuenta? No se puede deshacer.
+508|La contraseña no es correcta.
+509|Una cuenta de administrador no se puede eliminar.
+510|Termina primero tu partida en curso.
+511|Un club es un equipo. En los torneos se suman los puntos de los cuatro mejores jugadores del club para la clasificación por equipos. Solo se puede estar en un club a la vez.
+512|Tu club:
+513|Miembros
+514|Puntuación media
+515|Aún no hay clubes. ¡Crea el primero!
+516|Crear un club
+517|Nombre del club
+518|Descripción breve (opcional)
+519|Crear club
+520|Todos los clubes
+521|Fundado el {1}
+522|líder: {1}
+523|{1} miembro
+524|{1} miembros
+525|Inicia sesión para unirte
+526|Salir del club
+527|El nombre del club debe tener entre 3 y 30 caracteres.
+528|Ya estás en un club. Sal de él primero.
+529|Ya existe un club con ese nombre.
+530|El club no existe.
+531|Esta página es solo para administradores.
+532|Solo para administradores.
+533|Denuncias
+534|denunció a
+535|No hay denuncias pendientes.
+536|Bloquear
+537|Sospecha de trampas
+538|Las cuentas se marcan automáticamente cuando la precisión es inverosímilmente alta en varias partidas largas seguidas. Una marca es un aviso, no una prueba: mira las partidas antes de actuar.
+539|No hay cuentas marcadas.
+540|Quitar la marca
+541|Cuentas bloqueadas
+542|No hay cuentas bloqueadas.
+543|Bloquear una cuenta
+544|¿Bloquear a {1}? Se cerrará su sesión y no podrá volver a entrar.
+545|No se puede bloquear a un administrador.
+546|Precisión media de {1} en las últimas {2} partidas largas
+547|Te han invitado a una partida
+548|Inicia sesión o crea una cuenta y la partida empezará enseguida.
+549|Envía el enlace a la persona con la que quieres jugar ({1}). La partida empieza cuando lo abra.
+550|Copiar el enlace
+551|¡Copiado!
+552|Esperando rival… Quédate en esta página. El enlace es válido durante 30 minutos.
+553|Partida por enlace
+554|te ha invitado a una partida ({1}).
+555|Iniciando la partida…
+556|A la página de inicio
+557|El enlace ya no es válido.
+558|Ritmo de juego no válido.
+559|Ajedrez por correspondencia
+560|Necesitas una cuenta para jugar por correspondencia.
+561|Partidas sin reloj. Cada jugador tiene un número de días por jugada; quien no llegue pierde por tiempo. Las partidas no puntúan y se guardan entre tus partidas cuando terminan.
+562|Tus partidas en curso
+563|No tienes partidas por correspondencia en curso.
+564|Buscar rival
+565|{1} día por jugada
+566|{1} días por jugada
+567|{1} d por jugada
+568|Crear invitación
+569|Tu invitación ({1} d por jugada) espera un rival.
+570|Invitaciones abiertas
+571|Ahora mismo no hay invitaciones abiertas.
+572|Aceptar
+573|Terminadas
+574|Tu turno – quedan {1}
+575|tu turno, quedan {1}
+576|juega {1} (quedan {2})
+577|se acabó el tiempo
+578|Partida por correspondencia
+579|La invitación aún no se ha aceptado.
+580|Todas las partidas por correspondencia
+581|¿Quieres abandonar la partida?
+582|Elige 1, 2, 3 o 7 días por jugada.
+583|Ya tienes tres invitaciones abiertas.
+584|No se puede aceptar la invitación.
+585|La invitación ya no existe.
+586|No se puede cancelar.
+587|No juegas en esta partida.
+588|No es tu turno.
+589|Jugada no válida.
+590|Jugadas no válidas.
+591|Partida no válida.
+592|La partida no ha terminado.
+593|{1} ha aceptado tu partida por correspondencia.
+594|{1} ha jugado en vuestra partida por correspondencia. Te toca.
+595|{1} ofrece tablas en vuestra partida por correspondencia.
+596|Una partida por correspondencia ha terminado.
+671|Competir
+672|Principiante
+673|Aficionado
+674|Jugador de club
+675|Avanzado
+676|Experto
+677|Élite
+678|Candidato a maestro
+679|Maestro
+680|Gran maestro
+681|Catorce rivales, desde principiante hasta Stockfish a plena fuerza, o elige tu propia fuerza. Sin puntuar.
+682|Catorce rivales, desde principiante hasta la máxima fuerza.
+683|Casi imposible de vencer.
+684|Fuerza personalizada
+685|Usar esa fuerza
+686|Ordenador {1}
+687|Juegas con blancas contra Stockfish a plena fuerza desde posiciones clásicas. Si consigues ganar contra la mejor defensa, dominas el final.
+688|Tu título se basa en tu puntuación más alta, así que conservas un título una vez alcanzado. Los jugadores aparecen en la clasificación y reciben puntuación y título tras cinco partidas puntuadas. 🏆 indica torneos ganados.
+689|Tu nivel
+690|País (opcional)
+691|Nuevo en el ajedrez
+692|Intermedio
+693|Solo hacen falta nombre de usuario y contraseña, sin correo. Elige más o menos tu experiencia para tener rivales adecuados. Tu puntuación se muestra tras cinco partidas puntuadas.
+694|Partida de clasificación: tu puntuación se mostrará cuando hayas jugado cinco partidas puntuadas.
+695|Clasificación: {1} de 5 partidas
+696|Aún sin puntuación
+697|País
+698|Gran ganador
+699|Cien victorias
+700|Cien partidas
