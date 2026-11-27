@@ -1,6 +1,6 @@
 // Vänlista, turneringar, veckans parti och topplistekort.
 import { Chess } from '/vendor/chess.js';
-import { h, state, api, REASONS, go, titleEl, userLink } from './util.js';
+import { h, state, api, REASONS, go, titleEl, userLink, crownEl } from './util.js';
 import { Board } from './board.js';
 import { net, send, on } from './net.js';
 const gameIn = (tid) => [...net.games.values()].find((g) => !g.over && g.tournament === tid);
@@ -161,7 +161,7 @@ export function tournamentsView(ctx, showForm) {
         tournaments.length ? h('div.tablewrap', h('table',
           h('thead', h('tr', ['Namn', 'Tid', 'Längd', 'Spelare', 'Status', ''].map((t) => h('th', t)))),
           h('tbody', tournaments.map((t) => h('tr',
-            h('td', h('strong', t.name), h('span.muted', ` av ${t.creator_name}`)), h('td', t.tc), h('td', `${t.duration} min`), h('td', t.players),
+            h('td', t.weekly ? h('span.weeklytag', '👑 ') : null, h('strong', t.name), h('span.muted', ` av ${t.creator_name}`)), h('td', t.tc), h('td', `${t.duration} min`), h('td', t.players),
             h('td', h('span.' + (t.status === 'running' ? 'up' : t.status === 'open' ? 'gold' : 'muted'), statusText(t, now))),
             h('td', h('a.btn.small', { href: `/tournament/${t.id}` }, 'Öppna')))))))
           : h('p.muted', 'Det finns inga turneringar ännu. Skapa den första!'));
@@ -240,7 +240,7 @@ export function tournamentView(ctx, id) {
       players.length ? h('div.tablewrap', h('table',
         h('thead', h('tr', ['#', 'Spelare', 'Poäng', 'Partier', 'V / R / F'].map((x) => h('th', x)))),
         h('tbody', players.map((p, i) => h('tr' + (p.id === state.user?.id ? '.me' : '') + (p.out ? '.out' : ''),
-          h('td', i + 1), h('td', titleEl(p.title), ' ', userLink(p.username), h('span.prating', ` (${p.rating})`)), h('td', h('strong', p.score)),
+          h('td', i + 1), h('td', titleEl(p.title), ' ', crownEl(p.crown), userLink(p.username), h('span.prating', ` (${p.rating})`)), h('td', h('strong', p.score)),
           h('td', p.games), h('td', `${p.wins} / ${p.draws} / ${p.losses}`))))))
         : h('p.muted', 'Inga anmälda ännu.'),
       games.length && h('h3', 'Senaste partierna'),

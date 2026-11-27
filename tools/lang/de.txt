@@ -630,3 +630,86 @@
 713|Das Bild ist zu groß oder hat das falsche Format.
 714|Chess960
 715|Chess960 ist ungewertet.
+716|Nicht platziert
+717|Lehrling
+718|Novize
+719|Herausforderer
+720|FIDE-Meister
+721|Internationaler Meister
+722|Supergroßmeister
+723|unter 400
+724|Dein Titel richtet sich nach deiner höchsten Wertung, einen erreichten Titel behältst du also. Während der fünf Platzierungspartien bist du nicht platziert. 🏆 zeigt gewonnene Turniere und 👑 den Champion der Woche.
+725|Erste Schritte
+726|Spiele 10 gewertete Partien
+727|Fünfhundert Partien
+728|Spiele 500 gewertete Partien
+729|Legende
+730|Gewinne 250 gewertete Partien
+731|Unaufhaltsam
+732|Gewinne zehn gewertete Partien hintereinander
+733|Herrscher der Dunkelheit
+734|Gewinne eine gewertete Partie mit Schwarz
+735|Schnellstes Matt
+736|Setze innerhalb von vier Zügen matt
+737|Eine neue Dame
+738|Wandle einen Bauern um und gewinne die Partie
+739|In letzter Sekunde
+740|Gewinne mit weniger als fünf Sekunden auf der Uhr
+741|Davids Schleuder
+742|Schlage einen Spieler mit mindestens 400 Punkten höherer Wertung
+743|Platziert
+744|Spiele deine fünf Platzierungspartien zu Ende
+745|Vereinsniveau
+746|Erreiche eine Wertung von 1200
+747|Starker Spieler
+748|Erreiche eine Wertung von 1500
+749|Expertenniveau
+750|Erreiche eine Wertung von 1800
+751|Meisterniveau
+752|Erreiche eine Wertung von 2000
+753|Eliteniveau
+754|Erreiche eine Wertung von 2200
+755|Fischers Erbe
+756|Gewinne eine Chess960-Partie
+757|Brieffreund
+758|Gewinne eine Fernschachpartie
+759|Gesellig
+760|Habe fünf Freunde
+761|Teamplayer
+762|Tritt einem Verein bei
+763|Aufgabenmeister
+764|Löse 500 Aufgaben
+765|Geistesblitz
+766|Löse eine Aufgabe mit Schwierigkeit über 1800
+767|Pokaljäger
+768|Gewinne drei Turniere
+769|Champion der Woche
+770|Gewinne ein Wochenturnier
+771|Podestplatz
+772|Belege einen der ersten drei Plätze in einem Wochenturnier
+773|Wochenturnier
+774|Wochenturnier, Woche {1}
+775|Arena {1} · {2} Min · jeden Sonntag um 18 Uhr (schwedische Zeit) · {3} angemeldet
+776|👑 Eine Krone neben deinem Namen für eine Woche
+777|✨ Ein exklusives Goldbrett
+778|🏆 Ein Pokal und ein Erfolg
+779|Champion der letzten Woche:
+780|Anmelden
+781|Turnier ansehen
+782|Tage
+783|Std
+784|Sek
+785|● Läuft gerade
+786|👑 {1} hat {2} gewonnen!
+787|Gold
+788|👑 Gewinne ein Wochenturnier, um das Goldbrett freizuschalten.
+789|Wochensiege
+790|gewonnene Wochenturniere
+791|Kostenloses Schach für alle
+792|Spielen. Trainieren.
+793|Gewinnen.
+794|Gewertete Partien gegen Spieler aus aller Welt, 14 Computergegner, Aufgaben, Analyse mit Stockfish und jede Woche ein Turnier.
+795|Gegen den Computer
+796|Spieler online
+797|Partien gerade
+798|registrierte Spieler

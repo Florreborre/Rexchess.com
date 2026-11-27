@@ -635,3 +635,86 @@
 713|La imagen es demasiado grande o tiene un formato incorrecto.
 714|Chess960
 715|Chess960 no puntúa.
+716|Sin clasificar
+717|Aprendiz
+718|Novato
+719|Aspirante
+720|Maestro FIDE
+721|Maestro Internacional
+722|Supergran maestro
+723|menos de 400
+724|Tu título se basa en tu puntuación más alta, así que conservas un título una vez alcanzado. Durante las cinco partidas de clasificación estás sin clasificar. 🏆 indica torneos ganados y 👑 al campeón de la semana.
+725|Primeros pasos
+726|Juega 10 partidas puntuadas
+727|Quinientas partidas
+728|Juega 500 partidas puntuadas
+729|Leyenda
+730|Gana 250 partidas puntuadas
+731|Imparable
+732|Gana diez partidas puntuadas seguidas
+733|Señor de la oscuridad
+734|Gana una partida puntuada con negras
+735|El mate más rápido
+736|Da jaque mate en cuatro jugadas o menos
+737|Una nueva dama
+738|Corona un peón y gana la partida
+739|En el último segundo
+740|Gana con menos de cinco segundos en el reloj
+741|La honda de David
+742|Vence a un jugador con al menos 400 puntos más
+743|Clasificado
+744|Termina tus cinco partidas de clasificación
+745|Nivel de club
+746|Alcanza 1200 de puntuación
+747|Jugador fuerte
+748|Alcanza 1500 de puntuación
+749|Nivel experto
+750|Alcanza 1800 de puntuación
+751|Nivel de maestro
+752|Alcanza 2000 de puntuación
+753|Nivel de élite
+754|Alcanza 2200 de puntuación
+755|Heredero de Fischer
+756|Gana una partida de Chess960
+757|Amigo por correspondencia
+758|Gana una partida por correspondencia
+759|Sociable
+760|Ten cinco amigos
+761|Jugador de equipo
+762|Únete a un club
+763|Maestro de problemas
+764|Resuelve 500 problemas
+765|Lluvia de ideas
+766|Resuelve un problema de dificultad superior a 1800
+767|Cazador de trofeos
+768|Gana tres torneos
+769|Campeón de la semana
+770|Gana un torneo semanal
+771|En el podio
+772|Termina entre los tres primeros de un torneo semanal
+773|Torneo semanal
+774|Torneo semanal, semana {1}
+775|Arena {1} · {2} min · cada domingo a las 18:00 (hora sueca) · {3} inscritos
+776|👑 Una corona junto a tu nombre durante una semana
+777|✨ Un tablero dorado exclusivo
+778|🏆 Un trofeo y un logro
+779|Campeón de la semana pasada:
+780|Inscribirse
+781|Ver el torneo
+782|días
+783|h
+784|s
+785|● En curso
+786|👑 ¡{1} ganó {2}!
+787|Oro
+788|👑 Gana un torneo semanal para desbloquear el tablero dorado.
+789|Victorias semanales
+790|torneos semanales ganados
+791|Ajedrez gratis para todos
+792|Juega. Entrena.
+793|Gana.
+794|Partidas puntuadas contra jugadores de todo el mundo, 14 rivales de ordenador, problemas, análisis con Stockfish y un torneo cada semana.
+795|Contra el ordenador
+796|jugadores en línea
+797|partidas ahora
+798|jugadores registrados

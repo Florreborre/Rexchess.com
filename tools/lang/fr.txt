@@ -636,3 +636,86 @@
 713|L'image est trop grande ou au mauvais format.
 714|Chess960
 715|Chess960 n'est pas classé.
+716|Non classé
+717|Apprenti
+718|Novice
+719|Challenger
+720|Maître FIDE
+721|Maître international
+722|Super grand maître
+723|moins de 400
+724|Votre titre dépend de votre meilleur classement : un titre atteint est conservé. Pendant les cinq parties de placement, vous êtes non classé. 🏆 indique les tournois gagnés et 👑 le champion de la semaine.
+725|Premiers pas
+726|Jouez 10 parties classées
+727|Cinq cents parties
+728|Jouez 500 parties classées
+729|Légende
+730|Gagnez 250 parties classées
+731|Inarrêtable
+732|Gagnez dix parties classées d'affilée
+733|Seigneur des ténèbres
+734|Gagnez une partie classée avec les Noirs
+735|Le mat le plus rapide
+736|Donnez mat en quatre coups ou moins
+737|Une nouvelle dame
+738|Promouvez un pion et gagnez la partie
+739|À la dernière seconde
+740|Gagnez avec moins de cinq secondes à la pendule
+741|La fronde de David
+742|Battez un joueur classé au moins 400 points au-dessus de vous
+743|Classé
+744|Terminez vos cinq parties de placement
+745|Niveau club
+746|Atteignez 1200 de classement
+747|Joueur solide
+748|Atteignez 1500 de classement
+749|Niveau expert
+750|Atteignez 1800 de classement
+751|Niveau maître
+752|Atteignez 2000 de classement
+753|Niveau élite
+754|Atteignez 2200 de classement
+755|L'héritier de Fischer
+756|Gagnez une partie de Chess960
+757|Correspondant
+758|Gagnez une partie par correspondance
+759|Sociable
+760|Ayez cinq amis
+761|Joueur d'équipe
+762|Rejoignez un club
+763|Maître des problèmes
+764|Résolvez 500 problèmes
+765|Coup de génie
+766|Résolvez un problème de difficulté supérieure à 1800
+767|Chasseur de trophées
+768|Gagnez trois tournois
+769|Champion de la semaine
+770|Gagnez un tournoi hebdomadaire
+771|Sur le podium
+772|Terminez dans les trois premiers d'un tournoi hebdomadaire
+773|Tournoi hebdomadaire
+774|Tournoi hebdomadaire, semaine {1}
+775|Arène {1} · {2} min · chaque dimanche à 18 h (heure suédoise) · {3} inscrits
+776|👑 Une couronne à côté de votre nom pendant une semaine
+777|✨ Un échiquier doré exclusif
+778|🏆 Un trophée et un succès
+779|Champion de la semaine dernière :
+780|S'inscrire
+781|Voir le tournoi
+782|jours
+783|h
+784|s
+785|● En cours
+786|👑 {1} a gagné {2} !
+787|Or
+788|👑 Gagnez un tournoi hebdomadaire pour débloquer l'échiquier doré.
+789|Victoires hebdomadaires
+790|tournois hebdomadaires gagnés
+791|Des échecs gratuits pour tous
+792|Jouez. Progressez.
+793|Gagnez.
+794|Des parties classées contre des joueurs du monde entier, 14 adversaires ordinateur, des problèmes, l'analyse Stockfish et un tournoi chaque semaine.
+795|Contre l'ordinateur
+796|joueurs en ligne
+797|parties en ce moment
+798|joueurs inscrits

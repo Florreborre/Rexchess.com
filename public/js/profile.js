@@ -1,5 +1,5 @@
 // Profilsida: en spelares statistik, mest spelade öppningar, ratingkurva och partier.
-import { h, svg, state, api, titleEl, userLink, flagEl, countryName, avatarImg } from './util.js';
+import { h, svg, state, api, titleEl, userLink, flagEl, countryName, avatarImg, crownEl } from './util.js';
 import { matchOpening } from './openings.js';
 
 const pct = (n, total) => (total ? Math.round((100 * n) / total) : 0);
@@ -99,7 +99,7 @@ export function profileView(ctx, rawName) {
       const header = h('div.card.wide.profilehead',
         user.avatar && avatarImg(user.avatar, 84),
         h('div.pmain',
-          h('h2', titleEl(user.title), ' ', flagEl(user.country), ' ', user.username, user.trophies ? h('span.gold', { title: 'Vunna turneringar' }, ` 🏆${user.trophies > 1 ? '×' + user.trophies : ''}`) : null),
+          h('h2', titleEl(user.title), ' ', flagEl(user.country), ' ', crownEl(user.crown), user.username, user.trophies ? h('span.gold', { title: 'Vunna turneringar' }, ` 🏆${user.trophies > 1 ? '×' + user.trophies : ''}`) : null),
           h('p.muted', h('span.presence' + (user.online ? '.online' : '')), user.playing ? ' Spelar just nu' : user.online ? ' Online' : ' Offline',
             ` · Medlem sedan ${new Date(user.created_at).toLocaleDateString('sv-SE')}`, user.country ? ` · ${countryName(user.country)}` : ''),
           friendBtn, extras),
@@ -119,6 +119,7 @@ export function profileView(ctx, rawName) {
           tile('Som vit', `${pct(s.color.w.w, s.color.w.n)} %`, `${s.color.w.n} ${s.color.w.n === 1 ? "parti" : "partier"}`),
           tile('Som svart', `${pct(s.color.b.w, s.color.b.n)} %`, `${s.color.b.n} ${s.color.b.n === 1 ? "parti" : "partier"}`),
           tile('Träffsäkerhet', s.accuracy != null ? s.accuracy.toFixed(1) : '–', 'snitt i analyserade partier'),
+          user.weeklyWins > 0 && tile('Veckosegrar', `👑 ${user.weeklyWins}`, 'vunna veckoturneringar'),
           tile('Vinstsvit', s.streak, `längsta: ${s.longest}`),
           s.best && tile('Bästa vinst', s.best.rating, `mot ${s.best.name}`)),
         s.history.length > 1 && h('h3', 'Ratingutveckling'),

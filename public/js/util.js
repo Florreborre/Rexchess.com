@@ -5,7 +5,10 @@ export const state = { user: null, review: null, training: null, after: null };
 export const BOARD_THEMES = {
   marmor: ['Marmor', '#f1e7cf', '#b07f56'], oliv: ['Oliv', '#ecebd0', '#7d9a5f'], hav: ['Hav', '#e6ebf0', '#6f8fad'],
   sten: ['Sten', '#e6e3dc', '#8f8a80'], valnot: ['Valnöt', '#e9cfa6', '#9c6a3c'],
+  guld: ['Guld', '#f6e7b4', '#b8862b'], // belöning: bara för den som har vunnit en veckoturnering
 };
+// Krona vid namnet för veckans mästare.
+export const crownEl = (on) => (on ? h('span.crown', { title: 'Veckans mästare' }, '👑') : null);
 export const settings = { board: 'marmor', sound: true, volume: 0.8, autoQueen: false, hints: true, coords: true, theme: 'auto', lang: 'sv' };
 try { Object.assign(settings, JSON.parse(localStorage.getItem('settings') || '{}')); } catch { /* standardvärden */ }
 export function applySettings() {

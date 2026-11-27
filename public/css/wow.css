@@ -1,0 +1,119 @@
+/* ==========================================================================
+   Wow-lagret: typsnitt, levande bakgrund, glaskort, guldglans och startsektion.
+   Laddas efter style.css och bygger vidare på den utan att ändra layouten.
+   ========================================================================== */
+:root { --sans: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; --display: Cinzel, 'Trajan Pro', Georgia, serif;
+  --glass: rgba(255, 252, 245, .72); --glass-line: rgba(176, 138, 53, .35); --glow: rgba(214, 170, 72, .35);
+  --gold-grad: linear-gradient(100deg, #9a6a12, #e9c46a 35%, #fff3c4 50%, #e9c46a 65%, #9a6a12); }
+:root[data-theme="dark"] { --glass: rgba(30, 25, 20, .62); --glass-line: rgba(224, 182, 90, .28); --glow: rgba(224, 182, 90, .22); }
+
+/* Levande bakgrund: mjuka ljuskällor som rör sig långsamt, och ett svagt rutmönster. */
+body { background: var(--bg); }
+body::before, body::after { content: ""; position: fixed; z-index: -1; pointer-events: none; }
+body::before { inset: -20%; background:
+  radial-gradient(40% 35% at 15% 20%, color-mix(in srgb, var(--gold) 22%, transparent), transparent 70%),
+  radial-gradient(35% 30% at 85% 15%, color-mix(in srgb, #8f2422 20%, transparent), transparent 70%),
+  radial-gradient(45% 40% at 70% 90%, color-mix(in srgb, var(--gold) 14%, transparent), transparent 70%);
+  animation: drift 28s ease-in-out infinite alternate; }
+body::after { inset: 0; opacity: .05;
+  background-image: conic-gradient(var(--text) 25%, transparent 0 50%, var(--text) 0 75%, transparent 0); background-size: 72px 72px;
+  -webkit-mask-image: radial-gradient(ellipse at 50% 0%, #000 0%, transparent 70%); mask-image: radial-gradient(ellipse at 50% 0%, #000 0%, transparent 70%); }
+@keyframes drift { to { transform: translate3d(4%, 3%, 0) scale(1.08) rotate(3deg); } }
+
+/* Sidhuvud i glas */
+.topbar { background: var(--meander) repeat-x left bottom 2px, linear-gradient(color-mix(in srgb, var(--head1) 92%, transparent), color-mix(in srgb, var(--head2) 92%, transparent));
+  -webkit-backdrop-filter: blur(14px) saturate(1.3); backdrop-filter: blur(14px) saturate(1.3); }
+.brand > span { font-size: 18px; letter-spacing: .08em; background: var(--gold-grad); background-size: 200% auto; -webkit-background-clip: text; background-clip: text; color: transparent; animation: shimmer 6s linear infinite; }
+.brand small { -webkit-text-fill-color: #cfae62; }
+.logo { transition: transform .4s cubic-bezier(.2, .9, .3, 1.4); }
+.brand:hover .logo { transform: rotate(-12deg) scale(1.12); }
+@keyframes shimmer { to { background-position: 200% center; } }
+
+/* Kort i glas med guldkant och mjuk lyft */
+.card, .side { background: var(--glass); -webkit-backdrop-filter: blur(16px) saturate(1.2); backdrop-filter: blur(16px) saturate(1.2);
+  border: 1px solid var(--glass-line); box-shadow: 0 1px 0 rgba(255, 255, 255, .25) inset, var(--shadow); transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease; }
+.lobby .card:hover { transform: translateY(-4px); border-color: var(--gold); box-shadow: 0 1px 0 rgba(255, 255, 255, .25) inset, 0 14px 40px -10px var(--glow), var(--shadow); }
+h2 { background: linear-gradient(90deg, var(--accent), color-mix(in srgb, var(--accent) 55%, var(--gold))); -webkit-background-clip: text; background-clip: text; color: transparent; letter-spacing: .07em; }
+
+/* Knappar med glans som sveper förbi */
+button.primary, .btn.primary { position: relative; overflow: hidden; }
+button.primary::after, .btn.primary::after { content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, .35) 50%, transparent 70%); transform: translateX(-120%); transition: transform .7s ease; }
+button.primary:hover::after, .btn.primary:hover::after { transform: translateX(120%); }
+.btn.outline { background: transparent; border-color: var(--glass-line); }
+.btn.outline:hover { background: color-mix(in srgb, var(--gold) 12%, transparent); border-color: var(--gold); }
+.tc { transition: transform .15s ease, border-color .15s, box-shadow .15s; }
+.tc:hover:not(:disabled) { transform: translateY(-2px) scale(1.03); box-shadow: 0 8px 20px -8px var(--glow); }
+
+/* Sidbyten tonar in */
+.enter { animation: rise .45s cubic-bezier(.2, .8, .2, 1) both; }
+.home > *, .lobby > * { animation: rise .55s cubic-bezier(.2, .8, .2, 1) both; }
+.lobby > *:nth-child(2) { animation-delay: .04s; } .lobby > *:nth-child(3) { animation-delay: .08s; } .lobby > *:nth-child(4) { animation-delay: .12s; }
+.lobby > *:nth-child(5) { animation-delay: .16s; } .lobby > *:nth-child(6) { animation-delay: .2s; } .lobby > *:nth-child(n+7) { animation-delay: .24s; }
+@keyframes rise { from { opacity: 0; transform: translateY(14px); } }
+
+/* Brädet lyser lite */
+.board { box-shadow: 0 0 0 1px var(--gold), 0 0 0 7px var(--frame), 0 0 0 8px var(--gold), 0 18px 50px -12px rgba(0, 0, 0, .55), 0 0 60px -20px var(--glow); }
+
+/* ---------- Startsektionen ---------- */
+.home { display: flex; flex-direction: column; gap: 22px; }
+.hero { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); gap: 30px; align-items: center; padding: 18px 6px 8px; }
+.eyebrow { display: inline-block; font-size: 12px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--gold-text);
+  padding: 5px 12px; border: 1px solid var(--glass-line); border-radius: 999px; background: color-mix(in srgb, var(--gold) 10%, transparent); }
+.hero h1 { font-family: var(--display); font-weight: 800; font-size: clamp(38px, 6vw, 70px); line-height: 1.02; margin: 16px 0 14px; letter-spacing: .01em; color: var(--text); }
+.hero h1 .shine { background: var(--gold-grad); background-size: 200% auto; -webkit-background-clip: text; background-clip: text; color: transparent;
+  animation: shimmer 5s linear infinite; filter: drop-shadow(0 4px 18px var(--glow)); }
+.lead { font-size: 17px; color: var(--muted); max-width: 52ch; margin: 0 0 22px; }
+.hero-cta { display: flex; flex-wrap: wrap; gap: 10px; }
+.hero-cta .btn { padding: 12px 20px; font-size: 15px; border-radius: 10px; }
+.big-cta { box-shadow: 0 10px 30px -8px rgba(143, 36, 34, .6) !important; }
+.hero-stats { display: flex; gap: 28px; margin-top: 26px; flex-wrap: wrap; }
+.hstat { display: flex; flex-direction: column; }
+.hstat strong { font-family: var(--display); font-size: 30px; color: var(--accent); line-height: 1.1; }
+.hstat span { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.hero-art { position: relative; display: grid; place-items: center; perspective: 1400px; min-height: 340px; }
+.hero-glow { position: absolute; width: 85%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle, var(--glow), transparent 65%); filter: blur(20px); animation: pulse 6s ease-in-out infinite; }
+.hero-board { width: min(420px, 90%); transform: rotateX(28deg) rotateZ(-9deg); transform-style: preserve-3d; animation: float 7s ease-in-out infinite; pointer-events: none; }
+.hero-board .coord { display: none; }
+.hero-board .board { box-shadow: 0 0 0 1px var(--gold), 0 0 0 9px var(--frame), 0 0 0 10px var(--gold), 0 40px 60px -20px rgba(0, 0, 0, .6), 0 0 90px -10px var(--glow); }
+@keyframes float { 50% { transform: rotateX(24deg) rotateZ(-6deg) translateY(-14px); } }
+@keyframes pulse { 50% { transform: scale(1.12); opacity: .7; } }
+
+/* ---------- Veckoturneringens banner ---------- */
+.weekly { position: relative; overflow: hidden; display: grid; grid-template-columns: auto 1fr auto; gap: 22px; align-items: center; padding: 22px 26px; border-radius: 16px;
+  color: #fbeecb; background: radial-gradient(120% 140% at 0% 0%, #a52c28 0%, #5c1212 45%, #2a0707 100%); border: 1px solid #d9b45a;
+  box-shadow: 0 20px 50px -20px rgba(90, 15, 15, .8), 0 0 0 1px rgba(255, 220, 140, .15) inset; }
+.weekly[hidden] { display: none; }
+.weekly::before { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(115deg, transparent 35%, rgba(255, 230, 160, .18) 50%, transparent 65%);
+  background-size: 250% 100%; animation: sweep 5s ease-in-out infinite; }
+@keyframes sweep { from { background-position: 150% 0; } to { background-position: -100% 0; } }
+.weekly .eyebrow { color: #ffe39a; border-color: rgba(255, 220, 140, .4); background: rgba(255, 220, 140, .1); }
+.weekly h2 { margin: 8px 0 4px; font-size: 24px; background: var(--gold-grad); background-size: 200% auto; -webkit-background-clip: text; background-clip: text; color: transparent; animation: shimmer 6s linear infinite; }
+.weekly p { color: #f3dcae; margin: 4px 0; }
+.weekly .muted { color: #d6b98a; }
+.weekly a.user { color: #ffe39a; }
+.weekly-crown { font-size: 58px; filter: drop-shadow(0 6px 20px rgba(255, 200, 80, .6)); animation: bob 3.5s ease-in-out infinite; }
+@keyframes bob { 50% { transform: translateY(-6px) rotate(-6deg); } }
+.rewards { list-style: none; display: flex; flex-wrap: wrap; gap: 8px; padding: 0; margin: 10px 0 6px; }
+.rewards li { font-size: 13px; font-weight: 600; padding: 5px 11px; border-radius: 999px; background: rgba(255, 220, 140, .12); border: 1px solid rgba(255, 220, 140, .3); }
+.weekly-side { display: flex; flex-direction: column; gap: 10px; align-items: stretch; min-width: 220px; position: relative; }
+.weekly-side .btn.outline { color: #fbeecb; border-color: rgba(255, 220, 140, .4); }
+.countdown { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; text-align: center; }
+.countdown div { background: rgba(0, 0, 0, .28); border: 1px solid rgba(255, 220, 140, .25); border-radius: 10px; padding: 6px 2px; }
+.countdown strong { display: block; font-family: var(--display); font-size: 24px; color: #ffe39a; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.countdown span { font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: #d6b98a; }
+.livebadge { grid-column: 1 / -1; font-weight: 700; color: #9ff0a4; padding: 10px; }
+.crown { margin-right: 3px; filter: drop-shadow(0 1px 3px rgba(255, 190, 60, .7)); }
+.crown[hidden] { display: none; }
+.weeklytag { filter: drop-shadow(0 1px 3px rgba(255, 190, 60, .7)); }
+
+@media (max-width: 860px) {
+  .hero { grid-template-columns: 1fr; padding-top: 4px; }
+  .hero-art { min-height: 250px; order: -1; }
+  .hero-board { width: min(290px, 76%); }
+  .weekly { grid-template-columns: 1fr; }
+  .weekly-crown { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}

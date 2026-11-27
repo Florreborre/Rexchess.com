@@ -268,7 +268,7 @@ body.nocoords .coord { display: none; }
 .endgame .miniboard { width: 130px; }
 
 /* Smalare fönster: menyn får en egen rad under loggan så att alla länkar syns. */
-@media (max-width: 1240px) {
+@media (max-width: 1400px) {
   .topbar { flex-wrap: wrap; gap: 6px 12px; }
   .brand { flex: 1; }
   #nav { order: 3; flex: 1 0 100%; }

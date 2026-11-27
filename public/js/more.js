@@ -1,5 +1,5 @@
 // Inställningar och konto, klubbar, admin, korrespondensschack, pågående partier och privata länkar.
-import { h, state, api, go, titleEl, userLink, settings, saveSettings, BOARD_THEMES, playSound, REASONS, countrySelect, LANGUAGES, avatarImg, resizeImage } from './util.js';
+import { h, state, api, go, titleEl, userLink, crownEl, settings, saveSettings, BOARD_THEMES, playSound, REASONS, countrySelect, LANGUAGES, avatarImg, resizeImage } from './util.js';
 import { net, send, on, disconnect } from './net.js';
 import { GameScreen } from './game.js';
 import { chatBox } from './chat.js';
@@ -20,9 +20,10 @@ export function settingsView(ctx) {
     h('div.themes', Object.entries(LANGUAGES).map(([key, name]) =>
       h('button' + (settings.lang === key ? '.active' : ''), { onclick: () => { saveSettings({ lang: key }); location.reload(); } }, name))),
     h('h3', 'Brädets färger'),
-    h('div.themes', Object.entries(BOARD_THEMES).map(([key, [name, light, dark]]) =>
+    h('div.themes', Object.entries(BOARD_THEMES).filter(([key]) => key !== 'guld' || state.user?.weeklyWins > 0 || settings.board === 'guld').map(([key, [name, light, dark]]) =>
       h('button' + (settings.board === key ? '.active' : ''), { onclick: () => { saveSettings({ board: key }); ctx.refresh(); } },
         h('span.swatch', { style: { background: `linear-gradient(135deg, ${light} 50%, ${dark} 50%)` } }), name))),
+    !(state.user?.weeklyWins > 0) && h('p.muted', '👑 Vinn en veckoturnering för att låsa upp guldbrädet.'),
     h('h3', 'Ljud'),
     toggle('sound', 'Spela ljud'),
     h('label.check', 'Volym ', h('input', { type: 'range', min: 0.1, max: 1, step: 0.1, value: settings.volume, onchange: (e) => { saveSettings({ volume: Number(e.target.value) }); playSound('move'); } })),

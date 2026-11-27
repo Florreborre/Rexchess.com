@@ -90,6 +90,7 @@ const EXTRA_COLUMNS = [['games', 'tournament_id TEXT'], ['games', 'white_acc REA
   ...CLASSES.flatMap((k) => [['users', `r_${k} INTEGER NOT NULL DEFAULT 0`], ['users', `g_${k} INTEGER NOT NULL DEFAULT 0`]]),
   ['users', 'country TEXT'], ['users', 'avatar TEXT'], ['users', 'avatar_v INTEGER NOT NULL DEFAULT 0'],
   ['games', 'variant TEXT'], ['games', 'start_fen TEXT'],
+  ['users', 'crown_until INTEGER NOT NULL DEFAULT 0'], ['users', 'weekly_wins INTEGER NOT NULL DEFAULT 0'], ['tournaments', 'weekly INTEGER NOT NULL DEFAULT 0'],
   ['tournaments', "format TEXT NOT NULL DEFAULT 'arena'"], ['tournaments', 'rounds INTEGER NOT NULL DEFAULT 0'], ['tournaments', 'round INTEGER NOT NULL DEFAULT 0'],
   ['tournament_players', 'out INTEGER NOT NULL DEFAULT 0']];
 db.exec(SCHEMA);
@@ -122,7 +123,7 @@ const q = {
   tActive: db.prepare("SELECT * FROM tournaments WHERE status IN ('open', 'running')"),
   tInsert: db.prepare("INSERT INTO tournaments (id, name, tc, duration, creator_id, creator_name, status, starts_at, ends_at, created_at) VALUES (?,?,?,?,?,?,'open',?,?,?)"),
   tStatus: db.prepare('UPDATE tournaments SET status = ?, ends_at = ? WHERE id = ?'),
-  tPlayers: db.prepare(`SELECT u.id, u.username, u.country, u.rating, u.peak, u.games AS total_games, u.trophies, p.score, p.games, p.wins, p.draws, p.losses, p.out FROM tournament_players p
+  tPlayers: db.prepare(`SELECT u.id, u.username, u.country, u.crown_until, u.rating, u.peak, u.games AS total_games, u.trophies, p.score, p.games, p.wins, p.draws, p.losses, p.out FROM tournament_players p
     JOIN users u ON u.id = p.user_id WHERE p.tournament_id = ? ORDER BY p.out, p.score DESC, p.wins DESC, u.rating DESC`),
   tPlayer: db.prepare('SELECT * FROM tournament_players WHERE tournament_id = ? AND user_id = ?'),
   tJoin: db.prepare('INSERT OR IGNORE INTO tournament_players (tournament_id, user_id) VALUES (?, ?)'),
@@ -137,7 +138,7 @@ const q = {
   gameById: db.prepare('SELECT * FROM games WHERE id = ?'),
   profileGames: db.prepare(`SELECT id, white_id, black_id, white_name, black_name, white_rating, black_rating, white_diff, black_diff,
     white_acc, black_acc, result, reason, tc, rated, created_at, moves, variant FROM games WHERE white_id = ?1 OR black_id = ?1 ORDER BY created_at DESC LIMIT 500`),
-  leaderboard: db.prepare('SELECT username, country, rating, peak, trophies, games, wins, losses, draws FROM users WHERE games >= 5 AND banned = 0 ORDER BY rating DESC, games DESC LIMIT 50'),
+  leaderboard: db.prepare('SELECT username, country, rating, peak, trophies, crown_until, games, wins, losses, draws FROM users WHERE games >= 5 AND banned = 0 ORDER BY rating DESC, games DESC LIMIT 50'),
 };
 
 // ---------- Spegling till Turso ----------
@@ -236,9 +237,10 @@ const sha256 = (s) => crypto.createHash('sha256').update(s).digest('hex');
 const hashPassword = (pw, salt) =>
   new Promise((res, rej) => crypto.scrypt(pw, salt, 64, (e, buf) => (e ? rej(e) : res(buf.toString('hex')))));
 // Titlar: bygger på spelarens högsta rating någonsin, så en titel man har fått behåller man. Kräver minst 5 rankade partier.
-const TITLES = [[2400, 'Stormästare'], [2200, 'Mästare'], [2000, 'Kandidatmästare'], [1800, 'Elit'], [1600, 'Expert'], [1400, 'Avancerad'], [1200, 'Klubbspelare'], [1000, 'Amatör']];
+const TITLES = [[2800, 'Supermästare'], [2600, 'Stormästare'], [2400, 'Internationell mästare'], [2200, 'FIDE-mästare'], [2000, 'Kandidatmästare'],
+  [1800, 'Elit'], [1600, 'Expert'], [1400, 'Avancerad'], [1200, 'Klubbspelare'], [1000, 'Amatör'], [800, 'Utmanare'], [600, 'Novis'], [400, 'Lärling']];
 function titleFor(peak, games) {
-  if (games < PLACEMENT_GAMES) return 'Nybörjare';
+  if (games < PLACEMENT_GAMES) return 'Oplacerad';
   return (TITLES.find(([min]) => peak >= min) || [0, 'Nybörjare'])[1];
 }
 const classRating = (u, k) => u['r_' + k] || u.rating;
@@ -248,6 +250,7 @@ const tcClass = (tc) => {
 };
 const publicUser = (u) => u && { id: u.id, username: u.username, rating: u.rating, peak: u.peak, title: titleFor(u.peak, u.games), trophies: u.trophies,
   avatar: u.avatar_v ? `/api/avatar/${encodeURIComponent(u.username)}?v=${u.avatar_v}` : null,
+  crown: u.crown_until > Date.now(), weeklyWins: u.weekly_wins || 0,
   country: u.country || null, provisional: u.games < PLACEMENT_GAMES, games: u.games, wins: u.wins, losses: u.losses, draws: u.draws, admin: !!u.is_admin, puzzleRating: u.puzzle_rating, puzzlesSolved: u.puzzles_solved,
   ratings: Object.fromEntries(CLASSES.map((k) => [k, { rating: classRating(u, k), games: u['g_' + k] }])) };
 
@@ -391,6 +394,8 @@ app.get('/api/users/:username', (req, res) => {
   res.json({ user: { ...publicUser(u), created_at: u.created_at, online: sockets.has(u.id), playing: activeGame.has(u.id), ...features.profileExtra(u, req.user) }, games, friend });
 });
 app.get('/api/leaderboard', (req, res) => features.leaderboard(req, res));
+const countUsers = db.prepare('SELECT COUNT(*) AS c FROM users WHERE banned = 0');
+app.get('/api/stats', (req, res) => res.json({ online: sockets.size, playing: new Set([...activeGame.values()].flatMap((m) => [...m.keys()])).size, players: countUsers.get().c }));
 
 app.get('/api/games', (req, res) => {
   if (!req.user) return res.status(401).json({ error: 'Inte inloggad.' });
@@ -475,6 +480,7 @@ app.post('/api/friends/:action', (req, res) => {
   }
   sendTo(me.id, { t: 'friends' });
   sendTo(other.id, { t: 'friends' });
+  features.checkFriends(me.id); features.checkFriends(other.id);
   res.json({ ok: true });
 });
 
@@ -510,7 +516,7 @@ app.post('/api/tournaments', (req, res) => {
 app.get('/api/tournaments/:id', (req, res) => {
   const t = q.tById.get(String(req.params.id));
   if (!t) return res.status(404).json({ error: 'Turneringen finns inte.' });
-  const tp = q.tPlayers.all(t.id).map((p) => ({ ...p, rating: shownRating(p.rating, p.total_games), title: titleFor(p.peak, p.total_games) }));
+  const tp = q.tPlayers.all(t.id).map(({ crown_until, ...p }) => ({ ...p, crown: crown_until > Date.now(), rating: shownRating(p.rating, p.total_games), title: titleFor(p.peak, p.total_games) }));
   res.json({
     tournament: t, players: tp, teams: features.teamStandings(tp), games: q.tGames.all(t.id), now: Date.now(),
     joined: !!(req.user && q.tPlayer.get(t.id, req.user.id)),
@@ -674,7 +680,8 @@ function finishTournament(id) {
   if (!t || t.status === 'finished') return;
   q.tStatus.run('finished', t.ends_at, id);
   const winner = q.tPlayers.all(id)[0];
-  if (winner && winner.games > 0) { q.addTrophy.run(winner.id); features.award(winner.id, 'tournament_win'); }
+  if (winner && winner.games > 0) { q.addTrophy.run(winner.id); features.award(winner.id, 'tournament_win'); if ((q.userById.get(winner.id)?.trophies || 0) >= 3) features.award(winner.id, 'trophies_3'); }
+  features.tournamentFinished(t, q.tPlayers.all(id));
   tReady.delete(id);
   broadcastAll({ t: 'tournament', id });
 }
@@ -774,8 +781,8 @@ function createGame(aId, bId, tc, tournamentId = null, fixedColors = false, vari
   const [base, inc] = TIME_CONTROLS[tc] || parseTc(tc);
   const g = {
     id: crypto.randomBytes(6).toString('hex'), tc, inc: inc * 1000, variant, startFen: variant === '960' ? random960Fen() : null,
-    white: { id: w.id, name: w.username, rating: shownRating(classRating(w, k), w.games), country: w.country, avatar: avatarUrl(w), title: titleFor(w.peak, w.games) },
-    black: { id: b.id, name: b.username, rating: shownRating(classRating(b, k), b.games), country: b.country, avatar: avatarUrl(b), title: titleFor(b.peak, b.games) },
+    white: { id: w.id, name: w.username, rating: shownRating(classRating(w, k), w.games), country: w.country, avatar: avatarUrl(w), crown: w.crown_until > Date.now(), title: titleFor(w.peak, w.games) },
+    black: { id: b.id, name: b.username, rating: shownRating(classRating(b, k), b.games), country: b.country, avatar: avatarUrl(b), crown: b.crown_until > Date.now(), title: titleFor(b.peak, b.games) },
     clocks: { w: base * 1000, b: base * 1000 }, lastTs: Date.now(), drawOffer: null, over: null, timer: null, tournamentId,
     spectators: new Set(), cls: k,
   };
@@ -951,7 +958,7 @@ function cancelSeek(userId) {
 
 const features = require('./features')({
   app, db, q, mirrored, sockets, activeGame, gamesOf, gamesById, sendTo, broadcastAll, broadcast, gameState, scheduleFlag, createGame, endGame,
-  publicUser, titleFor, shownRating, needUser, parseTc, TIME_CONTROLS, hashPassword, sha256, crypto, Chess, buildPgn, elo, scheduleTournament, finishTournament,
+  publicUser, titleFor, shownRating, needUser, parseTc, startTournament, broadcastTournament: (id) => broadcastAll({ t: 'tournament', id }), TIME_CONTROLS, hashPassword, sha256, crypto, Chess, buildPgn, elo, scheduleTournament, finishTournament,
 });
 // Engångsåtgärder på databasen. Varje åtgärd körs en enda gång; att den har körts sparas i tabellen migrations
 // (som också speglas till Turso, så att den inte körs om när webbhotellet startar om med tom lokal databas).

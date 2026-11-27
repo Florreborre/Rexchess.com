@@ -12,9 +12,9 @@ const Chess960 = make960(Chess);
 const TCS = [['1+0', 'Bullet'], ['2+1', 'Bullet'], ['3+0', 'Blixt'], ['3+2', 'Blixt'], ['5+0', 'Blixt'], ['5+3', 'Blixt'], ['10+0', 'Snabb'], ['10+5', 'Snabb'], ['15+10', 'Snabb']];
 
 function playerBar() {
-  const name = h('span.pname'), rating = h('span.prating'), clock = h('span.clock'), title = h('span.title'), flag = h('span.flag');
+  const name = h('span.pname'), rating = h('span.prating'), clock = h('span.clock'), title = h('span.title'), flag = h('span.flag'), crown = h('span.crown', '👑');
   const pic = h('span.pfp-slot');
-  const el = h('div.playerbar', h('div.pinfo', pic, h('span.avatar'), title, flag, name, rating), clock);
+  const el = h('div.playerbar', h('div.pinfo', pic, h('span.avatar'), title, flag, crown, name, rating), clock);
   return {
     el, clock,
     set(p) {
@@ -24,6 +24,7 @@ function playerBar() {
       title.hidden = !p.title;
       flag.textContent = flagOf(p.country);
       flag.hidden = !flag.textContent;
+      crown.hidden = !p.crown;
       rating.textContent = p.rating ? `(${p.rating})` : '';
       el.querySelector('.avatar').className = 'avatar ' + (p.color === 'w' ? 'white' : 'black');
       clock.hidden = !p.hasClock;
@@ -194,7 +195,9 @@ export function lobbyView() {
   };
   draw();
   const off = on(draw);
-  const el = h('div.lobby', online,
+  online.id = 'online';
+  const top = heroSection(), weekly = weeklyBanner();
+  const grid = h('div.lobby', online,
     h('div.card', h('h2', 'Spela mot datorn'), h('p.muted', 'Fjorton motståndare från nybörjare till full Stockfish, eller välj en egen styrka. Orankat.'),
       h('a.btn.primary', { href: '/bot' }, 'Välj motståndare')),
     h('div.card', h('h2', 'Turneringar'), h('p.muted', 'Samla spelare i en arena: alla paras ihop om och om igen tills tiden är ute. Flest poäng vinner.'),
@@ -211,7 +214,69 @@ export function lobbyView() {
       h('a.btn', { href: '/friends' }, 'Vänlista')),
     h('div.card', h('h2', 'Analysera'), h('p.muted', 'Gå igenom dina partier drag för drag med träffsäkerhet, bedömning av varje drag och bästa drag.'),
       h('a.btn', { href: '/games' }, 'Mina partier')));
-  return { el, destroy: off };
+  const el = h('div.home', top.el, weekly.el, grid);
+  return { el, destroy() { off(); top.destroy(); weekly.destroy(); } };
+}
+
+// Stor startsektion överst: rubrik, knappar, levande siffror och ett svävande bräde.
+const HERO_FEN = 'r1bq1rk1/pp2bppp/2n1pn2/3p4/2PP4/2N1PN2/PP3PPP/R2QKB1R w KQ - 0 9';
+function heroSection() {
+  const stat = (label) => { const v = h('strong', '–'); return { v, el: h('div.hstat', v, h('span', label)) }; };
+  const online = stat('spelare online'), playing = stat('partier just nu'), players = stat('registrerade spelare');
+  const board = new Board({});
+  board.set({ fen: HERO_FEN, arrows: [{ from: 'c4', to: 'd5', color: '#e3b341' }, { from: 'f3', to: 'e5', color: '#e3b341' }], lastMove: { from: 'c1', to: 'g5' } });
+  const load = () => api('/api/stats').then((s) => { online.v.textContent = s.online; playing.v.textContent = s.playing; players.v.textContent = s.players; }).catch(() => {});
+  load();
+  const timer = setInterval(load, 15000);
+  const el = h('section.hero',
+    h('div.hero-text',
+      h('span.eyebrow', 'Gratis schack för alla'),
+      h('h1', 'Spela. Träna. ', h('span.shine', 'Vinn.')),
+      h('p.lead', 'Rankade partier mot spelare över hela världen, 14 datormotståndare, schackproblem, analys med Stockfish och en turnering varje vecka.'),
+      h('div.hero-cta',
+        h('a.btn.primary.big-cta', { href: '/play', onclick: (e) => { e.preventDefault(); e.stopPropagation(); document.getElementById('online')?.scrollIntoView({ behavior: 'smooth', block: 'center' }); } }, 'Spela online'),
+        h('a.btn.outline', { href: '/bot' }, 'Mot datorn'),
+        h('a.btn.outline', { href: '/puzzles/daily' }, 'Dagens problem')),
+      h('div.hero-stats', online.el, playing.el, players.el)),
+    h('div.hero-art', h('div.hero-glow'), h('div.hero-board', board.el)));
+  return { el, destroy() { clearInterval(timer); } };
+}
+
+// Guldbanner för veckoturneringen med nedräkning och belöning.
+function weeklyBanner() {
+  const el = h('section.weekly');
+  let data = null, offset = 0, timer = null;
+  const clock = h('div.countdown');
+  const unit = (n, label) => h('div', h('strong', String(n).padStart(2, '0')), h('span', label));
+  function tick() {
+    const t = data?.tournament;
+    if (!t) return;
+    const now = Date.now() + offset;
+    if (t.status === 'running') { clock.replaceChildren(h('div.livebadge', '● Pågår nu')); return; }
+    const ms = Math.max(0, t.starts_at - now), s = Math.floor(ms / 1000);
+    clock.replaceChildren(unit(Math.floor(s / 86400), 'dagar'), unit(Math.floor(s / 3600) % 24, 'tim'), unit(Math.floor(s / 60) % 60, 'min'), unit(s % 60, 'sek'));
+  }
+  function draw() {
+    const t = data?.tournament;
+    if (!t) { el.hidden = true; return; }
+    el.hidden = false;
+    const join = () => (state.user ? api(`/api/tournaments/${t.id}/join`, {}).then(() => go(`/tournament/${t.id}`)).catch((e) => alert(e.message)) : go('/login'));
+    el.replaceChildren(
+      h('div.weekly-crown', '👑'),
+      h('div.weekly-main',
+        h('span.eyebrow', 'Veckoturnering'),
+        h('h2', t.name),
+        h('p', `Arena ${t.tc} · ${t.duration} min · varje söndag kl. 18 · ${t.players} anmälda`),
+        h('ul.rewards', h('li', '👑 Krona vid namnet i en vecka'), h('li', '✨ Exklusivt guldbräde'), h('li', '🏆 Pokal och prestation')),
+        data.lastWinner && h('p.muted', 'Förra veckans mästare: ', h('a.user', { href: `/profile/${encodeURIComponent(data.lastWinner.username)}` }, data.lastWinner.username))),
+      h('div.weekly-side', clock,
+        t.joined ? h('a.btn.primary', { href: `/tournament/${t.id}` }, '✓ Du är anmäld') : h('button.primary', { onclick: join }, 'Anmäl dig'),
+        h('a.btn.outline', { href: `/tournament/${t.id}` }, 'Visa turneringen')));
+    tick();
+  }
+  api('/api/weekly').then((d) => { data = d; offset = d.now - Date.now(); draw(); timer = setInterval(tick, 1000); }).catch(() => { el.hidden = true; });
+  el.hidden = true;
+  return { el, destroy() { clearInterval(timer); } };
 }
 
 // Kort på startsidan: partier som spelas just nu.

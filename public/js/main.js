@@ -1,6 +1,6 @@
 // Startpunkt: router, navigering, inloggning, partihistorik och topplista.
 import { Chess } from '/vendor/chess.js';
-import { h, state, api, go, titleEl, playSound, userLink, applySettings, spriteLoaded, saveSettings, settings, isDark, flagEl, countrySelect, LANGUAGES, avatarImg } from './util.js';
+import { h, state, api, go, titleEl, playSound, userLink, applySettings, spriteLoaded, saveSettings, settings, isDark, flagEl, countrySelect, LANGUAGES, avatarImg, crownEl } from './util.js';
 import { profileView } from './profile.js';
 import { initI18n } from './i18n.js';
 import { net, connect, disconnect, on } from './net.js';
@@ -50,6 +50,7 @@ function render() {
     if (m) {
       current = view({ refresh: render }, ...m.slice(1));
       app.replaceChildren(current.el);
+      current.el.classList?.add('enter');
       renderNav();
       return;
     }
@@ -74,7 +75,7 @@ function renderNav() {
       Object.keys(LANGUAGES).map((k) => h('option', { value: k, selected: k === settings.lang }, k.toUpperCase()))),
   ];
   if (state.user) {
-    box.replaceChildren(state.user.avatar ? avatarImg(state.user.avatar, 26) : '', h('span.me', titleEl(state.user.title), ' ', userLink(state.user.username), ` ${state.user.provisional ? '?' : state.user.rating}`),
+    box.replaceChildren(state.user.avatar ? avatarImg(state.user.avatar, 26) : '', h('span.me', titleEl(state.user.title), ' ', crownEl(state.user.crown), userLink(state.user.username), ` ${state.user.provisional ? '?' : state.user.rating}`),
       state.user.admin ? h('a.btn.small', { href: '/admin' }, 'Admin') : '',
       ...quick, h('a.btn.small', { href: '/settings', title: 'Inställningar' }, '⚙'),
       h('button.small', {
@@ -199,12 +200,12 @@ function leaderboardView() {
       players.length ? h('div.tablewrap', h('table',
         h('thead', h('tr', ['#', 'Spelare', 'Titel', 'Rating', 'Partier', 'V / R / F'].map((t) => h('th', t)))),
         h('tbody', players.map((p, i) => h('tr' + (p.username === state.user?.username ? '.me' : ''),
-          h('td', i + 1), h('td', flagEl(p.country), ' ', userLink(p.username), p.trophies ? h('span.gold', { title: 'Vunna turneringar' }, ` 🏆${p.trophies > 1 ? '×' + p.trophies : ''}`) : null),
+          h('td', i + 1), h('td', flagEl(p.country), ' ', crownEl(p.crown), userLink(p.username), p.trophies ? h('span.gold', { title: 'Vunna turneringar' }, ` 🏆${p.trophies > 1 ? '×' + p.trophies : ''}`) : null),
           h('td', titleEl(p.title)), h('td', p.rating), h('td', p.class_games ?? p.games), h('td', `${p.wins} / ${p.draws} / ${p.losses}`))))))
         : h('p.muted', by ? 'Ingen har spelat rankade partier med den betänketiden ännu.' : 'Inga spelare ännu. Skapa ett konto och bli först!'),
       h('h3', 'Titlar'),
-      h('p.muted', 'Titeln bygger på din högsta rating någonsin, så en titel du har nått behåller du. Spelare syns på topplistan och får rating och titel efter fem rankade partier. 🏆 visar vunna turneringar.'),
-      h('div.legend', [['Nybörjare', 'under 1000'], ['Amatör', '1000'], ['Klubbspelare', '1200'], ['Avancerad', '1400'], ['Expert', '1600'], ['Elit', '1800'], ['Kandidatmästare', '2000'], ['Mästare', '2200'], ['Stormästare', '2400']]
+      h('p.muted', 'Titeln bygger på din högsta rating någonsin, så en titel du har nått behåller du. Under de fem placeringspartierna är man Oplacerad. 🏆 visar vunna turneringar och 👑 veckans mästare.'),
+      h('div.legend', [['Nybörjare', 'under 400'], ['Lärling', '400'], ['Novis', '600'], ['Utmanare', '800'], ['Amatör', '1000'], ['Klubbspelare', '1200'], ['Avancerad', '1400'], ['Expert', '1600'], ['Elit', '1800'], ['Kandidatmästare', '2000'], ['FIDE-mästare', '2200'], ['Internationell mästare', '2400'], ['Stormästare', '2600'], ['Supermästare', '2800']]
         .map(([t, r]) => h('span', titleEl(t), ` ${r}`))));
   }).catch(() => {}));
   load();

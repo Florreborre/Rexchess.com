@@ -179,6 +179,30 @@ module.exports = (ctx) => {
     season_champion: ['Säsongsmästare', 'Vinn en månadssäsong'],
     puzzles_10: ['Problemlösare', 'Lös 10 schackproblem'],
     puzzles_100: ['Taktiker', 'Lös 100 schackproblem'],
+    games_10: ['Första stegen', 'Spela 10 rankade partier'],
+    games_500: ['Femhundra partier', 'Spela 500 rankade partier'],
+    wins_250: ['Legend', 'Vinn 250 rankade partier'],
+    streak_10: ['Ostoppbar', 'Vinn tio rankade partier i följd'],
+    black_win: ['Mörkrets härskare', 'Vinn ett rankat parti med svart'],
+    scholars: ['Snabbaste matten', 'Sätt matt inom fyra drag'],
+    promotion: ['Ny drottning', 'Förvandla en bonde och vinn partiet'],
+    last_second: ['På sekunden', 'Vinn med mindre än fem sekunder kvar på klockan'],
+    giant_400: ['Davids slunga', 'Slå en spelare med minst 400 högre rating'],
+    placed: ['Placerad', 'Spela klart dina fem placeringspartier'],
+    rating_1200: ['Klubbnivå', 'Nå 1200 i rating'],
+    rating_1500: ['Stark spelare', 'Nå 1500 i rating'],
+    rating_1800: ['Expertnivå', 'Nå 1800 i rating'],
+    rating_2000: ['Mästarnivå', 'Nå 2000 i rating'],
+    rating_2200: ['Elitnivå', 'Nå 2200 i rating'],
+    fischer: ['Fischers arvtagare', 'Vinn ett Chess960-parti'],
+    corr_win: ['Brevvän', 'Vinn ett korrespondensparti'],
+    friends_5: ['Sällskaplig', 'Ha fem vänner'],
+    club_member: ['Lagspelare', 'Gå med i en klubb'],
+    puzzles_500: ['Problemmästare', 'Lös 500 schackproblem'],
+    puzzle_hard: ['Hjärnstorm', 'Lös ett problem med svårighet över 1800'],
+    trophies_3: ['Pokaljägare', 'Vinn tre turneringar'],
+    weekly_win: ['Veckans mästare', 'Vinn en veckoturnering'],
+    weekly_podium: ['Pallplats', 'Hamna topp tre i en veckoturnering'],
   };
   function award(userId, key) {
     if (!ACHIEVEMENTS[key] || !userId) return;
@@ -193,8 +217,22 @@ module.exports = (ctx) => {
     for (const [side, me, oppRating, myRating] of [['w', info.w, info.rb, info.rw], ['b', info.b, info.rw, info.rb]]) {
       const won = (side === 'w') === (info.sw === 1) && info.sw !== 0.5;
       const fresh = q.userById.get(me.id);
+      if (fresh.games >= 10) award(me.id, 'games_10');
       if (fresh.games >= 100) award(me.id, 'games_100');
+      if (fresh.games >= 500) award(me.id, 'games_500');
+      if (fresh.games >= 5) {
+        award(me.id, 'placed');
+        for (const r of [1200, 1500, 1800, 2000, 2200]) if (fresh.rating >= r) award(me.id, 'rating_' + r);
+      }
       if (!won) continue;
+      if (fresh.wins >= 250) award(me.id, 'wins_250');
+      if (side === 'b') award(me.id, 'black_win');
+      if (oppRating - myRating >= 400) award(me.id, 'giant_400');
+      if (info.reason === 'checkmate' && g.chess.history().length <= 8) award(me.id, 'scholars');
+      if (g.chess.history({ verbose: true }).some((m) => m.color === side && m.promotion)) award(me.id, 'promotion');
+      if (g.clocks && g.clocks[side] > 0 && g.clocks[side] < 5000) award(me.id, 'last_second');
+      const last10 = r.lastRated.all(me.id, 10);
+      if (last10.length === 10 && last10.every((x) => (x.result === '1-0' && x.white_id === me.id) || (x.result === '0-1' && x.black_id === me.id))) award(me.id, 'streak_10');
       award(me.id, 'first_win');
       if (fresh.wins >= 10) award(me.id, 'wins_10');
       if (fresh.wins >= 50) award(me.id, 'wins_50');
@@ -222,7 +260,7 @@ module.exports = (ctx) => {
 
   // ---------- Topplistor: totalt, per betänketid och säsong ----------
   const CLASSES = ['bullet', 'blitz', 'rapid'];
-  const classBoard = Object.fromEntries(CLASSES.map((k) => [k, one(`SELECT username, country, r_${k} AS rating, peak, trophies, games, g_${k} AS class_games, wins, losses, draws
+  const classBoard = Object.fromEntries(CLASSES.map((k) => [k, one(`SELECT username, country, crown_until, r_${k} AS rating, peak, trophies, games, g_${k} AS class_games, wins, losses, draws
     FROM users WHERE g_${k} > 0 AND games >= 5 AND banned = 0 ORDER BY r_${k} DESC LIMIT 50`)]));
   const monthStart = (d) => Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1);
   const monthKey = (d) => `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`;
@@ -251,11 +289,12 @@ module.exports = (ctx) => {
     if (champ && info.changes && q.userById.get(champ.id)) {
       q.addTrophy.run(champ.id);
       award(champ.id, 'season_champion');
+      if ((q.userById.get(champ.id)?.trophies || 0) >= 3) award(champ.id, 'trophies_3');
     }
   }
   function leaderboard(req, res) {
     const by = String(req.query.by || '');
-    const withTitle = (p) => ({ ...p, title: titleFor(p.peak, p.games) });
+    const withTitle = ({ crown_until, ...p }) => ({ ...p, crown: crown_until > Date.now(), title: titleFor(p.peak, p.games) });
     if (CLASSES.includes(by)) return res.json({ players: classBoard[by].all().map(withTitle) });
     res.json({ players: q.leaderboard.all().map(withTitle) });
   }
@@ -293,6 +332,8 @@ module.exports = (ctx) => {
     const total = req.user.puzzles_solved + (solved ? 1 : 0);
     if (total >= 10) award(req.user.id, 'puzzles_10');
     if (total >= 100) award(req.user.id, 'puzzles_100');
+    if (total >= 500) award(req.user.id, 'puzzles_500');
+    if (solved && p.rating > 1800) award(req.user.id, 'puzzle_hard');
     res.json({ rating, diff: rating - old, solved: total });
   });
 
@@ -480,6 +521,7 @@ module.exports = (ctx) => {
     const id = newId();
     w.clubNew.run(id, name, description, req.user.id, Date.now());
     w.clubJoin.run(req.user.id, id, Date.now());
+    award(req.user.id, 'club_member');
     res.json({ id });
   });
   app.get('/api/clubs/:id', (req, res) => {
@@ -495,6 +537,7 @@ module.exports = (ctx) => {
     if (req.params.action === 'join') {
       if (r.clubOf.get(req.user.id)) return res.status(400).json({ error: 'Du är redan med i en klubb. Lämna den först.' });
       w.clubJoin.run(req.user.id, club.id, Date.now());
+      award(req.user.id, 'club_member');
     } else if (req.params.action === 'leave') leaveClub(req.user.id);
     else return res.status(404).json({ error: 'Okänd åtgärd.' });
     res.json({ ok: true });
@@ -539,6 +582,7 @@ module.exports = (ctx) => {
         c.history().join(' '), buildPgn(c, white, black, result, null), `Korr ${row.days}d`, 0, Date.now(), null);
     }
     for (const id of [row.white_id, row.black_id]) sendTo(id, { t: 'corr', id: row.id, text: 'Ett korrespondensparti är slut.' });
+    if (result === '1-0') award(row.white_id, 'corr_win'); else if (result === '0-1') award(row.black_id, 'corr_win');
   }
   function corrSweep() { // den som inte dragit inom tiden förlorar
     for (const row of r.corrActive.all()) {
@@ -606,6 +650,68 @@ module.exports = (ctx) => {
     res.json({ game: corrView(r.corr.get(row.id)) });
   });
 
+  // ---------- Veckoturnering ----------
+  // Varje söndag kl. 18 (svensk tid) hålls en arena på 60 minuter. Segraren får en krona vid namnet i en vecka,
+  // ett guldbräde att använda för alltid, en pokal och prestationen "Veckans mästare". Topp tre får "Pallplats".
+  const WEEKLY = { tc: '3+2', duration: 60 };
+  const stockholmHour = (ts) => Number(new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Stockholm', hour: 'numeric', hour12: false }).format(ts));
+  function nextSunday18(after = Date.now()) {
+    const d = new Date(after);
+    for (let add = 0; add <= 8; add++) {
+      const day = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() + add));
+      if (day.getUTCDay() !== 0) continue;
+      for (const utcHour of [16, 17]) { // 18 svensk tid är 16 UTC på sommaren och 17 UTC på vintern
+        const ts = day.getTime() + utcHour * 3600000;
+        if (stockholmHour(ts) === 18 && ts > after) return ts;
+      }
+    }
+    return null;
+  }
+  const isoWeek = (ts) => {
+    const d = new Date(ts), day = (d.getUTCDay() + 6) % 7;
+    d.setUTCDate(d.getUTCDate() - day + 3);
+    const first = new Date(Date.UTC(d.getUTCFullYear(), 0, 4));
+    return 1 + Math.round(((d - first) / 86400000 - 3 + ((first.getUTCDay() + 6) % 7)) / 7);
+  };
+  const weeklyQ = {
+    current: one("SELECT * FROM tournaments WHERE weekly = 1 AND status != 'finished' ORDER BY starts_at LIMIT 1"),
+    last: one("SELECT * FROM tournaments WHERE weekly = 1 AND status = 'finished' ORDER BY starts_at DESC LIMIT 1"),
+    crown: mirrored('UPDATE users SET crown_until = ?, weekly_wins = weekly_wins + 1 WHERE id = ?'),
+    mark: mirrored('UPDATE tournaments SET weekly = 1 WHERE id = ?'),
+  };
+  function ensureWeekly() {
+    if (weeklyQ.current.get()) return;
+    const starts = nextSunday18();
+    if (!starts) return;
+    const id = 'v' + newId();
+    q.tInsert.run(id, `Veckoturnering vecka ${isoWeek(starts)}`, WEEKLY.tc, WEEKLY.duration, 0, 'Schack Online', starts, starts + WEEKLY.duration * 60000, Date.now());
+    weeklyQ.mark.run(id);
+    ctx.scheduleTournament(q.tById.get(id));
+    ctx.broadcastTournament(id);
+    console.log('Ny veckoturnering:', new Date(starts).toISOString());
+  }
+  function tournamentFinished(t, players) {
+    if (!t.weekly) return;
+    const top = players.filter((p) => p.games > 0).slice(0, 3);
+    if (!top.length) return;
+    weeklyQ.crown.run(Date.now() + 7 * DAY, top[0].id);
+    award(top[0].id, 'weekly_win');
+    for (const p of top) award(p.id, 'weekly_podium');
+    broadcastAll({ t: 'notice', text: `👑 ${top[0].username} vann ${t.name}!` });
+    setTimeout(ensureWeekly, 2000);
+  }
+  app.get('/api/weekly', (req, res) => {
+    const t = weeklyQ.current.get(), last = weeklyQ.last.get();
+    const winner = last && q.tPlayers.all(last.id).find((p) => p.games > 0);
+    res.json({
+      tournament: t ? { ...t, players: q.tPlayers.all(t.id).length, joined: !!(req.user && q.tPlayer.get(t.id, req.user.id)) } : null,
+      lastWinner: winner ? { username: winner.username, score: winner.score, name: last.name } : null, now: Date.now(),
+    });
+  });
+  function checkFriends(uid) {
+    if (q.friendRows.all(uid).filter((f) => f.status === 'accepted').length >= 5) award(uid, 'friends_5');
+  }
+
   // ---------- Krokar som server.js anropar ----------
   function afterGame(g, info) {
     if (!g.tournamentId) {
@@ -615,6 +721,7 @@ module.exports = (ctx) => {
     } else roundGameOver(g, info.sw);
     setTimeout(() => { if (gamesById.get(g.id) === g) gamesById.delete(g.id); rooms.delete(`game:${g.id}`); }, 5 * 60000).unref();
     if (!info.unrated) try { gameAchievements(g, info); } catch (e) { console.error('Prestationer:', e.message); }
+    else if (g.variant === '960' && info.sw !== 0.5) award(info.sw === 1 ? g.white.id : g.black.id, 'fischer');
   }
   function profileExtra(u, viewer) {
     return {
@@ -627,9 +734,9 @@ module.exports = (ctx) => {
     const name = process.env.ADMIN_USER || 'FlorianLiljeqvist';
     const u = q.userByName.get(name);
     if (u && !u.is_admin && !r.admins.get().c) { w.setAdmin.run(1, u.id); console.log(`${u.username} är nu administratör.`); }
-    try { finalizeSeason(); corrSweep(); } catch (e) { console.error('Start:', e.message); }
-    setInterval(() => { try { finalizeSeason(); corrSweep(); } catch (e) { console.error(e.message); } }, 3600 * 1000).unref();
+    try { finalizeSeason(); corrSweep(); ensureWeekly(); } catch (e) { console.error('Start:', e.message); }
+    setInterval(() => { try { finalizeSeason(); corrSweep(); ensureWeekly(); } catch (e) { console.error(e.message); } }, 3600 * 1000).unref();
   }
 
-  return { onWs, onClose, afterGame, afterQuality, leaderboard, profileExtra, boot, isBlocked, award, startRoundTournament, resumeRounds, teamStandings, puzzleCount: () => puzzles.length };
+  return { onWs, onClose, afterGame, afterQuality, leaderboard, profileExtra, boot, isBlocked, award, tournamentFinished, checkFriends, startRoundTournament, resumeRounds, teamStandings, puzzleCount: () => puzzles.length };
 };
