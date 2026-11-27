@@ -72,6 +72,7 @@ const SCHEMA = `
   CREATE TABLE IF NOT EXISTS reports (id TEXT PRIMARY KEY, reporter_id INTEGER, reporter_name TEXT, target_id INTEGER, target_name TEXT, reason TEXT, created_at INTEGER NOT NULL, resolved INTEGER NOT NULL DEFAULT 0);
   CREATE TABLE IF NOT EXISTS blocks (user_id INTEGER NOT NULL, blocked_id INTEGER NOT NULL, PRIMARY KEY (user_id, blocked_id));
   CREATE TABLE IF NOT EXISTS flags (user_id INTEGER PRIMARY KEY, username TEXT, reason TEXT, created_at INTEGER NOT NULL);
+  CREATE TABLE IF NOT EXISTS migrations (id TEXT PRIMARY KEY, ran_at INTEGER NOT NULL);
   CREATE TABLE IF NOT EXISTS corr_games (
     id TEXT PRIMARY KEY, host_id INTEGER, white_id INTEGER, black_id INTEGER, white_name TEXT, black_name TEXT,
     moves TEXT NOT NULL DEFAULT '', days INTEGER NOT NULL, status TEXT NOT NULL, result TEXT, reason TEXT, draw_offer TEXT,
@@ -79,7 +80,7 @@ const SCHEMA = `
   );
 `;
 const TABLES = ['users', 'sessions', 'games', 'friendships', 'tournaments', 'tournament_players', 'achievements', 'seasons', 'clubs', 'club_members',
-  'reports', 'blocks', 'flags', 'corr_games'];
+  'reports', 'blocks', 'flags', 'corr_games', 'migrations'];
 const CLASSES = ['bullet', 'blitz', 'rapid'];
 const EXTRA_COLUMNS = [['games', 'tournament_id TEXT'], ['games', 'white_acc REAL'], ['games', 'black_acc REAL'], ['games', 'quality REAL'],
   ['users', `peak INTEGER NOT NULL DEFAULT ${START_RATING}`], ['users', 'trophies INTEGER NOT NULL DEFAULT 0'],
@@ -952,12 +953,27 @@ const features = require('./features')({
   app, db, q, mirrored, sockets, activeGame, gamesOf, gamesById, sendTo, broadcastAll, broadcast, gameState, scheduleFlag, createGame, endGame,
   publicUser, titleFor, shownRating, needUser, parseTc, TIME_CONTROLS, hashPassword, sha256, crypto, Chess, buildPgn, elo, scheduleTournament, finishTournament,
 });
+// Engångsåtgärder på databasen. Varje åtgärd körs en enda gång; att den har körts sparas i tabellen migrations
+// (som också speglas till Turso, så att den inte körs om när webbhotellet startar om med tom lokal databas).
+function runMigrations() {
+  const done = (id) => !!db.prepare('SELECT 1 AS x FROM migrations WHERE id = ?').get(id);
+  const mark = mirrored('INSERT OR IGNORE INTO migrations (id, ran_at) VALUES (?, ?)');
+  // 2026-11: nytt ratingsystem med startnivå och fem placeringspartier. Alla som redan har spelat börjar om på 1200.
+  // Konton utan partier behåller den nivå de valde. Partihistorik, pokaler, prestationer och problemrating lämnas orörda.
+  if (!done('rating-reset-2026-11')) {
+    const info = mirrored(`UPDATE users SET rating = 1200, peak = 1200, games = 0, wins = 0, losses = 0, draws = 0,
+      r_bullet = 0, g_bullet = 0, r_blitz = 0, g_blitz = 0, r_rapid = 0, g_rapid = 0 WHERE games > 0`).run();
+    mark.run('rating-reset-2026-11', Date.now());
+    console.log(`Ratingen nollställd för ${info.changes} spelare.`);
+  }
+}
 // Okända /api-adresser ska ge ett tydligt fel i stället för en tom sida.
 app.use('/api', (req, res) => res.status(404).json({ error: 'Finns inte.' }));
 
 restoreFromRemote()
   .catch((e) => console.error('Kunde inte hämta data från Turso:', e.message))
   .then(() => {
+    runMigrations();
     features.boot();
     resumeTournaments();
     server.listen(PORT, () => console.log(`Schack Online körs på port ${PORT}${process.env.PORT ? '' : ` – http://schackonline.localhost:${PORT}`}`));
