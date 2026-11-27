@@ -8,6 +8,8 @@ const { spawn } = require('child_process');
 const { WebSocketServer } = require('ws');
 const { Chess } = require('chess.js');
 const { DatabaseSync } = require('node:sqlite');
+const { make960, random960Fen } = require('./public/js/chess960.js');
+const Chess960 = make960(Chess);
 
 const PORT = Number(process.env.PORT) || 3000;
 const START_RATING = 1200;
@@ -85,7 +87,8 @@ const EXTRA_COLUMNS = [['games', 'tournament_id TEXT'], ['games', 'white_acc REA
   ['users', 'puzzle_rating INTEGER NOT NULL DEFAULT 1200'], ['users', 'puzzles_solved INTEGER NOT NULL DEFAULT 0'],
   // Rating och antal partier per betänketidsklass. 0 i rating betyder "inte spelat än" – då används den sammanlagda ratingen.
   ...CLASSES.flatMap((k) => [['users', `r_${k} INTEGER NOT NULL DEFAULT 0`], ['users', `g_${k} INTEGER NOT NULL DEFAULT 0`]]),
-  ['users', 'country TEXT'],
+  ['users', 'country TEXT'], ['users', 'avatar TEXT'], ['users', 'avatar_v INTEGER NOT NULL DEFAULT 0'],
+  ['games', 'variant TEXT'], ['games', 'start_fen TEXT'],
   ['tournaments', "format TEXT NOT NULL DEFAULT 'arena'"], ['tournaments', 'rounds INTEGER NOT NULL DEFAULT 0'], ['tournaments', 'round INTEGER NOT NULL DEFAULT 0'],
   ['tournament_players', 'out INTEGER NOT NULL DEFAULT 0']];
 db.exec(SCHEMA);
@@ -132,7 +135,7 @@ const q = {
     result, reason, tc, rated, created_at, moves FROM games WHERE white_id = ?1 OR black_id = ?1 ORDER BY created_at DESC LIMIT 100`),
   gameById: db.prepare('SELECT * FROM games WHERE id = ?'),
   profileGames: db.prepare(`SELECT id, white_id, black_id, white_name, black_name, white_rating, black_rating, white_diff, black_diff,
-    white_acc, black_acc, result, reason, tc, rated, created_at, moves FROM games WHERE white_id = ?1 OR black_id = ?1 ORDER BY created_at DESC LIMIT 500`),
+    white_acc, black_acc, result, reason, tc, rated, created_at, moves, variant FROM games WHERE white_id = ?1 OR black_id = ?1 ORDER BY created_at DESC LIMIT 500`),
   leaderboard: db.prepare('SELECT username, country, rating, peak, trophies, games, wins, losses, draws FROM users WHERE games >= 5 AND banned = 0 ORDER BY rating DESC, games DESC LIMIT 50'),
 };
 
@@ -197,6 +200,9 @@ const tFormat = mirrored('UPDATE tournaments SET format = ?, rounds = ? WHERE id
 const START_LEVELS = { new: 600, beginner: 800, intermediate: 1200, advanced: 1600, expert: 2000 };
 const PLACEMENT_GAMES = 5;
 const setStart = mirrored('UPDATE users SET rating = ?, peak = ?, country = ? WHERE id = ?');
+const setAvatar = mirrored('UPDATE users SET avatar = ?, avatar_v = ? WHERE id = ?');
+const setVariant = mirrored('UPDATE games SET variant = ?, start_fen = ? WHERE id = ?');
+const avatarUrl = (u) => (u.avatar_v ? `/api/avatar/${encodeURIComponent(u.username)}?v=${u.avatar_v}` : null);
 const shownRating = (rating, games) => (games < PLACEMENT_GAMES ? '?' : rating);
 const updateClass = Object.fromEntries(CLASSES.map((k) => [k, mirrored(`UPDATE users SET r_${k} = ?1, g_${k} = g_${k} + 1, rating = ?2, peak = MAX(peak, ?1),
   games = games + 1, wins = wins + ?3, losses = losses + ?4, draws = draws + ?5 WHERE id = ?6`)]));
@@ -240,6 +246,7 @@ const tcClass = (tc) => {
   return min < 3 ? 'bullet' : min < 10 ? 'blitz' : 'rapid';
 };
 const publicUser = (u) => u && { id: u.id, username: u.username, rating: u.rating, peak: u.peak, title: titleFor(u.peak, u.games), trophies: u.trophies,
+  avatar: u.avatar_v ? `/api/avatar/${encodeURIComponent(u.username)}?v=${u.avatar_v}` : null,
   country: u.country || null, provisional: u.games < PLACEMENT_GAMES, games: u.games, wins: u.wins, losses: u.losses, draws: u.draws, admin: !!u.is_admin, puzzleRating: u.puzzle_rating, puzzlesSolved: u.puzzles_solved,
   ratings: Object.fromEntries(CLASSES.map((k) => [k, { rating: classRating(u, k), games: u['g_' + k] }])) };
 
@@ -278,7 +285,13 @@ function elo(ra, rb, score, gamesPlayed) {
   return Math.round(ra + k * (score - expected));
 }
 
-function buildPgn(chess, white, black, result, tc) {
+function buildPgn(chess, white, black, result, tc, startFen = null) {
+  if (startFen) { // Chess960: dragen skrivs ut direkt, eftersom chess.js inte kan spela upp 960-rockader
+    const sans = chess.history();
+    const body = sans.map((s, i) => (i % 2 === 0 ? `${i / 2 + 1}. ` : '') + s).join(' ');
+    return [['Event', 'Schack Online'], ['Variant', 'Chess960'], ['White', white.name], ['Black', black.name], ['Result', result], ['SetUp', '1'], ['FEN', startFen], ['TimeControl', tc]]
+      .map(([k, v]) => `[${k} "${v}"]`).join('\n') + `\n\n${body} ${result}`;
+  }
   const c = new Chess();
   c.setHeader('Event', 'Schack Online');
   c.setHeader('Date', new Date().toISOString().slice(0, 10).replace(/-/g, '.'));
@@ -341,6 +354,25 @@ app.post('/api/logout', (req, res) => {
   res.json({ ok: true });
 });
 
+// Profilbild: webbläsaren skalar ner bilden till 128×128 innan den skickas, så den ryms i databasen.
+app.post('/api/account/avatar', (req, res) => {
+  if (!needUser(req, res)) return;
+  const data = req.body?.data;
+  if (data === null) { setAvatar.run(null, 0, req.user.id); return res.json({ avatar: null }); }
+  if (typeof data !== 'string' || !/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(data) || data.length > 90000)
+    return res.status(400).json({ error: 'Bilden är för stor eller i fel format.' });
+  const v = Date.now();
+  setAvatar.run(data, v, req.user.id);
+  res.json({ avatar: avatarUrl({ ...req.user, avatar_v: v }) });
+});
+app.get('/api/avatar/:username', (req, res) => {
+  const u = q.userByName.get(String(req.params.username));
+  const m = u?.avatar && /^data:(image\/\w+);base64,(.+)$/.exec(u.avatar);
+  if (!m) return res.status(404).end();
+  res.setHeader('Content-Type', m[1]);
+  res.setHeader('Cache-Control', 'public, max-age=31536000, immutable'); // adressen ändras när bilden byts
+  res.end(Buffer.from(m[2], 'base64'));
+});
 app.get('/api/me', (req, res) => res.json({ user: publicUser(req.user) || null }));
 // Offentlig profil: spelarens uppgifter och partier (de 16 första halvdragen räcker för att känna igen öppningen).
 app.get('/api/users/:username', (req, res) => {
@@ -348,7 +380,7 @@ app.get('/api/users/:username', (req, res) => {
   if (!u) return res.status(404).json({ error: 'Det finns ingen spelare med det namnet.' });
   const games = q.profileGames.all(u.id).map(({ moves, ...g }) => {
     const sans = moves ? moves.split(' ') : [];
-    return { ...g, plies: sans.length, opening: sans.slice(0, 16) };
+    return { ...g, plies: sans.length, opening: g.variant === '960' ? [] : sans.slice(0, 16) };
   });
   let friend = null;
   if (req.user && req.user.id !== u.id) {
@@ -545,8 +577,19 @@ app.use((req, res, next) => {
 const server = http.createServer(app);
 const wss = new WebSocketServer({ noServer: true });
 const sockets = new Map(); // userId -> Set<ws>
-const activeGame = new Map(); // userId -> game
-const seeks = new Map(); // tc -> userId
+// En spelare kan ha flera partier igång samtidigt: userId -> Map(parti-id -> parti).
+const activeGame = new Map();
+const gamesOf = (uid) => activeGame.get(uid) || new Map();
+function addActive(uid, g) { if (!activeGame.has(uid)) activeGame.set(uid, new Map()); activeGame.get(uid).set(g.id, g); }
+function removeActive(uid, g) { const m = activeGame.get(uid); m?.delete(g.id); if (m && !m.size) activeGame.delete(uid); }
+const inTournamentGame = (uid, tid) => [...gamesOf(uid).values()].some((g) => g.tournamentId === tid);
+// Vilket parti ett meddelande gäller: det som anges med id, annars det enda pågående.
+function pickGame(uid, id) {
+  const mine = gamesOf(uid);
+  if (id) return mine.get(String(id)) || null;
+  return mine.size === 1 ? [...mine.values()][0] : null;
+}
+const seeks = new Map(); // "tc|variant" -> userId
 const challenges = new Map(); // "frånId:tillId" -> { tc, timer }
 const gamesById = new Map(); // parti-id -> parti (pågående och nyss avslutade)
 
@@ -576,7 +619,8 @@ function drawReason(chess) {
 function gameState(g) {
   const clocks = { ...g.clocks };
   if (!g.over) clocks[g.chess.turn()] = Math.max(0, clocks[g.chess.turn()] - (Date.now() - g.lastTs));
-  return { id: g.id, tc: g.tc, white: g.white, black: g.black, moves: g.chess.history(), turn: g.chess.turn(), clocks, drawOffer: g.drawOffer, takebackOffer: g.takebackOffer || null, over: g.over, tournament: g.tournamentId };
+  return { id: g.id, tc: g.tc, white: g.white, black: g.black, moves: g.chess.history(), turn: g.chess.turn(), clocks, drawOffer: g.drawOffer, takebackOffer: g.takebackOffer || null, over: g.over, tournament: g.tournamentId,
+    variant: g.variant || null, startFen: g.startFen || null };
 }
 function broadcast(g) {
   const state = gameState(g);
@@ -637,7 +681,7 @@ function pairTournament(id) {
   const t = q.tById.get(id), set = tReady.get(id);
   if (!t || t.status !== 'running' || !set) return;
   const scores = new Map(q.tPlayers.all(id).map((p) => [p.id, p.score]));
-  const ready = [...set].filter((u) => sockets.has(u) && !activeGame.has(u) && scores.has(u))
+  const ready = [...set].filter((u) => sockets.has(u) && !inTournamentGame(u, id) && scores.has(u))
     .sort((a, b) => scores.get(b) - scores.get(a));
   while (ready.length >= 2) {
     const a = ready.shift();
@@ -695,8 +739,8 @@ function evalFen(fen) {
   });
 }
 const winPct = (s) => (s.mate != null ? (s.mate > 0 ? 100 : 0) : 50 + 50 * (2 / (1 + Math.exp(-0.00368208 * s.cp)) - 1));
-async function computeQuality(id, sans) {
-  const c = new Chess(), white = [];
+async function computeQuality(id, sans, startFen = null) {
+  const c = startFen ? new Chess960(startFen) : new Chess(), white = [];
   for (let i = 0; i <= sans.length; i++) {
     const s = c.moves().length ? await evalFen(c.fen()) : c.inCheck() ? { mate: 0 } : { cp: 0 };
     white.push(c.turn() === 'w' ? winPct(s) : 100 - winPct(s));
@@ -716,30 +760,27 @@ async function runAnalysisQueue() {
   if (analysing) return;
   analysing = true;
   while (analysisQueue.length) {
-    const [id, sans] = analysisQueue.shift();
-    try { await computeQuality(id, sans); } catch (e) { console.error('Kunde inte analysera parti', id, e.message); }
+    const [id, sans, startFen] = analysisQueue.shift();
+    try { await computeQuality(id, sans, startFen); } catch (e) { console.error('Kunde inte analysera parti', id, e.message); }
   }
   analysing = false;
 }
 
-function createGame(aId, bId, tc, tournamentId = null, fixedColors = false) {
+function createGame(aId, bId, tc, tournamentId = null, fixedColors = false, variant = null) {
   const [wId, bIdd] = fixedColors || Math.random() < 0.5 ? [aId, bId] : [bId, aId];
   const k = tcClass(tc);
   const [w, b] = [q.userById.get(wId), q.userById.get(bIdd)];
   const [base, inc] = TIME_CONTROLS[tc] || parseTc(tc);
   const g = {
-    id: crypto.randomBytes(6).toString('hex'), tc, inc: inc * 1000, chess: new Chess(),
-    white: { id: w.id, name: w.username, rating: shownRating(classRating(w, k), w.games), country: w.country, title: titleFor(w.peak, w.games) },
-    black: { id: b.id, name: b.username, rating: shownRating(classRating(b, k), b.games), country: b.country, title: titleFor(b.peak, b.games) },
+    id: crypto.randomBytes(6).toString('hex'), tc, inc: inc * 1000, variant, startFen: variant === '960' ? random960Fen() : null,
+    white: { id: w.id, name: w.username, rating: shownRating(classRating(w, k), w.games), country: w.country, avatar: avatarUrl(w), title: titleFor(w.peak, w.games) },
+    black: { id: b.id, name: b.username, rating: shownRating(classRating(b, k), b.games), country: b.country, avatar: avatarUrl(b), title: titleFor(b.peak, b.games) },
     clocks: { w: base * 1000, b: base * 1000 }, lastTs: Date.now(), drawOffer: null, over: null, timer: null, tournamentId,
     spectators: new Set(), cls: k,
   };
-  cancelSeek(w.id);
-  cancelSeek(b.id);
-  leaveTournamentPools(w.id);
-  leaveTournamentPools(b.id);
-  activeGame.set(w.id, g);
-  activeGame.set(b.id, g);
+  g.chess = variant === '960' ? new Chess960(g.startFen) : new Chess();
+  addActive(w.id, g);
+  addActive(b.id, g);
   gamesById.set(g.id, g);
   scheduleFlag(g);
   broadcast(g);
@@ -751,14 +792,23 @@ function endGame(g, result, reason) {
   clearTimeout(g.timer);
   const turn = g.chess.turn();
   g.clocks[turn] = Math.max(0, g.clocks[turn] - (Date.now() - g.lastTs));
-  activeGame.delete(g.white.id);
-  activeGame.delete(g.black.id);
+  removeActive(g.white.id, g);
+  removeActive(g.black.id, g);
   if (g.chess.history().length < 2 && reason !== 'checkmate' && !g.noAbort) {
     g.over = { result: '*', reason: 'aborted' }; // avbrutet innan båda hunnit dra – räknas inte
     return broadcast(g);
   }
   const [w, b] = [q.userById.get(g.white.id), q.userById.get(g.black.id)];
   const sw = result === '1-0' ? 1 : result === '0-1' ? 0 : 0.5;
+  if (g.variant === '960') {
+    const white = { name: w.username, rating: w.rating }, black = { name: b.username, rating: b.rating };
+    q.insertGame.run(g.id, w.id, b.id, w.username, b.username, w.rating, b.rating, 0, 0, result, reason, g.chess.history().join(' '),
+      buildPgn(g.chess, white, black, result, g.tc, g.startFen), g.tc, 0, Date.now(), null);
+    setVariant.run('960', g.startFen, g.id);
+    g.over = { result, reason, ratings: { w: null, b: null } };
+    broadcast(g);
+    return features.afterGame(g, { w, b, sw, result, reason, rw: w.rating, rb: b.rating, unrated: true });
+  }
   // Varje betänketidsklass (bullet, blixt, snabb) har sin egen rating. Den sammanlagda är snittet av de klasser man har spelat.
   const k = g.cls, [rw, rb] = [classRating(w, k), classRating(b, k)];
   const nw = elo(rw, rb, sw, w['g_' + k]);
@@ -781,7 +831,7 @@ function endGame(g, result, reason) {
     broadcastAll({ t: 'tournament', id: g.tournamentId });
   }
   if (g.chess.history().length >= 16) {
-    analysisQueue.push([g.id, g.chess.history()]);
+    analysisQueue.push([g.id, g.chess.history(), g.startFen]);
     runAnalysisQueue();
   }
   features.afterGame(g, { w, b, sw, result, reason, rw, rb });
@@ -791,25 +841,26 @@ function onConnect(ws, userId) {
   ws.userId = userId;
   if (!sockets.has(userId)) sockets.set(userId, new Set());
   sockets.get(userId).add(ws);
-  const current = activeGame.get(userId);
-  if (current) ws.send(JSON.stringify({ t: 'game', game: { ...gameState(current), you: current.white.id === userId ? 'w' : 'b' } }));
+  for (const current of gamesOf(userId).values()) ws.send(JSON.stringify({ t: 'game', game: { ...gameState(current), you: current.white.id === userId ? 'w' : 'b' } }));
 
   ws.on('message', (raw) => {
     let m;
     try { m = JSON.parse(String(raw).slice(0, 500)); } catch { return; }
-    const g = activeGame.get(userId);
+    const g = pickGame(userId, ['move', 'resign', 'draw', 'decline', 'takeback'].includes(m.t) ? m.id : m.game);
     const color = g && (g.white.id === userId ? 'w' : 'b');
     switch (m.t) {
-      case 'seek': {
-        if (g || !TIME_CONTROLS[m.tc]) return;
+      case 'seek': { // man får söka nya partier även när man redan spelar
+        if (!TIME_CONTROLS[m.tc]) return;
+        const variant = m.variant === '960' ? '960' : null, key = `${m.tc}|${variant || ''}`;
         cancelSeek(userId);
-        const other = seeks.get(m.tc);
-        if (other && other !== userId && sockets.get(other)?.size) {
-          seeks.delete(m.tc);
-          createGame(other, userId, m.tc);
+        const other = seeks.get(key);
+        if (other && other !== userId && sockets.get(other)?.size && !features.isBlocked(other, userId) && !features.isBlocked(userId, other)) {
+          seeks.delete(key);
+          createGame(other, userId, m.tc, null, false, variant);
+          sendTo(userId, { t: 'seeking', tc: null });
         } else {
-          seeks.set(m.tc, userId);
-          sendTo(userId, { t: 'seeking', tc: m.tc });
+          seeks.set(key, userId);
+          sendTo(userId, { t: 'seeking', tc: m.tc, variant });
         }
         break;
       }
@@ -849,20 +900,18 @@ function onConnect(ws, userId) {
         break;
       case 'tready': { // redo att paras ihop i en turnering
         const t = q.tById.get(String(m.id));
-        if (g || !t || t.status !== 'running' || t.format !== 'arena' || !q.tPlayer.get(t.id, userId)) return;
-        cancelSeek(userId);
-        leaveTournamentPools(userId);
+        if (!t || t.status !== 'running' || t.format !== 'arena' || !q.tPlayer.get(t.id, userId) || inTournamentGame(userId, t.id)) return;
         tReady.get(t.id)?.add(userId);
         pairTournament(t.id);
         break;
       }
       case 'tleave':
-        leaveTournamentPools(userId);
+        if (m.id) tReady.get(String(m.id))?.delete(userId); else leaveTournamentPools(userId);
         break;
       case 'challenge': { // utmana en vän
         const other = q.userByName.get(String(m.to || ''));
-        if (g || !other || !TIME_CONTROLS[m.tc] || q.friendship.get(userId, other.id)?.status !== 'accepted') return;
-        if (!sockets.has(other.id) || activeGame.has(other.id)) return sendTo(userId, { t: 'notice', text: `${other.username} är inte tillgänglig just nu.` });
+        if (!other || !TIME_CONTROLS[m.tc] || q.friendship.get(userId, other.id)?.status !== 'accepted') return;
+        if (!sockets.has(other.id)) return sendTo(userId, { t: 'notice', text: `${other.username} är inte tillgänglig just nu.` });
         const key = `${userId}:${other.id}`;
         clearTimeout(challenges.get(key)?.timer);
         challenges.set(key, { tc: m.tc, timer: setTimeout(() => challenges.delete(key), 60000) });
@@ -879,7 +928,7 @@ function onConnect(ws, userId) {
         clearTimeout(ch.timer);
         challenges.delete(key);
         if (m.t === 'reject') return sendTo(other.id, { t: 'notice', text: `${q.userById.get(userId).username} tackade nej till utmaningen.` });
-        if (g || activeGame.has(other.id) || !sockets.has(other.id)) return sendTo(userId, { t: 'notice', text: 'Utmaningen gäller inte längre.' });
+        if (!sockets.has(other.id)) return sendTo(userId, { t: 'notice', text: 'Utmaningen gäller inte längre.' });
         createGame(other.id, userId, ch.tc);
         break;
       }
@@ -896,11 +945,11 @@ function onConnect(ws, userId) {
   });
 }
 function cancelSeek(userId) {
-  for (const [tc, id] of seeks) if (id === userId) seeks.delete(tc);
+  for (const [key, id] of seeks) if (id === userId) seeks.delete(key);
 }
 
 const features = require('./features')({
-  app, db, q, mirrored, sockets, activeGame, gamesById, sendTo, broadcastAll, broadcast, gameState, scheduleFlag, createGame, endGame,
+  app, db, q, mirrored, sockets, activeGame, gamesOf, gamesById, sendTo, broadcastAll, broadcast, gameState, scheduleFlag, createGame, endGame,
   publicUser, titleFor, shownRating, needUser, parseTc, TIME_CONTROLS, hashPassword, sha256, crypto, Chess, buildPgn, elo, scheduleTournament, finishTournament,
 });
 // Okända /api-adresser ska ge ett tydligt fel i stället för en tom sida.

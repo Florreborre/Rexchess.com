@@ -121,6 +121,26 @@ export function countrySelect(value, onchange) {
   return h('select', { onchange }, h('option', { value: '' }, '–'), list.map(([c, n]) => h('option', { value: c, selected: c === value }, n)));
 }
 
+// Profilbild (rund). Visas bara när spelaren har laddat upp en.
+export function avatarImg(src, size = 32) {
+  return h('img.pfp', { src, alt: '', width: size, height: size, loading: 'lazy' });
+}
+// Skalar ner en bildfil till en kvadratisk 128×128 JPEG (mitten beskärs) och returnerar den som data-adress.
+export function resizeImage(file, size = 128) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const c = document.createElement('canvas'); c.width = c.height = size;
+      const s = Math.min(img.width, img.height);
+      c.getContext('2d').drawImage(img, (img.width - s) / 2, (img.height - s) / 2, s, s, 0, 0, size, size);
+      URL.revokeObjectURL(img.src);
+      resolve(c.toDataURL('image/jpeg', 0.85));
+    };
+    img.onerror = () => reject(new Error('Bilden kunde inte läsas.'));
+    img.src = URL.createObjectURL(file);
+  });
+}
+
 // Litet märke med spelarens titel (Nybörjare, Amatör, Klubbspelare …).
 export function titleEl(title) {
   return title ? h('span.title', { title: 'Titel' }, title) : null;

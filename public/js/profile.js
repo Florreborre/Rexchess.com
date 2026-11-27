@@ -1,5 +1,5 @@
 // Profilsida: en spelares statistik, mest spelade öppningar, ratingkurva och partier.
-import { h, svg, state, api, titleEl, userLink, flagEl, countryName } from './util.js';
+import { h, svg, state, api, titleEl, userLink, flagEl, countryName, avatarImg } from './util.js';
 import { matchOpening } from './openings.js';
 
 const pct = (n, total) => (total ? Math.round((100 * n) / total) : 0);
@@ -97,6 +97,7 @@ export function profileView(ctx, rawName) {
         }, 'Rapportera'),
         state.user?.admin && !own && h('button.small', { onclick: () => api(`/api/admin/${user.banned ? 'unban' : 'ban'}`, { username: user.username }).then(load).catch((e) => alert(e.message)) }, user.banned ? 'Häv avstängningen' : 'Stäng av kontot'));
       const header = h('div.card.wide.profilehead',
+        user.avatar && avatarImg(user.avatar, 84),
         h('div.pmain',
           h('h2', titleEl(user.title), ' ', flagEl(user.country), ' ', user.username, user.trophies ? h('span.gold', { title: 'Vunna turneringar' }, ` 🏆${user.trophies > 1 ? '×' + user.trophies : ''}`) : null),
           h('p.muted', h('span.presence' + (user.online ? '.online' : '')), user.playing ? ' Spelar just nu' : user.online ? ' Online' : ' Offline',

@@ -5,12 +5,12 @@ const fs = require('fs');
 const path = require('path');
 
 module.exports = (ctx) => {
-  const { app, db, q, mirrored, sockets, activeGame, gamesById, sendTo, broadcastAll, broadcast, gameState, scheduleFlag, createGame, endGame,
+  const { app, db, q, mirrored, sockets, activeGame, gamesOf, gamesById, sendTo, broadcastAll, broadcast, gameState, scheduleFlag, createGame, endGame,
     publicUser, titleFor, needUser, parseTc, TIME_CONTROLS, hashPassword, sha256, crypto, Chess, buildPgn, elo } = ctx;
   const DAY = 24 * 3600 * 1000;
   const newId = () => crypto.randomBytes(5).toString('hex');
   const userName = (id) => q.userById.get(id)?.username;
-  const busy = (id) => activeGame.has(id);
+  const busy = (id) => activeGame.has(id); // har minst ett pågående parti
   const one = (sql) => db.prepare(sql);
 
   // ---------- Blockering, rapporter, admin ----------
@@ -80,8 +80,7 @@ module.exports = (ctx) => {
     return u;
   };
   function kick(userId) {
-    const g = activeGame.get(userId);
-    if (g) endGame(g, g.white.id === userId ? '0-1' : '1-0', 'resign');
+    for (const g of [...gamesOf(userId).values()]) endGame(g, g.white.id === userId ? '0-1' : '1-0', 'resign');
     for (const ws of sockets.get(userId) || []) ws.close();
   }
 
@@ -299,7 +298,7 @@ module.exports = (ctx) => {
 
   // ---------- Pågående partier, privata länkar ----------
   app.get('/api/live', (req, res) => {
-    const games = [...new Set(activeGame.values())].map((g) => ({ id: g.id, white: g.white, black: g.black, tc: g.tc, plies: g.chess.history().length, tournament: g.tournamentId }));
+    const games = [...new Set([...activeGame.values()].flatMap((m) => [...m.values()]))].map((g) => ({ id: g.id, white: g.white, black: g.black, tc: g.tc, plies: g.chess.history().length, tournament: g.tournamentId }));
     res.json({ games: games.sort((a, b) => (Number(b.white.rating) || 0) + (Number(b.black.rating) || 0) - (Number(a.white.rating) || 0) - (Number(a.black.rating) || 0)) });
   });
   const invites = new Map(); // id -> { host, tc, at }
@@ -389,11 +388,11 @@ module.exports = (ctx) => {
         const rec = recent.get(String(m.id || ''));
         if (!rec || (rec.a !== userId && rec.b !== userId)) return;
         const other = rec.a === userId ? rec.b : rec.a;
-        if (busy(userId) || busy(other) || !sockets.has(other)) return sendTo(userId, { t: 'notice', text: 'Motståndaren är inte tillgänglig för returmatch.' });
+        if (!sockets.has(other)) return sendTo(userId, { t: 'notice', text: 'Motståndaren är inte tillgänglig för returmatch.' });
         rec.offers.add(userId);
         if (rec.offers.size === 2) {
           recent.delete(String(m.id));
-          createGame(rec.b, rec.a, rec.tc, null, true); // byt färger
+          createGame(rec.b, rec.a, rec.tc, null, true, rec.variant); // byt färger
         } else {
           sendTo(other, { t: 'rematch', id: m.id, from: userName(userId) });
           sendTo(userId, { t: 'notice', text: 'Returmatch erbjuden.' });
@@ -402,8 +401,8 @@ module.exports = (ctx) => {
       }
       case 'join_invite': {
         const inv = invites.get(String(m.id || ''));
-        if (!inv || inv.host === userId || busy(userId)) return;
-        if (!sockets.has(inv.host) || busy(inv.host)) return sendTo(userId, { t: 'notice', text: 'Den som bjöd in är inte tillgänglig just nu.' });
+        if (!inv || inv.host === userId) return;
+        if (!sockets.has(inv.host)) return sendTo(userId, { t: 'notice', text: 'Den som bjöd in är inte tillgänglig just nu.' });
         invites.delete(String(m.id));
         createGame(inv.host, userId, inv.tc);
         break;
@@ -441,12 +440,6 @@ module.exports = (ctx) => {
       if (i < 0) i = 0;
       const [b] = left.splice(i, 1);
       met.add(pairKey(a, b));
-      if (busy(a) || busy(b)) { // den som sitter i ett annat parti lämnar walkover
-        const [winner, loser] = busy(a) ? [b, a] : [a, b];
-        if (!busy(winner)) w.tBye.run(tid, winner);
-        if (t.format === 'knockout') w.tOut.run(tid, loser);
-        continue;
-      }
       const g = createGame(a, b, t.tc, tid);
       g.noAbort = true; // i rundor räknas även partier där någon aldrig drar
       games.add(g.id);
@@ -616,16 +609,16 @@ module.exports = (ctx) => {
   // ---------- Krokar som server.js anropar ----------
   function afterGame(g, info) {
     if (!g.tournamentId) {
-      const rec = { a: g.white.id, b: g.black.id, tc: g.tc, offers: new Set() };
+      const rec = { a: g.white.id, b: g.black.id, tc: g.tc, variant: g.variant, offers: new Set() };
       recent.set(g.id, rec);
       setTimeout(() => recent.delete(g.id), 3 * 60000).unref();
     } else roundGameOver(g, info.sw);
     setTimeout(() => { if (gamesById.get(g.id) === g) gamesById.delete(g.id); rooms.delete(`game:${g.id}`); }, 5 * 60000).unref();
-    try { gameAchievements(g, info); } catch (e) { console.error('Prestationer:', e.message); }
+    if (!info.unrated) try { gameAchievements(g, info); } catch (e) { console.error('Prestationer:', e.message); }
   }
   function profileExtra(u, viewer) {
     return {
-      achievements: achievementsOf(u.id), club: r.clubOf.get(u.id) || null, gameId: activeGame.get(u.id)?.id || null,
+      achievements: achievementsOf(u.id), club: r.clubOf.get(u.id) || null, gameId: [...gamesOf(u.id).keys()][0] || null,
       blocked: viewer ? isBlocked(viewer.id, u.id) : false, banned: viewer?.is_admin ? !!u.banned : undefined,
     };
   }

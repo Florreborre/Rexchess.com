@@ -52,7 +52,7 @@ export class Board {
     this.selected = null;
     this.lastMove = null;
     this.check = null;
-    this.premove = null;
+    this.premoves = [];
     this.arrows = [];
     this.userArrows = [];
     this.userMarks = new Set();
@@ -68,10 +68,22 @@ export class Board {
     this.el.addEventListener('contextmenu', (e) => e.preventDefault());
   }
 
-  set({ fen, lastMove = null, check = null, orientation, arrows = [], badge = null, premove = null }) {
+  set({ fen, lastMove = null, check = null, orientation, arrows = [], badge = null, premoves = [] }) {
     if (fen) this.pieces = parseFen(fen);
+    // Förberedda drag visas som om de redan vore gjorda, så att man kan lägga nästa premove från den nya rutan.
+    for (const pm of premoves) {
+      const p = this.pieces[pm.from];
+      if (!p) continue;
+      delete this.pieces[pm.from];
+      const df = FILES.indexOf(pm.to[0]) - FILES.indexOf(pm.from[0]);
+      if (p[1] === 'k' && Math.abs(df) === 2 && pm.from[1] === pm.to[1]) { // rockad: tornet följer med
+        const rank = pm.from[1], [rf, rt] = df > 0 ? ['h', 'f'] : ['a', 'd'];
+        if (this.pieces[rf + rank]) { this.pieces[rt + rank] = this.pieces[rf + rank]; delete this.pieces[rf + rank]; }
+      }
+      this.pieces[pm.to] = pm.promotion ? p[0] + pm.promotion : p;
+    }
     if (orientation) this.orientation = orientation;
-    Object.assign(this, { lastMove, check, arrows, badge, premove, selected: null });
+    Object.assign(this, { lastMove, check, arrows, badge, premoves, selected: null });
     this.promo?.remove();
     this.endDrag();
     this.render();
@@ -117,7 +129,7 @@ export class Board {
           cell.classList.add('last');
           if (this.lastMove.color) cell.style.setProperty('--hl', this.lastMove.color);
         }
-        if (this.premove && (sq === this.premove.from || sq === this.premove.to)) cell.classList.add('pre');
+        if (this.premoves.some((pm) => sq === pm.from || sq === pm.to)) cell.classList.add('pre');
         if (sq === this.selected) cell.classList.add('selected');
         if (sq === this.check) cell.classList.add('check');
         if (this.userMarks.has(sq)) cell.classList.add('marked');
@@ -160,7 +172,7 @@ export class Board {
     if (e.button === 2) { // högerklick: rita pil / markera ruta, och avbryt ev. premove
       this.rstart = sq;
       this.selected = null;
-      if (this.premove) this.opts.onCancelPremove?.();
+      if (this.premoves.length) this.opts.onCancelPremove?.();
       this.el.setPointerCapture(e.pointerId);
       return this.render();
     }
@@ -179,7 +191,7 @@ export class Board {
       e.preventDefault();
     } else {
       this.selected = null;
-      if (mode.pre && this.premove) this.opts.onCancelPremove?.();
+      if (mode.pre && this.premoves.length) this.opts.onCancelPremove?.();
     }
     this.render();
   }

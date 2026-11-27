@@ -614,3 +614,19 @@
 698|Seriensieger
 699|Hundert Siege
 700|Hundert Partien
+701|Standard
+702|Chess960: Die Figuren auf der Grundreihe werden zufällig aufgestellt (der König immer zwischen den Türmen). Ungewertet.
+703|Du kannst mehrere Partien gleichzeitig spielen.
+704|Deine anderen Partien
+163|Partie wird geladen…
+705|{1} laufende Partien
+706|Neue Partie gegen {1} ({2}).
+707|Profilbild
+708|Kein Bild
+709|Bild wählen
+710|Bild entfernen
+711|Dein Profilbild wurde gespeichert.
+712|Das Bild konnte nicht gelesen werden.
+713|Das Bild ist zu groß oder hat das falsche Format.
+714|Chess960
+715|Chess960 ist ungewertet.

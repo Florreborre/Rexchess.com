@@ -3,6 +3,7 @@ import { Chess } from '/vendor/chess.js';
 import { h, state, api, REASONS, go, titleEl, userLink } from './util.js';
 import { Board } from './board.js';
 import { net, send, on } from './net.js';
+const gameIn = (tid) => [...net.games.values()].find((g) => !g.over && g.tournament === tid);
 import { chatBox } from './chat.js';
 
 const TCS = ['1+0', '2+1', '3+0', '3+2', '5+0', '5+3', '10+0', '10+5', '15+10'];
@@ -179,7 +180,7 @@ export function tournamentView(ctx, id) {
 
   const tick = () => { if (data) status.textContent = statusText(data.tournament, Date.now() + offset); };
   const ready = () => {
-    if (data?.tournament.status === 'running' && data.joined && !(net.game && !net.game.over)) send({ t: 'tready', id });
+    if (data?.tournament.status === 'running' && data.joined && !gameIn(id)) send({ t: 'tready', id });
   };
   function load() {
     api(`/api/tournaments/${encodeURIComponent(id)}`).then((d) => {
@@ -193,7 +194,7 @@ export function tournamentView(ctx, id) {
   function draw() {
     const { tournament: t, players, games, joined } = data;
     const act = (action) => api(`/api/tournaments/${t.id}/${action}`, {}).then(load).catch((e) => alert(e.message));
-    const playing = net.game && !net.game.over;
+    const playing = gameIn(t.id);
     // Skaparen kan ändra tiderna: allt före start, betänketid och längd under spel.
     const openEdit = () => {
       const fields = timeFields({ tc: t.tc, duration: t.duration, startsIn: Math.max(0, Math.round((t.starts_at - (Date.now() + offset)) / 60000)) }, t.status === 'open');
@@ -220,7 +221,7 @@ export function tournamentView(ctx, id) {
     else if (t.status === 'finished') action = null;
     else if (!joined) action = h('button.primary', { onclick: () => act('join') }, 'Gå med');
     else if (t.status === 'open') action = h('div.btnrow', h('span.gold', '✓ Du är anmäld'), h('button', { onclick: () => act('leave') }, 'Lämna'));
-    else if (playing) action = h('a.btn.primary', { href: '/game' }, 'Till ditt parti');
+    else if (playing) action = h('a.btn.primary', { href: `/game/${playing.id}` }, 'Till ditt parti');
     else if (t.format !== 'arena') action = h('div.seeking', h('span.spinner'), 'Nästa runda startar automatiskt när alla partier är klara. Du skickas till ditt parti.');
     else action = h('div.seeking', h('span.spinner'), 'Väntar på motståndare – du paras ihop automatiskt. Stanna kvar på sidan.');
     tick();
@@ -254,8 +255,9 @@ export function tournamentView(ctx, id) {
   load();
   const off = on((m) => {
     if (m.t === 'tournament' && m.id === id) load();
+    if (m.t === 'game' && m.game.over && m.game.tournament === id) setTimeout(load, 300);
     if (m.t === 'conn' && net.connected) ready();
   });
   const timer = setInterval(tick, 1000);
-  return { el, destroy() { alive = false; off(); clearInterval(timer); chat?.destroy(); send({ t: 'tleave' }); } };
+  return { el, destroy() { alive = false; off(); clearInterval(timer); chat?.destroy(); send({ t: 'tleave', id }); } };
 }

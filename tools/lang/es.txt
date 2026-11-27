@@ -619,3 +619,19 @@
 698|Gran ganador
 699|Cien victorias
 700|Cien partidas
+701|Estándar
+702|Chess960: las piezas de la primera fila se colocan al azar (el rey siempre entre las torres). Sin puntuar.
+703|Puedes jugar varias partidas a la vez.
+704|Tus otras partidas
+163|Cargando la partida…
+705|{1} partidas en curso
+706|Nueva partida contra {1} ({2}).
+707|Foto de perfil
+708|Sin foto
+709|Elegir foto
+710|Quitar la foto
+711|Tu foto de perfil se ha guardado.
+712|No se pudo leer la imagen.
+713|La imagen es demasiado grande o tiene un formato incorrecto.
+714|Chess960
+715|Chess960 no puntúa.

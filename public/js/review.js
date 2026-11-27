@@ -4,6 +4,8 @@ import { h, svg, state, api, REASONS, roman, go as navigate } from './util.js';
 import { Board } from './board.js';
 import { getEngine } from './engine.js';
 import { matchOpening } from './openings.js';
+import { make960 } from './chess960.js';
+const Chess960 = make960(Chess);
 
 export const CLASSES = {
   brilliant: { label: 'Briljant', text: '!!', color: '#17b3a3', phrase: 'ett briljant drag!' },
@@ -91,7 +93,7 @@ export function reviewView(ctx, id) {
       try {
         const { game: g } = await api(`/api/games/${encodeURIComponent(id)}`);
         src = {
-          moves: g.moves.split(' ').filter(Boolean), result: g.result, reason: g.reason,
+          moves: g.moves.split(' ').filter(Boolean), result: g.result, reason: g.reason, variant: g.variant, startFen: g.start_fen,
           white: { name: g.white_name, rating: g.white_rating }, black: { name: g.black_name, rating: g.black_rating },
           flip: state.user && g.black_id === state.user.id,
         };
@@ -109,11 +111,11 @@ export function reviewView(ctx, id) {
 }
 
 function mount(root, src) {
-  const chess = new Chess();
+  const chess = src.variant === '960' && src.startFen ? new Chess960(src.startFen) : new Chess();
   const fens = [chess.fen()], hist = [];
   for (const san of src.moves) { hist.push(chess.move(san)); fens.push(chess.fen()); }
   const n = hist.length;
-  const book = matchOpening(src.moves);
+  const book = src.variant === '960' ? { plies: 0, name: null } : matchOpening(src.moves);
   let ply = 0, pos = null, marks = null, progress = 0, run = 0, depth = 12;
   let orientation = src.flip || (state.user && src.black?.name === state.user.username && src.white?.name !== state.user.username) ? 'b' : 'w';
 
@@ -154,7 +156,7 @@ function mount(root, src) {
     const my = ++run;
     pos = marks = null;
     progress = 0;
-    const key = `rev:${hashStr(src.moves.join(' '))}:${depth}`;
+    const key = `rev:${hashStr((src.startFen || '') + src.moves.join(' '))}:${depth}`;
     try {
       const cached = JSON.parse(localStorage.getItem(key));
       if (cached?.length === n + 1) pos = cached;

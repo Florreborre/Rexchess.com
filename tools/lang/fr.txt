@@ -620,3 +620,19 @@
 698|Grand gagnant
 699|Cent victoires
 700|Cent parties
+701|Standard
+702|Chess960 : les pièces de la première rangée sont placées au hasard (le roi toujours entre les tours). Non classé.
+703|Vous pouvez jouer plusieurs parties en même temps.
+704|Vos autres parties
+163|Chargement de la partie…
+705|{1} parties en cours
+706|Nouvelle partie contre {1} ({2}).
+707|Photo de profil
+708|Aucune photo
+709|Choisir une photo
+710|Supprimer la photo
+711|Votre photo de profil est enregistrée.
+712|L'image n'a pas pu être lue.
+713|L'image est trop grande ou au mauvais format.
+714|Chess960
+715|Chess960 n'est pas classé.

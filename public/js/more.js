@@ -1,5 +1,5 @@
 // Inställningar och konto, klubbar, admin, korrespondensschack, pågående partier och privata länkar.
-import { h, state, api, go, titleEl, userLink, settings, saveSettings, BOARD_THEMES, playSound, REASONS, countrySelect, LANGUAGES } from './util.js';
+import { h, state, api, go, titleEl, userLink, settings, saveSettings, BOARD_THEMES, playSound, REASONS, countrySelect, LANGUAGES, avatarImg, resizeImage } from './util.js';
 import { net, send, on, disconnect } from './net.js';
 import { GameScreen } from './game.js';
 import { chatBox } from './chat.js';
@@ -47,6 +47,23 @@ export function settingsView(ctx) {
   const account = h('div.card.wide',
     h('h2', 'Konto'),
     h('p', 'Inloggad som ', h('strong', state.user.username), '. ', state.user.admin && h('a', { href: '/admin' }, 'Öppna adminsidan')),
+    h('h3', 'Profilbild'),
+    (() => {
+      const preview = h('span.pfp-preview', state.user.avatar ? avatarImg(state.user.avatar, 64) : h('span.muted', 'Ingen bild'));
+      const msg = h('p.error');
+      const file = h('input', { type: 'file', accept: 'image/*', hidden: true, onchange: async (e) => {
+        const f = e.target.files[0];
+        if (!f) return;
+        try {
+          const r = await api('/api/account/avatar', { data: await resizeImage(f) });
+          state.user.avatar = r.avatar;
+          preview.replaceChildren(avatarImg(r.avatar, 64));
+          msg.className = 'up'; msg.textContent = 'Profilbilden är sparad.';
+        } catch (ex) { msg.className = 'error'; msg.textContent = ex.message; }
+      } });
+      return h('div', h('div.btnrow.left', preview, h('button', { onclick: () => file.click() }, 'Välj bild'),
+        h('button', { onclick: () => api('/api/account/avatar', { data: null }).then(() => { state.user.avatar = null; preview.replaceChildren(h('span.muted', 'Ingen bild')); }) }, 'Ta bort bilden')), file, msg);
+    })(),
     h('h3', 'Land'),
     h('label.check', countrySelect(state.user.country || '', (e) => api('/api/account/country', { country: e.target.value }).then((r) => { state.user.country = r.country; }).catch(() => {}))),
     h('h3', 'Byt lösenord'),

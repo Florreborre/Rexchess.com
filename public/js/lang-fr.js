@@ -700,5 +700,20 @@ export default {
  "Land": "Pays",
  "Storvinnare": "Grand gagnant",
  "Hundra vinster": "Cent victoires",
- "Hundra partier": "Cent parties"
+ "Hundra partier": "Cent parties",
+ "Standard": "Standard",
+ "Chess960: pjäserna på första raden ställs upp slumpvis (kungen alltid mellan tornen). Orankat.": "Chess960 : les pièces de la première rangée sont placées au hasard (le roi toujours entre les tours). Non classé.",
+ "Du kan spela flera partier samtidigt.": "Vous pouvez jouer plusieurs parties en même temps.",
+ "Dina andra partier": "Vos autres parties",
+ "{1} pågående partier": "{1} parties en cours",
+ "Nytt parti mot {1} ({2}).": "Nouvelle partie contre {1} ({2}).",
+ "Profilbild": "Photo de profil",
+ "Ingen bild": "Aucune photo",
+ "Välj bild": "Choisir une photo",
+ "Ta bort bilden": "Supprimer la photo",
+ "Profilbilden är sparad.": "Votre photo de profil est enregistrée.",
+ "Bilden kunde inte läsas.": "L'image n'a pas pu être lue.",
+ "Bilden är för stor eller i fel format.": "L'image est trop grande ou au mauvais format.",
+ "Chess960": "Chess960",
+ "Chess960 är orankat.": "Chess960 n'est pas classé."
 };

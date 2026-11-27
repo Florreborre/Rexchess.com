@@ -1,21 +1,25 @@
 // Spelvyer: lobby, onlineparti och parti mot datorn.
 import { Chess } from '/vendor/chess.js';
-import { h, state, api, fmtClock, REASONS, playSound, moveSound, endSound, roman, go, flagOf } from './util.js';
+import { h, state, api, fmtClock, REASONS, playSound, moveSound, endSound, roman, go, flagOf, avatarImg } from './util.js';
 import { gotwCard, topCard } from './social.js';
 import { chatBox } from './chat.js';
 import { Board, parseFen } from './board.js';
 import { net, send, on } from './net.js';
 import { BOTS, botMove, botFromElo } from './engine.js';
+import { make960 } from './chess960.js';
+const Chess960 = make960(Chess);
 
 const TCS = [['1+0', 'Bullet'], ['2+1', 'Bullet'], ['3+0', 'Blixt'], ['3+2', 'Blixt'], ['5+0', 'Blixt'], ['5+3', 'Blixt'], ['10+0', 'Snabb'], ['10+5', 'Snabb'], ['15+10', 'Snabb']];
 
 function playerBar() {
   const name = h('span.pname'), rating = h('span.prating'), clock = h('span.clock'), title = h('span.title'), flag = h('span.flag');
-  const el = h('div.playerbar', h('div.pinfo', h('span.avatar'), title, flag, name, rating), clock);
+  const pic = h('span.pfp-slot');
+  const el = h('div.playerbar', h('div.pinfo', pic, h('span.avatar'), title, flag, name, rating), clock);
   return {
     el, clock,
     set(p) {
       name.textContent = p.name;
+      if (pic.dataset.src !== (p.avatar || '')) { pic.dataset.src = p.avatar || ''; pic.replaceChildren(...(p.avatar ? [avatarImg(p.avatar, 30)] : [])); }
       title.textContent = p.title || '';
       title.hidden = !p.title;
       flag.textContent = flagOf(p.country);
@@ -37,15 +41,15 @@ export class GameScreen {
     this.hist = [];
     this.viewPly = 0;
     this.model = null;
-    this.premove = null;
+    this.premoves = []; // förberedda drag, spelas i tur och ordning
     this.onMove = onMove;
     this.board = new Board({
       movableColor: () => (this.viewPly === this.moves.length ? this.model?.movable : null),
       premoveColor: () => (this.viewPly === this.moves.length ? this.model?.premovable : null),
       targets: (sq) => this.chess.moves({ square: sq, verbose: true }).map((m) => m.to),
       onMove,
-      onPremove: (from, to, promotion) => { this.premove = { from, to, promotion }; this.render(); },
-      onCancelPremove: () => { this.premove = null; this.render(); },
+      onPremove: (from, to, promotion) => { if (this.premoves.length < 12) this.premoves.push({ from, to, promotion }); this.render(); },
+      onCancelPremove: () => { this.premoves = []; this.render(); },
     });
     this.top = playerBar();
     this.bottom = playerBar();
@@ -84,7 +88,7 @@ export class GameScreen {
       const grew = model.startFen === this.startFen && model.moves.length > this.moves.length;
       this.startFen = model.startFen;
       this.moves = [...model.moves];
-      this.chess = new Chess(model.startFen);
+      this.chess = model.variant === '960' ? new Chess960(model.startFen) : new Chess(model.startFen);
       this.fens = [this.chess.fen()];
       this.hist = [];
       for (const san of this.moves) {
@@ -94,14 +98,13 @@ export class GameScreen {
       this.viewPly = this.moves.length;
       if (grew) playSound(moveSound(this.hist.at(-1)));
     }
-    if (!model.movable && !model.premovable) this.premove = null;
-    // Det har blivit vår tur: spela det förberedda draget om det fortfarande är lagligt.
-    if (this.premove && model.movable) {
-      const pm = this.premove;
-      this.premove = null;
+    if (!model.movable && !model.premovable) this.premoves = [];
+    // Det har blivit vår tur: spela nästa förberedda drag om det är lagligt. Är det inte det strycks alla.
+    if (this.premoves.length && model.movable) {
+      const pm = this.premoves.shift();
       if (this.chess.moves({ verbose: true }).some((m) => m.from === pm.from && m.to === pm.to)) {
         setTimeout(() => { if (this.model?.movable) this.onMove(pm.from, pm.to, pm.promotion); });
-      }
+      } else this.premoves = [];
     }
     this.render();
   }
@@ -115,7 +118,7 @@ export class GameScreen {
       const king = (last.color === 'w' ? 'b' : 'w') + 'k';
       check = Object.entries(parseFen(this.fens[this.viewPly])).find(([, p]) => p === king)?.[0];
     }
-    this.board.set({ fen: this.fens[this.viewPly], lastMove: last && { from: last.from, to: last.to }, check, orientation: m.orientation, premove: this.premove });
+    this.board.set({ fen: this.fens[this.viewPly], lastMove: last && { from: last.from, to: last.to }, check, orientation: m.orientation, premoves: this.viewPly === this.moves.length ? this.premoves : [] });
     this.top.set({ ...m.top, hasClock: !!m.clocks });
     this.bottom.set({ ...m.bottom, hasClock: !!m.clocks });
     this.status.textContent = m.status || '';
@@ -169,18 +172,23 @@ function confirmButton(label, onConfirm, cls = '') {
 }
 
 // ---------- Lobby ----------
+let lobbyVariant = null; // null = vanligt schack, '960' = Chess960
 export function lobbyView() {
   const online = h('div.card');
   const draw = () => {
-    online.replaceChildren(h('h2', 'Spela online'), h('p.muted', 'Rankade partier mot andra spelare. Välj betänketid: minuter + sekunder som läggs till per drag.'));
+    online.replaceChildren(h('h2', 'Spela online'),
+      h('div.tabs.small', [[null, 'Standard'], ['960', 'Chess960']].map(([v, label]) => h('button' + (lobbyVariant === v ? '.active' : ''), { onclick: () => { lobbyVariant = v; draw(); } }, label))),
+      h('p.muted', lobbyVariant === '960' ? 'Chess960: pjäserna på första raden ställs upp slumpvis (kungen alltid mellan tornen). Orankat.' : 'Rankade partier mot andra spelare. Välj betänketid: minuter + sekunder som läggs till per drag.'));
     if (!state.user) {
       online.append(h('p', 'Du behöver ett konto för att spela online.'), h('a.btn.primary', { href: '/login' }, 'Logga in / skapa konto'));
     } else if (net.seeking) {
-      online.append(h('div.seeking', h('span.spinner'), `Söker motståndare (${net.seeking})…`),
+      online.append(h('div.seeking', h('span.spinner'), `Söker motståndare (${net.seeking})…`, net.seekingVariant === '960' ? ' · Chess960' : ''),
         h('button', { onclick: () => send({ t: 'cancel' }) }, 'Avbryt'));
     } else {
       online.append(h('div.tcgrid', TCS.map(([tc, label]) =>
-        h('button.tc', { onclick: () => send({ t: 'seek', tc }) }, h('strong', tc), h('span', label)))));
+        h('button.tc', { onclick: () => send({ t: 'seek', tc, variant: lobbyVariant }) }, h('strong', tc), h('span', label)))));
+      const others = liveGames();
+      if (others.length) online.append(h('p.muted', 'Du kan spela flera partier samtidigt.'), gameLinks(others));
       if (!net.connected) online.append(h('p.muted', 'Ansluter till servern…'));
     }
   };
@@ -228,17 +236,31 @@ function inviteCard() {
 }
 
 // ---------- Onlineparti ----------
-export function onlineGameView(ctx) {
-  if (!net.game) {
-    go('/play');
-    return { el: h('div') };
+// Pågående partier för den inloggade spelaren, och länkar till dem.
+export const liveGames = (except) => [...net.games.values()].filter((g) => !g.over && g.id !== except);
+export function gameLinks(games) {
+  return h('div.livelist', games.map((g) => {
+    const opp = g.you === 'w' ? g.black : g.white, mine = g.turn === g.you;
+    return h('a', { href: `/game/${g.id}` }, `${opp.name} · ${g.tc}${g.variant === '960' ? ' · 960' : ''}`, h('span', mine ? 'Din tur' : 'Motståndarens tur'));
+  }));
+}
+
+export function onlineGameView(ctx, id) {
+  const gameId = id || liveGames()[0]?.id;
+  if (!gameId) { go('/play'); return { el: h('div') }; }
+  if (!id) { history.replaceState(null, '', `/game/${gameId}`); }
+  if (!net.games.has(gameId)) { // sidan laddades om: vänta på att servern skickar partiet
+    const off = on((m) => { if (m.t === 'game' && m.game.id === gameId) ctx.refresh(); });
+    const t = setTimeout(() => { if (!net.games.has(gameId)) go('/play'); }, 4000);
+    return { el: h('div.card.narrow', h('p.muted', 'Hämtar partiet…')), destroy() { off(); clearTimeout(t); } };
   }
-  const gameId = net.game.id;
-  let endSounded = !!net.game.over;
-  if (!net.game.over && !net.game.moves.length) playSound('start');
+  const cur = () => net.games.get(gameId);
+  let endSounded = !!cur().over;
+  if (!cur().over && !cur().moves.length) playSound('start');
+  const others = h('div.others');
   const screen = new GameScreen({
     onMove(from, to, promotion) {
-      const g = net.game;
+      const g = cur();
       if (!g || g.over) return;
       let mv;
       try { mv = screen.chess.move({ from, to, promotion }); } catch { return; }
@@ -247,15 +269,14 @@ export function onlineGameView(ctx) {
       g.at = now;
       g.turn = g.you === 'w' ? 'b' : 'w';
       g.moves.push(mv.san);
-      send({ t: 'move', from, to, promotion });
+      send({ t: 'move', id: gameId, from, to, promotion });
       refresh();
     },
   });
 
   function refresh() {
-    const g = net.game;
+    const g = cur();
     if (!g) return;
-    if (g.id !== gameId) return ctx.refresh(); // nytt parti (t.ex. returmatch): bygg om vyn
     const me = g.you, opp = me === 'w' ? 'b' : 'w';
     const P = { w: { ...g.white, color: 'w' }, b: { ...g.black, color: 'b' } };
     if (g.over?.ratings) for (const c of ['w', 'b']) if (g.over.ratings[c]) P[c].rating = g.over.ratings[c][1];
@@ -266,40 +287,44 @@ export function onlineGameView(ctx) {
       const diff = r ? r[1] - r[0] : 0;
       panel = [h('div.result',
         h('h3', resultText(g.over, me)),
-        !r && g.over.result !== '*' && h('p.muted', 'Placeringsparti: din rating visas när du har spelat fem rankade partier.'),
+        !r && g.over.result !== '*' && g.variant !== '960' && h('p.muted', 'Placeringsparti: din rating visas när du har spelat fem rankade partier.'),
+        g.variant === '960' && g.over.result !== '*' && h('p.muted', 'Chess960 är orankat.'),
         r && h('p.ratingchange', 'Rating: ', h('strong', r[1]), ' ', h('span.' + (diff >= 0 ? 'up' : 'down'), `${diff >= 0 ? '+' : ''}${diff}`)),
         h('div.btnrow',
           g.over.result !== '*' && h('a.btn.primary', { href: `/review/${g.id}` }, 'Analysera partiet'),
           !g.tournament && g.over.result !== '*' && h('button', { onclick: () => send({ t: 'rematch', id: g.id }) }, 'Returmatch'),
           g.tournament
-            ? h('a.btn', { href: `/tournament/${g.tournament}`, onclick: () => { net.game = null; } }, 'Till turneringen')
-            : h('button', { onclick: () => { net.game = null; send({ t: 'seek', tc: g.tc }); go('/play'); } }, 'Nytt parti')))];
+            ? h('a.btn', { href: `/tournament/${g.tournament}` }, 'Till turneringen')
+            : h('button', { onclick: () => { net.games.delete(g.id); send({ t: 'seek', tc: g.tc, variant: g.variant }); go('/play'); } }, 'Nytt parti')))];
     } else {
       panel = [
         g.takebackOffer === opp && h('div.offer', 'Motståndaren vill ta tillbaka sitt senaste drag.',
-          h('div.btnrow', h('button.primary', { onclick: () => send({ t: 'takeback' }) }, 'Tillåt'), h('button', { onclick: () => send({ t: 'decline' }) }, 'Avböj'))),
+          h('div.btnrow', h('button.primary', { onclick: () => send({ t: 'takeback', id: gameId }) }, 'Tillåt'), h('button', { onclick: () => send({ t: 'decline', id: gameId }) }, 'Avböj'))),
         g.drawOffer === opp && h('div.offer', 'Motståndaren erbjuder remi.',
-          h('div.btnrow', h('button.primary', { onclick: () => send({ t: 'draw' }) }, 'Acceptera'), h('button', { onclick: () => send({ t: 'decline' }) }, 'Avböj'))),
+          h('div.btnrow', h('button.primary', { onclick: () => send({ t: 'draw', id: gameId }) }, 'Acceptera'), h('button', { onclick: () => send({ t: 'decline', id: gameId }) }, 'Avböj'))),
         h('div.btnrow',
-          g.drawOffer !== opp && h('button', { disabled: g.drawOffer === me, onclick: () => send({ t: 'draw' }) }, g.drawOffer === me ? 'Remi erbjuden' : 'Erbjud remi'),
-          g.takebackOffer !== opp && h('button', { disabled: g.takebackOffer === me || g.moves.length < (g.turn === me ? 2 : 1), onclick: () => send({ t: 'takeback' }) }, g.takebackOffer === me ? 'Väntar på svar' : 'Ångra drag'),
-          confirmButton('Ge upp', () => send({ t: 'resign' }))),
+          g.drawOffer !== opp && h('button', { disabled: g.drawOffer === me, onclick: () => send({ t: 'draw', id: gameId }) }, g.drawOffer === me ? 'Remi erbjuden' : 'Erbjud remi'),
+          g.takebackOffer !== opp && h('button', { disabled: g.takebackOffer === me || g.moves.length < (g.turn === me ? 2 : 1), onclick: () => send({ t: 'takeback', id: gameId }) }, g.takebackOffer === me ? 'Väntar på svar' : 'Ångra drag'),
+          confirmButton('Ge upp', () => send({ t: 'resign', id: gameId }))),
       ];
     }
     screen.update({
-      moves: g.moves, orientation: me, movable: !g.over && g.turn === me ? me : null,
+      moves: g.moves, startFen: g.startFen || undefined, variant: g.variant, orientation: me, movable: !g.over && g.turn === me ? me : null,
       premovable: !g.over && g.turn !== me ? me : null,
       top: P[opp], bottom: P[me],
       clocks: { w: g.clocks.w, b: g.clocks.b, running: g.over ? null : g.turn, at: g.at },
-      status: g.over ? 'Partiet är slut' : `${g.tc} · ${g.tournament ? 'turnering' : 'rankat'} · ${g.turn === me ? 'din tur' : 'motståndarens tur'}`,
+      status: g.over ? 'Partiet är slut' : `${g.tc} · ${g.variant === '960' ? 'Chess960' : g.tournament ? 'turnering' : 'rankat'} · ${g.turn === me ? 'din tur' : 'motståndarens tur'}`,
       panel,
     });
+    const rest = liveGames(gameId);
+    others.replaceChildren(...(rest.length ? [h('h3', 'Dina andra partier'), gameLinks(rest)] : []));
   }
   refresh();
+  screen.side.append(others);
   const chat = chatBox(`game:${gameId}`);
   screen.side.append(chat.el);
   const off = on((m) => { if (m.t === 'game') refresh(); });
-  return { el: screen.el, destroy() { off(); chat.destroy(); screen.destroy(); } };
+  return { el: screen.el, destroy() { off(); chat.destroy(); screen.destroy(); if (cur()?.over) net.games.delete(gameId); } };
 }
 
 // ---------- Åskådare: följ ett pågående parti ----------
@@ -316,7 +341,7 @@ export function watchView(ctx, id) {
     if (!shown) { shown = true; wrap.replaceChildren(screen.el); }
     const P = { w: { ...g.white, color: 'w' }, b: { ...g.black, color: 'b' } };
     screen.update({
-      moves: g.moves, orientation: 'w', movable: null, top: P.b, bottom: P.w,
+      moves: g.moves, startFen: g.startFen || undefined, variant: g.variant, orientation: 'w', movable: null, top: P.b, bottom: P.w,
       clocks: { w: g.clocks.w, b: g.clocks.b, running: g.over ? null : g.turn, at: g.at },
       status: g.over ? `Partiet är slut: ${g.over.result} (${REASONS[g.over.reason] || g.over.reason})` : `Du tittar · ${g.tc}`,
       panel: [g.over && g.over.result !== '*' && h('a.btn.primary', { href: `/review/${g.id}` }, 'Analysera partiet')],
@@ -382,7 +407,7 @@ export function botView(ctx) {
     },
   });
   const players = () => {
-    const me = { name: meName, rating: state.user?.provisional ? null : state.user?.rating, title: state.user?.title, country: state.user?.country, color: b.color };
+    const me = { name: meName, rating: state.user?.provisional ? null : state.user?.rating, title: state.user?.title, country: state.user?.country, avatar: state.user?.avatar, color: b.color };
     const it = { name: b.cfg.name, rating: b.cfg.rating, color: b.color === 'w' ? 'b' : 'w' };
     return { me, it };
   };

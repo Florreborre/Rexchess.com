@@ -1,10 +1,10 @@
 // Startpunkt: router, navigering, inloggning, partihistorik och topplista.
 import { Chess } from '/vendor/chess.js';
-import { h, state, api, go, titleEl, playSound, userLink, applySettings, spriteLoaded, saveSettings, settings, isDark, flagEl, countrySelect, LANGUAGES } from './util.js';
+import { h, state, api, go, titleEl, playSound, userLink, applySettings, spriteLoaded, saveSettings, settings, isDark, flagEl, countrySelect, LANGUAGES, avatarImg } from './util.js';
 import { profileView } from './profile.js';
 import { initI18n } from './i18n.js';
 import { net, connect, disconnect, on } from './net.js';
-import { lobbyView, onlineGameView, botView, watchView } from './game.js';
+import { lobbyView, onlineGameView, botView, watchView, liveGames } from './game.js';
 import { puzzlesView, mistakesView, analysisView, openingsView, endgamesView, trainingView } from './train.js';
 import { settingsView, clubsView, adminView, liveView, joinView, corrView } from './more.js';
 import { reviewView } from './review.js';
@@ -16,7 +16,7 @@ let current = null;
 
 const routes = [
   [/^\/play$/, lobbyView],
-  [/^\/game$/, onlineGameView],
+  [/^\/game(?:\/([\w-]+))?$/, onlineGameView],
   [/^\/bot$/, botView],
   [/^\/review\/([\w-]+)$/, reviewView],
   [/^\/games$/, gamesView],
@@ -64,7 +64,8 @@ function renderNav() {
     link('/play', 'Spela'), link('/training', 'Träna'), link('/tournament', 'Turneringar'), link('/clubs', 'Klubbar'), link('/friends', 'Vänner'),
     link('/top', 'Topplista'), link('/games', 'Mina partier'),
     state.user ? link(`/profile/${encodeURIComponent(state.user.username)}`, 'Min profil') : '',
-    net.game && !net.game.over ? h('a.live', { href: '/game' }, '● Pågående parti') : '');
+    liveGames().length === 1 ? h('a.live', { href: `/game/${liveGames()[0].id}` }, '● Pågående parti')
+      : liveGames().length > 1 ? h('a.live', { href: `/game/${liveGames()[0].id}` }, '● ', `${liveGames().length} pågående partier`) : '');
   const box = document.getElementById('userbox');
   // Snabbknappar i sidhuvudet: mörkt/ljust läge och språk.
   const quick = [
@@ -73,7 +74,7 @@ function renderNav() {
       Object.keys(LANGUAGES).map((k) => h('option', { value: k, selected: k === settings.lang }, k.toUpperCase()))),
   ];
   if (state.user) {
-    box.replaceChildren(h('span.me', titleEl(state.user.title), ' ', userLink(state.user.username), ` ${state.user.provisional ? '?' : state.user.rating}`),
+    box.replaceChildren(state.user.avatar ? avatarImg(state.user.avatar, 26) : '', h('span.me', titleEl(state.user.title), ' ', userLink(state.user.username), ` ${state.user.provisional ? '?' : state.user.rating}`),
       state.user.admin ? h('a.btn.small', { href: '/admin' }, 'Admin') : '',
       ...quick, h('a.btn.small', { href: '/settings', title: 'Inställningar' }, '⚙'),
       h('button.small', {
@@ -240,11 +241,20 @@ on((m) => {
   }
   if (m.t === 'corr' && location.pathname !== `/corr/${m.id}`) toast([h('p', m.text), h('a.btn.small.primary', { href: `/corr/${m.id}` }, 'Öppna partiet')], 15000);
   if (m.t === 'game') {
-    if (!m.game.over && location.pathname !== '/game') go('/game');
+    // Ett nytt parti: gå dit direkt, om man inte redan sitter i ett annat parti – då kommer en avisering i stället.
+    const here = location.pathname === `/game/${m.game.id}`, inOther = location.pathname.startsWith('/game/') && !here
+      && net.games.get(location.pathname.slice(6)) && !net.games.get(location.pathname.slice(6)).over;
+    if (!m.game.over && !here && !m.restored && !m.game.moves.length && !seen.has(m.game.id)) {
+      seen.add(m.game.id);
+      const opp = m.game.you === 'w' ? m.game.black : m.game.white;
+      if (inOther) { playSound('challenge'); toast([h('p', `Nytt parti mot ${opp.name} (${m.game.tc}).`), h('a.btn.small.primary', { href: `/game/${m.game.id}` }, 'Öppna partiet')], 20000); }
+      else go(`/game/${m.game.id}`);
+    }
     if (m.game.over) refreshMe().catch(() => {});
     renderNav();
   }
 });
+const seen = new Set(); // partier som redan har öppnats eller aviserats
 window.addEventListener('popstate', render);
 // Vanliga länkar inom sidan byter vy utan att ladda om.
 document.addEventListener('click', (e) => {
