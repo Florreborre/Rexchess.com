@@ -1,6 +1,6 @@
 // Partianalys: Stockfish går igenom varje ställning, varje drag bedöms och spelarna får en träffsäkerhet.
 import { Chess } from '/vendor/chess.js';
-import { h, svg, state, api, REASONS, roman, go as navigate } from './util.js';
+import { h, svg, state, api, REASONS, roman, go as navigate, icon } from './util.js';
 import { Board } from './board.js';
 import { getEngine } from './engine.js';
 import { matchOpening } from './openings.js';
@@ -314,11 +314,11 @@ function mount(root, src) {
       h('label.depth', 'Djup ', h('select', { onchange: (e) => { depth = Number(e.target.value); getEngine().stop(); analyse(); } },
         [[10, 'Snabb'], [12, 'Normal'], [15, 'Djup'], [18, 'Mycket djup']].map(([d, l]) => h('option', { value: d, selected: d === depth }, `${l} (${d})`)))));
     const nav = h('div.navrow',
-      h('button.icon', { title: 'Första', onclick: () => go(0) }, '⏮'),
-      h('button.icon', { title: 'Föregående', onclick: () => go(ply - 1) }, '◀'),
-      h('button.icon', { title: 'Nästa', onclick: () => go(ply + 1) }, '▶'),
-      h('button.icon', { title: 'Sista', onclick: () => go(n) }, '⏭'),
-      h('button.icon', { title: 'Vänd brädet', onclick: () => { orientation = orientation === 'w' ? 'b' : 'w'; render(); } }, '⇅'));
+      h('button.icon', { title: 'Första', onclick: () => go(0) }, icon('first')),
+      h('button.icon', { title: 'Föregående', onclick: () => go(ply - 1) }, icon('prev')),
+      h('button.icon', { title: 'Nästa', onclick: () => go(ply + 1) }, icon('next')),
+      h('button.icon', { title: 'Sista', onclick: () => go(n) }, icon('last')),
+      h('button.icon', { title: 'Vänd brädet', onclick: () => { orientation = orientation === 'w' ? 'b' : 'w'; render(); } }, icon('flip')));
 
     if (!marks) {
       progressEl = h('div.progress', h('div'));
@@ -327,7 +327,7 @@ function mount(root, src) {
     } else {
       progressEl = null;
       side.replaceChildren(...[header, ply === 0 ? summary() : null, comment(), graph(), moveList(), nav,
-        h('button.primary', { onclick: nextKey, disabled: ply >= n }, 'Nästa nyckeldrag ▶'),
+        h('button.primary', { onclick: nextKey, disabled: ply >= n }, 'Nästa nyckeldrag'),
         mistakes().length > 0 && h('button', { onclick: () => { state.training = mistakes(); navigate('/train'); } }, `Träna på misstagen (${mistakes().length})`)].filter(Boolean));
     }
     side.querySelector('.mv.current')?.scrollIntoView({ block: 'nearest' });

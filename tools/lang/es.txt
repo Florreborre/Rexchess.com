@@ -10,7 +10,7 @@
 9|Cerrar sesión
 10|Crear cuenta
 11|Ajustes
-13|● Partida en curso
+13|Partida en curso
 14|Modo oscuro o claro
 15|Idioma / Language
 16|Cargando…
@@ -177,7 +177,7 @@
 181|Stockfish a plena fuerza. Suerte.
 182|te reta a una partida ({1}).
 183|quiere la revancha.
-184|🏅 Nuevo logro:
+184|Nuevo logro:
 185|¡Nuevo título! Ahora eres
 186|Abrir la partida
 187|{1} no está disponible ahora mismo.
@@ -226,7 +226,7 @@
 230|Apertura: {1}
 231|Resultado: {1}
 232|Resultado: {1} ({2})
-233|Siguiente jugada clave ▶
+233|Siguiente jugada clave
 234|Girar el tablero
 235|Practicar los errores ({1})
 236|Cargando la partida…
@@ -293,7 +293,7 @@
 298|Todos los torneos
 299|Inicia sesión para participar
 300|Unirse
-301|✓ Estás inscrito
+301|Estás inscrito
 302|Salir
 303|A tu partida
 304|Empezar ahora
@@ -306,7 +306,7 @@
 311|Partidas recientes
 312|Clasificación por equipos (clubes)
 313|Club
-314|🏆 Ganador: {1} con {2} puntos
+314|Ganador: {1} con {2} puntos
 315|El nombre debe tener entre 3 y 40 caracteres.
 316|Ajustes no válidos.
 317|El torneo no existe.
@@ -324,7 +324,7 @@
 329|Máxima: {1}
 330|Solicitud de amistad enviada
 331|Aceptar solicitud de amistad
-332|✓ Amigo
+332|Amigo
 333|Club: {1}
 334|Ver la partida
 335|Ajustes y cuenta
@@ -406,8 +406,8 @@
 411|Esta es la solución.
 412|Pista
 413|Mostrar la solución
-414|Siguiente problema ▶
-415|Más problemas ▶
+414|Siguiente problema
+415|Más problemas
 416|Aún no hay problemas.
 417|El problema no existe.
 418|Practicar errores
@@ -423,12 +423,12 @@
 428|¡Correcto: era la mejor jugada!
 429|Ahí está.
 430|Mostrar la jugada
-431|Siguiente posición ▶
-432|Ver resultado ▶
+431|Siguiente posición
+432|Ver resultado
 433|Valoración:
 434|Mueve las piezas libremente para ambos bandos.
-435|◀ Deshacer
-436|Rehacer ▶
+435|Atrás
+436|Adelante
 437|Girar
 438|Colocar una posición
 439|Cadena FEN
@@ -643,7 +643,7 @@
 721|Maestro Internacional
 722|Supergran maestro
 723|menos de 400
-724|Tu título se basa en tu puntuación más alta, así que conservas un título una vez alcanzado. Durante las cinco partidas de clasificación estás sin clasificar. 🏆 indica torneos ganados y 👑 al campeón de la semana.
+724|Tu título se basa en tu puntuación más alta, así que conservas un título una vez alcanzado. Durante las cinco partidas de clasificación estás sin clasificar. El trofeo indica torneos ganados y la corona al campeón de la semana.
 725|Primeros pasos
 726|Juega 10 partidas puntuadas
 727|Quinientas partidas
@@ -695,19 +695,19 @@
 773|Torneo semanal
 774|Torneo semanal, semana {1}
 775|Arena {1} · {2} min · cada domingo a las 18:00 (hora sueca) · {3} inscritos
-776|👑 Una corona junto a tu nombre durante una semana
-777|✨ Un tablero dorado exclusivo
-778|🏆 Un trofeo y un logro
+776|Una corona junto a tu nombre durante una semana
+777|Un tablero dorado exclusivo
+778|Un trofeo y un logro
 779|Campeón de la semana pasada:
 780|Inscribirse
 781|Ver el torneo
 782|días
 783|h
 784|s
-785|● En curso
-786|👑 ¡{1} ganó {2}!
+785|En curso
+786|¡{1} ganó {2}!
 787|Oro
-788|👑 Gana un torneo semanal para desbloquear el tablero dorado.
+788|Gana un torneo semanal para desbloquear el tablero dorado.
 789|Victorias semanales
 790|torneos semanales ganados
 791|Ajedrez gratis para todos

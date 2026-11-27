@@ -1,6 +1,6 @@
 // Startpunkt: router, navigering, inloggning, partihistorik och topplista.
 import { Chess } from '/vendor/chess.js';
-import { h, state, api, go, titleEl, playSound, userLink, applySettings, spriteLoaded, saveSettings, settings, isDark, flagEl, countrySelect, LANGUAGES, avatarImg, crownEl } from './util.js';
+import { h, state, api, go, titleEl, playSound, userLink, applySettings, spriteLoaded, saveSettings, settings, isDark, flagEl, countrySelect, LANGUAGES, avatarImg, crownEl, icon } from './util.js';
 import { profileView } from './profile.js';
 import { initI18n } from './i18n.js';
 import { net, connect, disconnect, on } from './net.js';
@@ -65,19 +65,19 @@ function renderNav() {
     link('/play', 'Spela'), link('/training', 'Träna'), link('/tournament', 'Turneringar'), link('/clubs', 'Klubbar'), link('/friends', 'Vänner'),
     link('/top', 'Topplista'), link('/games', 'Mina partier'),
     state.user ? link(`/profile/${encodeURIComponent(state.user.username)}`, 'Min profil') : '',
-    liveGames().length === 1 ? h('a.live', { href: `/game/${liveGames()[0].id}` }, '● Pågående parti')
-      : liveGames().length > 1 ? h('a.live', { href: `/game/${liveGames()[0].id}` }, '● ', `${liveGames().length} pågående partier`) : '');
+    liveGames().length === 1 ? h('a.live', { href: `/game/${liveGames()[0].id}` }, h('span.livedot'), 'Pågående parti')
+      : liveGames().length > 1 ? h('a.live', { href: `/game/${liveGames()[0].id}` }, h('span.livedot'), `${liveGames().length} pågående partier`) : '');
   const box = document.getElementById('userbox');
   // Snabbknappar i sidhuvudet: mörkt/ljust läge och språk.
   const quick = [
-    h('button.small', { title: 'Mörkt eller ljust läge', onclick: () => { saveSettings({ theme: isDark() ? 'light' : 'dark' }); renderNav(); } }, isDark() ? '☀' : '☾'),
+    h('button.small', { title: 'Mörkt eller ljust läge', onclick: () => { saveSettings({ theme: isDark() ? 'light' : 'dark' }); renderNav(); } }, icon(isDark() ? 'sun' : 'moon', 16)),
     h('select.langsel', { title: 'Språk / Language', onchange: (e) => { saveSettings({ lang: e.target.value }); location.reload(); } },
       Object.keys(LANGUAGES).map((k) => h('option', { value: k, selected: k === settings.lang }, k.toUpperCase()))),
   ];
   if (state.user) {
     box.replaceChildren(state.user.avatar ? avatarImg(state.user.avatar, 26) : '', h('span.me', titleEl(state.user.title), ' ', crownEl(state.user.crown), userLink(state.user.username), ` ${state.user.provisional ? '?' : state.user.rating}`),
       state.user.admin ? h('a.btn.small', { href: '/admin' }, 'Admin') : '',
-      ...quick, h('a.btn.small', { href: '/settings', title: 'Inställningar' }, '⚙'),
+      ...quick, h('a.btn.small.iconbtn', { href: '/settings', title: 'Inställningar' }, icon('settings', 16)),
       h('button.small', {
         onclick: async () => {
           await api('/api/logout', {});
@@ -87,7 +87,7 @@ function renderNav() {
           render();
         },
       }, 'Logga ut'));
-  } else box.replaceChildren(...quick, h('a.btn.small', { href: '/settings', title: 'Inställningar' }, '⚙'), h('a.btn.small.primary', { href: '/login' }, 'Logga in'));
+  } else box.replaceChildren(...quick, h('a.btn.small.iconbtn', { href: '/settings', title: 'Inställningar' }, icon('settings', 16)), h('a.btn.small.primary', { href: '/login' }, 'Logga in'));
 }
 
 async function refreshMe() {
@@ -200,11 +200,11 @@ function leaderboardView() {
       players.length ? h('div.tablewrap', h('table',
         h('thead', h('tr', ['#', 'Spelare', 'Titel', 'Rating', 'Partier', 'V / R / F'].map((t) => h('th', t)))),
         h('tbody', players.map((p, i) => h('tr' + (p.username === state.user?.username ? '.me' : ''),
-          h('td', i + 1), h('td', flagEl(p.country), ' ', crownEl(p.crown), userLink(p.username), p.trophies ? h('span.gold', { title: 'Vunna turneringar' }, ` 🏆${p.trophies > 1 ? '×' + p.trophies : ''}`) : null),
+          h('td', i + 1), h('td', flagEl(p.country), ' ', crownEl(p.crown), userLink(p.username), p.trophies ? h('span.gold.trophies', { title: 'Vunna turneringar' }, icon('trophy', 14), p.trophies > 1 ? `×${p.trophies}` : '') : null),
           h('td', titleEl(p.title)), h('td', p.rating), h('td', p.class_games ?? p.games), h('td', `${p.wins} / ${p.draws} / ${p.losses}`))))))
         : h('p.muted', by ? 'Ingen har spelat rankade partier med den betänketiden ännu.' : 'Inga spelare ännu. Skapa ett konto och bli först!'),
       h('h3', 'Titlar'),
-      h('p.muted', 'Titeln bygger på din högsta rating någonsin, så en titel du har nått behåller du. Under de fem placeringspartierna är man Oplacerad. 🏆 visar vunna turneringar och 👑 veckans mästare.'),
+      h('p.muted', 'Titeln bygger på din högsta rating någonsin, så en titel du har nått behåller du. Under de fem placeringspartierna är man Oplacerad. Pokalen visar vunna turneringar och kronan veckans mästare.'),
       h('div.legend', [['Nybörjare', 'under 400'], ['Lärling', '400'], ['Novis', '600'], ['Utmanare', '800'], ['Amatör', '1000'], ['Klubbspelare', '1200'], ['Avancerad', '1400'], ['Expert', '1600'], ['Elit', '1800'], ['Kandidatmästare', '2000'], ['FIDE-mästare', '2200'], ['Internationell mästare', '2400'], ['Stormästare', '2600'], ['Supermästare', '2800']]
         .map(([t, r]) => h('span', titleEl(t), ` ${r}`))));
   }).catch(() => {}));
@@ -234,7 +234,7 @@ on((m) => {
   }
   if (m.t === 'achievement') {
     playSound('victory');
-    toast([h('p', '🏅 Ny prestation: ', h('strong', m.name)), h('p.muted', m.desc)], 10000);
+    toast([h('p.achtoast', icon('medal', 20), h('span', 'Ny prestation:'), ' ', h('strong', m.name)), h('p.muted', m.desc)], 10000);
   }
   if (m.t === 'rematch') {
     const el = toast([h('p', h('strong', m.from), ' vill ha returmatch.'),

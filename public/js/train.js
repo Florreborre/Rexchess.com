@@ -97,7 +97,7 @@ export function puzzlesView(ctx, daily) {
           next.classList.add('primary');
         },
       });
-      const next = h('button', { onclick: () => (daily ? go('/puzzles') : load()) }, daily ? 'Fler problem ▶' : 'Nästa problem ▶');
+      const next = h('button', { onclick: () => (daily ? go('/puzzles') : load()) }, daily ? 'Fler problem' : 'Nästa problem');
       side.replaceChildren(...[
         h('h2', daily ? 'Dagens problem' : 'Schackproblem'),
         h('p', h('strong', `${p.theme}`), h('span.muted', ` · svårighet ${p.rating}`)),
@@ -130,7 +130,7 @@ export function mistakesView() {
     }
     const item = list[n];
     const msg = h('p.verdictline');
-    const next = h('button', { onclick: () => { n++; show(); } }, n === list.length - 1 ? 'Visa resultat ▶' : 'Nästa ställning ▶');
+    const next = h('button', { onclick: () => { n++; show(); } }, n === list.length - 1 ? 'Visa resultat' : 'Nästa ställning');
     const s = solver({
       fen: item.fen, moves: [item.best],
       onWrong(san) { msg.className = 'verdictline down'; msg.textContent = `${san} är inte det bästa draget. Försök igen.`; },
@@ -204,8 +204,8 @@ export function analysisView() {
     h('h2', 'Analysbräde'),
     h('p', 'Bedömning: ', evalEl), lineEl, movesEl,
     h('div.btnrow',
-      h('button', { onclick: () => { const m = chess.undo(); if (m) redo.push(m); changed(); } }, '◀ Ångra'),
-      h('button', { onclick: () => { const m = redo.pop(); if (m) chess.move(m.san); changed(); } }, 'Gör om ▶'),
+      h('button', { onclick: () => { const m = chess.undo(); if (m) redo.push(m); changed(); } }, 'Bakåt'),
+      h('button', { onclick: () => { const m = redo.pop(); if (m) chess.move(m.san); changed(); } }, 'Framåt'),
       h('button', { onclick: () => { orientation = orientation === 'w' ? 'b' : 'w'; draw(); } }, 'Vänd')),
     h('h3', 'Ställ upp en ställning'),
     fenInput, err,

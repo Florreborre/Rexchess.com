@@ -1,5 +1,5 @@
 // Profilsida: en spelares statistik, mest spelade öppningar, ratingkurva och partier.
-import { h, svg, state, api, titleEl, userLink, flagEl, countryName, avatarImg, crownEl } from './util.js';
+import { h, svg, state, api, titleEl, userLink, flagEl, countryName, avatarImg, crownEl, icon } from './util.js';
 import { matchOpening } from './openings.js';
 
 const pct = (n, total) => (total ? Math.round((100 * n) / total) : 0);
@@ -81,7 +81,7 @@ export function profileView(ctx, rawName) {
         : friend === 'none' ? h('button.primary.small', { onclick: () => friendAct('request') }, 'Lägg till vän')
         : friend === 'sent' ? h('span.muted', 'Vänförfrågan skickad')
         : friend === 'incoming' ? h('button.primary.small', { onclick: () => friendAct('accept') }, 'Acceptera vänförfrågan')
-        : friend === 'accepted' ? h('span.gold', '✓ Vän') : null;
+        : friend === 'accepted' ? h('span.gold', icon('check', 16), ' Vän') : null;
 
       const own = state.user?.id === user.id;
       const extras = h('div.btnrow.left',
@@ -99,7 +99,7 @@ export function profileView(ctx, rawName) {
       const header = h('div.card.wide.profilehead',
         user.avatar && avatarImg(user.avatar, 84),
         h('div.pmain',
-          h('h2', titleEl(user.title), ' ', flagEl(user.country), ' ', crownEl(user.crown), user.username, user.trophies ? h('span.gold', { title: 'Vunna turneringar' }, ` 🏆${user.trophies > 1 ? '×' + user.trophies : ''}`) : null),
+          h('h2', titleEl(user.title), ' ', flagEl(user.country), ' ', crownEl(user.crown), user.username, user.trophies ? h('span.gold.trophies', { title: 'Vunna turneringar' }, ' ', icon('trophy', 20), user.trophies > 1 ? `×${user.trophies}` : '') : null),
           h('p.muted', h('span.presence' + (user.online ? '.online' : '')), user.playing ? ' Spelar just nu' : user.online ? ' Online' : ' Offline',
             ` · Medlem sedan ${new Date(user.created_at).toLocaleDateString('sv-SE')}`, user.country ? ` · ${countryName(user.country)}` : ''),
           friendBtn, extras),
@@ -119,7 +119,7 @@ export function profileView(ctx, rawName) {
           tile('Som vit', `${pct(s.color.w.w, s.color.w.n)} %`, `${s.color.w.n} ${s.color.w.n === 1 ? "parti" : "partier"}`),
           tile('Som svart', `${pct(s.color.b.w, s.color.b.n)} %`, `${s.color.b.n} ${s.color.b.n === 1 ? "parti" : "partier"}`),
           tile('Träffsäkerhet', s.accuracy != null ? s.accuracy.toFixed(1) : '–', 'snitt i analyserade partier'),
-          user.weeklyWins > 0 && tile('Veckosegrar', `👑 ${user.weeklyWins}`, 'vunna veckoturneringar'),
+          user.weeklyWins > 0 && tile('Veckosegrar', String(user.weeklyWins), 'vunna veckoturneringar'),
           tile('Vinstsvit', s.streak, `längsta: ${s.longest}`),
           s.best && tile('Bästa vinst', s.best.rating, `mot ${s.best.name}`)),
         s.history.length > 1 && h('h3', 'Ratingutveckling'),
@@ -159,7 +159,7 @@ export function profileView(ctx, rawName) {
           : h('p.muted', 'Inga partier ännu.'));
 
       const badges = h('div.card.wide', h('h2', 'Prestationer'),
-        user.achievements.length ? h('div.achs', user.achievements.map((a) => h('div.ach', h('strong', '🏅 ' + a.name), h('small', a.desc))))
+        user.achievements.length ? h('div.achs', user.achievements.map((a) => h('div.ach', h('strong', icon('medal', 18), ' ', a.name), h('small', a.desc))))
           : h('p.muted', 'Inga prestationer ännu.'));
       el.replaceChildren(header, stats, badges, openings, gameList);
     }).catch((e) => {

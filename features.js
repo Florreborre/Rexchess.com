@@ -697,7 +697,7 @@ module.exports = (ctx) => {
     weeklyQ.crown.run(Date.now() + 7 * DAY, top[0].id);
     award(top[0].id, 'weekly_win');
     for (const p of top) award(p.id, 'weekly_podium');
-    broadcastAll({ t: 'notice', text: `👑 ${top[0].username} vann ${t.name}!` });
+    broadcastAll({ t: 'notice', text: `${top[0].username} vann ${t.name}!` });
     setTimeout(ensureWeekly, 2000);
   }
   app.get('/api/weekly', (req, res) => {

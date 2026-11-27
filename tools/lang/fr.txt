@@ -10,7 +10,7 @@
 9|Se déconnecter
 10|Créer un compte
 11|Paramètres
-13|● Partie en cours
+13|Partie en cours
 14|Mode sombre ou clair
 15|Langue / Language
 16|Chargement…
@@ -177,7 +177,7 @@
 181|Stockfish à pleine puissance. Bonne chance.
 182|vous défie ({1}).
 183|veut une revanche.
-184|🏅 Nouveau succès :
+184|Nouveau succès :
 185|Nouveau titre ! Vous êtes maintenant
 186|Ouvrir la partie
 187|{1} n'est pas disponible pour le moment.
@@ -226,7 +226,7 @@
 230|Ouverture : {1}
 231|Résultat : {1}
 232|Résultat : {1} ({2})
-233|Coup clé suivant ▶
+233|Coup clé suivant
 234|Retourner l'échiquier
 235|S'entraîner sur les erreurs ({1})
 236|Chargement de la partie…
@@ -294,7 +294,7 @@
 298|Tous les tournois
 299|Connectez-vous pour participer
 300|Rejoindre
-301|✓ Vous êtes inscrit
+301|Vous êtes inscrit
 302|Quitter
 303|Vers votre partie
 304|Démarrer maintenant
@@ -307,7 +307,7 @@
 311|Parties récentes
 312|Classement par équipes (clubs)
 313|Club
-314|🏆 Vainqueur : {1} avec {2} points
+314|Vainqueur : {1} avec {2} points
 315|Le nom doit compter 3 à 40 caractères.
 316|Paramètres non valides.
 317|Le tournoi n'existe pas.
@@ -325,7 +325,7 @@
 329|Record : {1}
 330|Demande d'ami envoyée
 331|Accepter la demande d'ami
-332|✓ Ami
+332|Ami
 333|Club : {1}
 334|Regarder la partie
 335|Paramètres et compte
@@ -407,8 +407,8 @@
 411|Voici la solution.
 412|Indice
 413|Voir la solution
-414|Problème suivant ▶
-415|Plus de problèmes ▶
+414|Problème suivant
+415|Plus de problèmes
 416|Il n'y a pas encore de problèmes.
 417|Le problème n'existe pas.
 418|Travailler les erreurs
@@ -424,12 +424,12 @@
 428|Exact – c'était le meilleur coup !
 429|Le voilà.
 430|Voir le coup
-431|Position suivante ▶
-432|Voir le résultat ▶
+431|Position suivante
+432|Voir le résultat
 433|Évaluation :
 434|Déplacez librement les pièces des deux camps.
-435|◀ Annuler
-436|Rétablir ▶
+435|Retour
+436|Avancer
 437|Retourner
 438|Placer une position
 439|Chaîne FEN
@@ -644,7 +644,7 @@
 721|Maître international
 722|Super grand maître
 723|moins de 400
-724|Votre titre dépend de votre meilleur classement : un titre atteint est conservé. Pendant les cinq parties de placement, vous êtes non classé. 🏆 indique les tournois gagnés et 👑 le champion de la semaine.
+724|Votre titre dépend de votre meilleur classement : un titre atteint est conservé. Pendant les cinq parties de placement, vous êtes non classé. Le trophée indique les tournois gagnés et la couronne le champion de la semaine.
 725|Premiers pas
 726|Jouez 10 parties classées
 727|Cinq cents parties
@@ -696,19 +696,19 @@
 773|Tournoi hebdomadaire
 774|Tournoi hebdomadaire, semaine {1}
 775|Arène {1} · {2} min · chaque dimanche à 18 h (heure suédoise) · {3} inscrits
-776|👑 Une couronne à côté de votre nom pendant une semaine
-777|✨ Un échiquier doré exclusif
-778|🏆 Un trophée et un succès
+776|Une couronne à côté de votre nom pendant une semaine
+777|Un échiquier doré exclusif
+778|Un trophée et un succès
 779|Champion de la semaine dernière :
 780|S'inscrire
 781|Voir le tournoi
 782|jours
 783|h
 784|s
-785|● En cours
-786|👑 {1} a gagné {2} !
+785|En cours
+786|{1} a gagné {2} !
 787|Or
-788|👑 Gagnez un tournoi hebdomadaire pour débloquer l'échiquier doré.
+788|Gagnez un tournoi hebdomadaire pour débloquer l'échiquier doré.
 789|Victoires hebdomadaires
 790|tournois hebdomadaires gagnés
 791|Des échecs gratuits pour tous

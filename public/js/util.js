@@ -7,8 +7,29 @@ export const BOARD_THEMES = {
   sten: ['Sten', '#e6e3dc', '#8f8a80'], valnot: ['Valnöt', '#e9cfa6', '#9c6a3c'],
   guld: ['Guld', '#f6e7b4', '#b8862b'], // belöning: bara för den som har vunnit en veckoturnering
 };
+// Ikoner som ritas av sidan själv (24×24, linjer i textfärgen). Inga emojis, så de ser likadana ut överallt.
+const ICONS = {
+  crown: [['path', { d: 'M3.5 17.5h17l1-10-5.2 4.3L12 4.5l-4.3 7.3L2.5 7.5z', fill: 'currentColor', stroke: 'none' }], ['path', { d: 'M4 20.5h16', 'stroke-width': 2.2 }]],
+  trophy: [['path', { d: 'M7 3.5h10v4.5a5 5 0 0 1-10 0z' }], ['path', { d: 'M7 5.5H4v1.5a4 4 0 0 0 3.6 4M17 5.5h3v1.5a4 4 0 0 1-3.6 4M12 13v4M8 20.5h8M9.5 17h5v3.5h-5z' }]],
+  medal: [['path', { d: 'M8 3l4 7 4-7' }], ['circle', { cx: 12, cy: 15.5, r: 5 }], ['path', { d: 'M12 13l.9 1.8 2 .3-1.4 1.4.3 2-1.8-.9-1.8.9.3-2-1.4-1.4 2-.3z', fill: 'currentColor', stroke: 'none' }]],
+  sun: [['circle', { cx: 12, cy: 12, r: 4 }], ['path', { d: 'M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6' }]],
+  moon: [['path', { d: 'M20 14.5A8.5 8.5 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z' }]],
+  settings: [['path', { d: 'M4 6.5h9M17 6.5h3M4 12h3M11 12h9M4 17.5h11M19 17.5h1' }], ['circle', { cx: 15, cy: 6.5, r: 2 }], ['circle', { cx: 9, cy: 12, r: 2 }], ['circle', { cx: 17, cy: 17.5, r: 2 }]],
+  first: [['path', { d: 'M17.5 6l-6 6 6 6M7 6v12' }]],
+  prev: [['path', { d: 'M15 6l-6 6 6 6' }]],
+  next: [['path', { d: 'M9 6l6 6-6 6' }]],
+  last: [['path', { d: 'M6.5 6l6 6-6 6M17 6v12' }]],
+  flip: [['path', { d: 'M7.5 20V4M4.5 7l3-3 3 3M16.5 4v16M13.5 17l3 3 3-3' }]],
+  check: [['path', { d: 'M5 12.5l4.5 4.5L19 7.5', 'stroke-width': 2.2 }]],
+  spark: [['path', { d: 'M12 3l1.9 6.1L20 11l-6.1 1.9L12 19l-1.9-6.1L4 11l6.1-1.9z', fill: 'currentColor', stroke: 'none' }]],
+  clock: [['circle', { cx: 12, cy: 12, r: 8.5 }], ['path', { d: 'M12 7.5V12l3 2' }]],
+};
+export function icon(name, size = 18, cls = '') {
+  return svg('svg', { viewBox: '0 0 24 24', width: size, height: size, class: ('ico ' + cls).trim(), fill: 'none', stroke: 'currentColor', 'stroke-width': 1.8,
+    'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'aria-hidden': 'true' }, ...(ICONS[name] || []).map(([tag, attrs]) => svg(tag, attrs)));
+}
 // Krona vid namnet för veckans mästare.
-export const crownEl = (on) => (on ? h('span.crown', { title: 'Veckans mästare' }, '👑') : null);
+export const crownEl = (on) => (on ? h('span.crown', { title: 'Veckans mästare' }, icon('crown', 15)) : null);
 export const settings = { board: 'marmor', sound: true, volume: 0.8, autoQueen: false, hints: true, coords: true, theme: 'auto', lang: 'sv' };
 try { Object.assign(settings, JSON.parse(localStorage.getItem('settings') || '{}')); } catch { /* standardvärden */ }
 export function applySettings() {
@@ -117,7 +138,7 @@ export function countryName(code) {
 }
 export const flagOf = (code) => (/^[A-Z]{2}$/.test(code || '') ? String.fromCodePoint(...[...code].map((c) => 127397 + c.charCodeAt(0))) : '');
 export function flagEl(code) {
-  return flagOf(code) ? h('span.flag', { title: countryName(code) }, flagOf(code)) : null;
+  return /^[A-Z]{2}$/.test(code || '') ? h('span.cc', { title: countryName(code) }, code) : null;
 }
 export function countrySelect(value, onchange) {
   const list = COUNTRY_CODES.map((c) => [c, countryName(c)]).sort((a, b) => a[1].localeCompare(b[1], settings.lang));

@@ -1,6 +1,6 @@
 // Vänlista, turneringar, veckans parti och topplistekort.
 import { Chess } from '/vendor/chess.js';
-import { h, state, api, REASONS, go, titleEl, userLink, crownEl } from './util.js';
+import { h, state, api, REASONS, go, titleEl, userLink, crownEl, icon } from './util.js';
 import { Board } from './board.js';
 import { net, send, on } from './net.js';
 const gameIn = (tid) => [...net.games.values()].find((g) => !g.over && g.tournament === tid);
@@ -161,7 +161,7 @@ export function tournamentsView(ctx, showForm) {
         tournaments.length ? h('div.tablewrap', h('table',
           h('thead', h('tr', ['Namn', 'Tid', 'Längd', 'Spelare', 'Status', ''].map((t) => h('th', t)))),
           h('tbody', tournaments.map((t) => h('tr',
-            h('td', t.weekly ? h('span.weeklytag', '👑 ') : null, h('strong', t.name), h('span.muted', ` av ${t.creator_name}`)), h('td', t.tc), h('td', `${t.duration} min`), h('td', t.players),
+            h('td', t.weekly ? h('span.weeklytag', icon('crown', 14)) : null, h('strong', t.name), h('span.muted', ` av ${t.creator_name}`)), h('td', t.tc), h('td', `${t.duration} min`), h('td', t.players),
             h('td', h('span.' + (t.status === 'running' ? 'up' : t.status === 'open' ? 'gold' : 'muted'), statusText(t, now))),
             h('td', h('a.btn.small', { href: `/tournament/${t.id}` }, 'Öppna')))))))
           : h('p.muted', 'Det finns inga turneringar ännu. Skapa den första!'));
@@ -220,7 +220,7 @@ export function tournamentView(ctx, id) {
     if (!state.user) action = h('a.btn.primary', { href: '/login' }, 'Logga in för att delta');
     else if (t.status === 'finished') action = null;
     else if (!joined) action = h('button.primary', { onclick: () => act('join') }, 'Gå med');
-    else if (t.status === 'open') action = h('div.btnrow', h('span.gold', '✓ Du är anmäld'), h('button', { onclick: () => act('leave') }, 'Lämna'));
+    else if (t.status === 'open') action = h('div.btnrow', h('span.gold', icon('check', 16), ' Du är anmäld'), h('button', { onclick: () => act('leave') }, 'Lämna'));
     else if (playing) action = h('a.btn.primary', { href: `/game/${playing.id}` }, 'Till ditt parti');
     else if (t.format !== 'arena') action = h('div.seeking', h('span.spinner'), 'Nästa runda startar automatiskt när alla partier är klara. Du skickas till ditt parti.');
     else action = h('div.seeking', h('span.spinner'), 'Väntar på motståndare – du paras ihop automatiskt. Stanna kvar på sidan.');
@@ -229,7 +229,7 @@ export function tournamentView(ctx, id) {
       h('div.revhead', h('h2', t.name), h('a.btn.small', { href: '/tournaments' }, 'Alla turneringar')),
       h('p.muted', `${{ arena: 'Arena', swiss: `Schweizer, ${t.rounds} rundor`, knockout: 'Utslagning' }[t.format] || 'Arena'} · ${t.tc}${t.format === 'arena' ? ` · ${t.duration} min` : ''} · skapad av ${t.creator_name}`),
       status,
-      t.status === 'finished' && players[0]?.games > 0 && h('p.winner', `🏆 Segrare: ${players[0].username} med ${players[0].score} poäng`),
+      t.status === 'finished' && players[0]?.games > 0 && h('p.winner', icon('trophy', 20), ' ', `Segrare: ${players[0].username} med ${players[0].score} poäng`),
       action,
       canEdit && (editForm || h('div.btnrow',
         t.status === 'open' && h('button.primary', {

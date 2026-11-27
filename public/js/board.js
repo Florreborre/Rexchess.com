@@ -68,7 +68,7 @@ export class Board {
     this.el.addEventListener('contextmenu', (e) => e.preventDefault());
   }
 
-  set({ fen, lastMove = null, check = null, orientation, arrows = [], badge = null, premoves = [] }) {
+  set({ fen, lastMove = null, check = null, orientation, arrows = [], badge = null, premoves = [], animate = false }) {
     if (fen) this.pieces = parseFen(fen);
     // Förberedda drag visas som om de redan vore gjorda, så att man kan lägga nästa premove från den nya rutan.
     for (const pm of premoves) {
@@ -87,6 +87,17 @@ export class Board {
     this.promo?.remove();
     this.endDrag();
     this.render();
+    // Låt den flyttade pjäsen glida från sin gamla ruta – men inte när spelaren själv precis släppt den med musen.
+    if (animate && lastMove && !this.justDropped) this.slide(lastMove.from, lastMove.to);
+    this.justDropped = false;
+  }
+  slide(from, to, ms = 240) {
+    const [fx, fy] = this.xy(from), [tx, ty] = this.xy(to);
+    const piece = this.grid.children[ty * 8 + tx]?.querySelector('.piece');
+    if (!piece || !piece.animate || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    piece.style.zIndex = 6;
+    const a = piece.animate([{ transform: `translate(${(fx - tx) * 100}%, ${(fy - ty) * 100}%)` }, { transform: 'translate(0, 0)' }], { duration: ms, easing: 'cubic-bezier(.25, .8, .3, 1)' });
+    a.onfinish = () => { piece.style.zIndex = ''; };
   }
   clearDrawings() {
     this.userArrows = [];
@@ -224,6 +235,7 @@ export class Board {
     const d = this.drag;
     if (!d) return;
     const moved = d.moved;
+    if (moved) this.justDropped = true; // släppt med musen: ingen glidanimation
     this.endDrag();
     const sq = this.squareAt(e);
     if (moved && sq && sq !== d.from && this.targetsFor(d.from, d.pre).includes(sq)) return this.tryMove(d.from, sq, d.pre);

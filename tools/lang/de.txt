@@ -10,7 +10,7 @@
 9|Abmelden
 10|Konto erstellen
 11|Einstellungen
-13|● Laufende Partie
+13|Laufende Partie
 14|Dunkler oder heller Modus
 15|Sprache / Language
 16|Lädt…
@@ -174,7 +174,7 @@
 181|Stockfish in voller Stärke. Viel Glück.
 182|fordert dich zu einer Partie heraus ({1}).
 183|möchte eine Revanche.
-184|🏅 Neuer Erfolg:
+184|Neuer Erfolg:
 185|Neuer Titel! Du bist jetzt
 186|Partie öffnen
 187|{1} ist gerade nicht verfügbar.
@@ -223,7 +223,7 @@
 230|Eröffnung: {1}
 231|Ergebnis: {1}
 232|Ergebnis: {1} ({2})
-233|Nächster Schlüsselzug ▶
+233|Nächster Schlüsselzug
 234|Brett drehen
 235|Fehler üben ({1})
 236|Partie wird geladen…
@@ -289,7 +289,7 @@
 298|Alle Turniere
 299|Anmelden, um teilzunehmen
 300|Beitreten
-301|✓ Du bist angemeldet
+301|Du bist angemeldet
 302|Verlassen
 303|Zu deiner Partie
 304|Jetzt starten
@@ -302,7 +302,7 @@
 311|Letzte Partien
 312|Mannschaftswertung (Vereine)
 313|Verein
-314|🏆 Sieger: {1} mit {2} Punkten
+314|Sieger: {1} mit {2} Punkten
 315|Der Name muss 3–40 Zeichen lang sein.
 316|Ungültige Einstellungen.
 317|Das Turnier existiert nicht.
@@ -320,7 +320,7 @@
 329|Höchstwert: {1}
 330|Freundschaftsanfrage gesendet
 331|Freundschaftsanfrage annehmen
-332|✓ Freund
+332|Freund
 333|Verein: {1}
 334|Partie ansehen
 335|Einstellungen und Konto
@@ -401,8 +401,8 @@
 411|So geht die Lösung.
 412|Tipp
 413|Lösung zeigen
-414|Nächste Aufgabe ▶
-415|Mehr Aufgaben ▶
+414|Nächste Aufgabe
+415|Mehr Aufgaben
 416|Es gibt noch keine Aufgaben.
 417|Die Aufgabe existiert nicht.
 418|Fehler üben
@@ -418,12 +418,12 @@
 428|Richtig – das war der beste Zug!
 429|Da ist er.
 430|Zug zeigen
-431|Nächste Stellung ▶
-432|Ergebnis zeigen ▶
+431|Nächste Stellung
+432|Ergebnis zeigen
 433|Bewertung:
 434|Ziehe die Figuren frei für beide Seiten.
-435|◀ Zurück
-436|Wiederholen ▶
+435|Zurück
+436|Vor
 437|Drehen
 438|Stellung aufbauen
 439|FEN-Zeichenfolge
@@ -638,7 +638,7 @@
 721|Internationaler Meister
 722|Supergroßmeister
 723|unter 400
-724|Dein Titel richtet sich nach deiner höchsten Wertung, einen erreichten Titel behältst du also. Während der fünf Platzierungspartien bist du nicht platziert. 🏆 zeigt gewonnene Turniere und 👑 den Champion der Woche.
+724|Dein Titel richtet sich nach deiner höchsten Wertung, einen erreichten Titel behältst du also. Während der fünf Platzierungspartien bist du nicht platziert. Der Pokal zeigt gewonnene Turniere und die Krone den Champion der Woche.
 725|Erste Schritte
 726|Spiele 10 gewertete Partien
 727|Fünfhundert Partien
@@ -690,19 +690,19 @@
 773|Wochenturnier
 774|Wochenturnier, Woche {1}
 775|Arena {1} · {2} Min · jeden Sonntag um 18 Uhr (schwedische Zeit) · {3} angemeldet
-776|👑 Eine Krone neben deinem Namen für eine Woche
-777|✨ Ein exklusives Goldbrett
-778|🏆 Ein Pokal und ein Erfolg
+776|Eine Krone neben deinem Namen für eine Woche
+777|Ein exklusives Goldbrett
+778|Ein Pokal und ein Erfolg
 779|Champion der letzten Woche:
 780|Anmelden
 781|Turnier ansehen
 782|Tage
 783|Std
 784|Sek
-785|● Läuft gerade
-786|👑 {1} hat {2} gewonnen!
+785|Läuft gerade
+786|{1} hat {2} gewonnen!
 787|Gold
-788|👑 Gewinne ein Wochenturnier, um das Goldbrett freizuschalten.
+788|Gewinne ein Wochenturnier, um das Goldbrett freizuschalten.
 789|Wochensiege
 790|gewonnene Wochenturniere
 791|Kostenloses Schach für alle

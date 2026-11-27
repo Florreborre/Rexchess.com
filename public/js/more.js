@@ -23,7 +23,7 @@ export function settingsView(ctx) {
     h('div.themes', Object.entries(BOARD_THEMES).filter(([key]) => key !== 'guld' || state.user?.weeklyWins > 0 || settings.board === 'guld').map(([key, [name, light, dark]]) =>
       h('button' + (settings.board === key ? '.active' : ''), { onclick: () => { saveSettings({ board: key }); ctx.refresh(); } },
         h('span.swatch', { style: { background: `linear-gradient(135deg, ${light} 50%, ${dark} 50%)` } }), name))),
-    !(state.user?.weeklyWins > 0) && h('p.muted', '👑 Vinn en veckoturnering för att låsa upp guldbrädet.'),
+    !(state.user?.weeklyWins > 0) && h('p.muted', 'Vinn en veckoturnering för att låsa upp guldbrädet.'),
     h('h3', 'Ljud'),
     toggle('sound', 'Spela ljud'),
     h('label.check', 'Volym ', h('input', { type: 'range', min: 0.1, max: 1, step: 0.1, value: settings.volume, onchange: (e) => { saveSettings({ volume: Number(e.target.value) }); playSound('move'); } })),

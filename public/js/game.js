@@ -1,6 +1,6 @@
 // Spelvyer: lobby, onlineparti och parti mot datorn.
 import { Chess } from '/vendor/chess.js';
-import { h, state, api, fmtClock, REASONS, playSound, moveSound, endSound, roman, go, flagOf, avatarImg } from './util.js';
+import { h, state, api, fmtClock, REASONS, playSound, moveSound, endSound, roman, go, flagOf, avatarImg, icon, pieceSvg } from './util.js';
 import { gotwCard, topCard } from './social.js';
 import { chatBox } from './chat.js';
 import { Board, parseFen } from './board.js';
@@ -12,7 +12,7 @@ const Chess960 = make960(Chess);
 const TCS = [['1+0', 'Bullet'], ['2+1', 'Bullet'], ['3+0', 'Blixt'], ['3+2', 'Blixt'], ['5+0', 'Blixt'], ['5+3', 'Blixt'], ['10+0', 'Snabb'], ['10+5', 'Snabb'], ['15+10', 'Snabb']];
 
 function playerBar() {
-  const name = h('span.pname'), rating = h('span.prating'), clock = h('span.clock'), title = h('span.title'), flag = h('span.flag'), crown = h('span.crown', '👑');
+  const name = h('span.pname'), rating = h('span.prating'), clock = h('span.clock'), title = h('span.title'), flag = h('span.cc'), crown = h('span.crown', icon('crown', 15));
   const pic = h('span.pfp-slot');
   const el = h('div.playerbar', h('div.pinfo', pic, h('span.avatar'), title, flag, crown, name, rating), clock);
   return {
@@ -22,7 +22,7 @@ function playerBar() {
       if (pic.dataset.src !== (p.avatar || '')) { pic.dataset.src = p.avatar || ''; pic.replaceChildren(...(p.avatar ? [avatarImg(p.avatar, 30)] : [])); }
       title.textContent = p.title || '';
       title.hidden = !p.title;
-      flag.textContent = flagOf(p.country);
+      flag.textContent = /^[A-Z]{2}$/.test(p.country || '') ? p.country : '';
       flag.hidden = !flag.textContent;
       crown.hidden = !p.crown;
       rating.textContent = p.rating ? `(${p.rating})` : '';
@@ -57,15 +57,15 @@ export class GameScreen {
     this.status = h('div.status');
     this.moveList = h('div.movelist');
     this.panel = h('div.panel');
-    const nav = (label, title, fn) => h('button.icon', { title, onclick: () => { fn(); this.render(); } }, label);
+    const nav = (name, title, fn) => h('button.icon', { title, onclick: () => { fn(); this.render(); } }, icon(name, 18));
     this.el = h('div.game-layout',
       h('div.board-col', this.top.el, this.board.el, this.bottom.el),
       this.side = h('div.side', this.status, this.moveList,
         h('div.navrow',
-          nav('⏮', 'Första', () => (this.viewPly = 0)),
-          nav('◀', 'Föregående', () => (this.viewPly = Math.max(0, this.viewPly - 1))),
-          nav('▶', 'Nästa', () => (this.viewPly = Math.min(this.moves.length, this.viewPly + 1))),
-          nav('⏭', 'Sista', () => (this.viewPly = this.moves.length))),
+          nav('first', 'Första', () => (this.viewPly = 0)),
+          nav('prev', 'Föregående', () => (this.viewPly = Math.max(0, this.viewPly - 1))),
+          nav('next', 'Nästa', () => (this.viewPly = Math.min(this.moves.length, this.viewPly + 1))),
+          nav('last', 'Sista', () => (this.viewPly = this.moves.length))),
         this.panel));
     this.onKey = (e) => {
       if (e.target.matches?.('input, textarea')) return;
@@ -98,6 +98,7 @@ export class GameScreen {
       }
       this.viewPly = this.moves.length;
       if (grew) playSound(moveSound(this.hist.at(-1)));
+      this.animateNext = grew;
     }
     if (!model.movable && !model.premovable) this.premoves = [];
     // Det har blivit vår tur: spela nästa förberedda drag om det är lagligt. Är det inte det strycks alla.
@@ -119,7 +120,9 @@ export class GameScreen {
       const king = (last.color === 'w' ? 'b' : 'w') + 'k';
       check = Object.entries(parseFen(this.fens[this.viewPly])).find(([, p]) => p === king)?.[0];
     }
-    this.board.set({ fen: this.fens[this.viewPly], lastMove: last && { from: last.from, to: last.to }, check, orientation: m.orientation, premoves: this.viewPly === this.moves.length ? this.premoves : [] });
+    this.board.set({ fen: this.fens[this.viewPly], lastMove: last && { from: last.from, to: last.to }, check, orientation: m.orientation, premoves: this.viewPly === this.moves.length ? this.premoves : [],
+      animate: this.animateNext && this.viewPly === this.moves.length });
+    this.animateNext = false;
     this.top.set({ ...m.top, hasClock: !!m.clocks });
     this.bottom.set({ ...m.bottom, hasClock: !!m.clocks });
     this.status.textContent = m.status || '';
@@ -214,32 +217,67 @@ export function lobbyView() {
       h('a.btn', { href: '/friends' }, 'Vänlista')),
     h('div.card', h('h2', 'Analysera'), h('p.muted', 'Gå igenom dina partier drag för drag med träffsäkerhet, bedömning av varje drag och bästa drag.'),
       h('a.btn', { href: '/games' }, 'Mina partier')));
+  // Varje kort får en stor pjäs som bild i hörnet.
+  const arts = ['wn', 'bq', 'wk', 'bb', 'wp', 'bn', null, 'wq', 'wr', 'bp', 'wb', 'bk'];
+  [...grid.children].forEach((card, i) => { if (arts[i]) { card.classList.add('has-art'); card.append(h('div.card-art', pieceSvg(arts[i]))); } });
   const el = h('div.home', top.el, weekly.el, grid);
   return { el, destroy() { off(); top.destroy(); weekly.destroy(); } };
 }
 
-// Stor startsektion överst: rubrik, knappar, levande siffror och ett svävande bräde.
-const HERO_FEN = 'r1bq1rk1/pp2bppp/2n1pn2/3p4/2PP4/2N1PN2/PP3PPP/R2QKB1R w KQ - 0 9';
+// Stor startsektion överst: rubrik, knappar, levande siffror och ett svävande bräde som spelar upp ett klassiskt parti.
+const CLASSICS = [
+  { white: 'Paul Morphy', black: 'Hertigen av Braunschweig och greve Isouard', place: 'Paris', year: 1858, label: 'Operapartiet',
+    moves: 'e4 e5 Nf3 d6 d4 Bg4 dxe5 Bxf3 Qxf3 dxe5 Bc4 Nf6 Qb3 Qe7 Nc3 c6 Bg5 b5 Nxb5 cxb5 Bxb5+ Nbd7 O-O-O Rd8 Rxd7 Rxd7 Rd1 Qe6 Bxd7+ Nxd7 Qb8+ Nxb8 Rd8#' },
+  { white: 'Adolf Anderssen', black: 'Lionel Kieseritzky', place: 'London', year: 1851, label: 'Det odödliga partiet',
+    moves: 'e4 e5 f4 exf4 Bc4 Qh4+ Kf1 b5 Bxb5 Nf6 Nf3 Qh6 d3 Nh5 Nh4 Qg5 Nf5 c6 g4 Nf6 Rg1 cxb5 h4 Qg6 h5 Qg5 Qf3 Ng8 Bxf4 Qf6 Nc3 Bc5 Nd5 Qxb2 Bd6 Bxg1 e5 Qxa1+ Ke2 Na6 Nxg7+ Kd8 Qf6+ Nxf6 Be7#' },
+];
 function heroSection() {
   const stat = (label) => { const v = h('strong', '–'); return { v, el: h('div.hstat', v, h('span', label)) }; };
   const online = stat('spelare online'), playing = stat('partier just nu'), players = stat('registrerade spelare');
   const board = new Board({});
-  board.set({ fen: HERO_FEN, arrows: [{ from: 'c4', to: 'd5', color: '#e3b341' }, { from: 'f3', to: 'e5', color: '#e3b341' }], lastMove: { from: 'c1', to: 'g5' } });
+  const caption = h('div.hero-caption'), moveLine = h('div.hero-moves');
+  let gameIx = 0, ply = 0, plan = null, alive = true, timer = null;
+  function prepare() { // räkna fram alla ställningar i partiet en gång
+    const g = CLASSICS[gameIx % CLASSICS.length], c = new Chess(), steps = [{ fen: c.fen() }];
+    for (const san of g.moves.split(' ')) { const m = c.move(san); steps.push({ fen: c.fen(), from: m.from, to: m.to, san: m.san, check: /[+#]/.test(m.san) && m.color }); }
+    plan = { g, steps };
+    caption.replaceChildren(h('strong', g.label), h('span', `${g.white} – ${g.black}`), h('span.muted', `${g.place} ${g.year}`));
+  }
+  function show() {
+    const s = plan.steps[ply];
+    let check = null;
+    if (s.check) check = Object.entries(parseFen(s.fen)).find(([, p]) => p === (s.check === 'w' ? 'bk' : 'wk'))?.[0];
+    board.set({ fen: s.fen, lastMove: s.from && { from: s.from, to: s.to }, check, animate: ply > 0 });
+    const recent = plan.steps.slice(Math.max(1, ply - 5), ply + 1).map((st, i, arr) => {
+      const n = plan.steps.indexOf(st), num = n % 2 === 1 ? `${(n + 1) / 2}. ` : '';
+      return h('span' + (i === arr.length - 1 ? '.cur' : ''), num + st.san);
+    }).filter((x, i) => ply > 0 || i < 0);
+    moveLine.replaceChildren(...(ply === 0 ? [h('span.muted', 'Utgångsställningen')] : recent));
+  }
+  function step() {
+    if (!alive) return;
+    if (ply < plan.steps.length - 1) { ply++; show(); timer = setTimeout(step, ply === plan.steps.length - 1 ? 5200 : 1350); }
+    else { gameIx++; ply = 0; prepare(); show(); timer = setTimeout(step, 1600); }
+  }
+  prepare(); show(); timer = setTimeout(step, 1200);
   const load = () => api('/api/stats').then((s) => { online.v.textContent = s.online; playing.v.textContent = s.playing; players.v.textContent = s.players; }).catch(() => {});
   load();
-  const timer = setInterval(load, 15000);
+  const statTimer = setInterval(load, 15000);
   const el = h('section.hero',
     h('div.hero-text',
-      h('span.eyebrow', 'Gratis schack för alla'),
-      h('h1', 'Spela. Träna. ', h('span.shine', 'Vinn.')),
-      h('p.lead', 'Rankade partier mot spelare över hela världen, 14 datormotståndare, schackproblem, analys med Stockfish och en turnering varje vecka.'),
+      h('div.kicker', h('span.rule'), 'Schack sedan 1500-talet. Online sedan i dag.'),
+      h('h1', 'Spela schack ', h('em', 'online')),
+      h('p.lead', 'Rankade partier mot spelare från hela världen, en turnering varje söndag, tusentals problem och analys av varje drag med Stockfish. Helt gratis.'),
       h('div.hero-cta',
         h('a.btn.primary.big-cta', { href: '/play', onclick: (e) => { e.preventDefault(); e.stopPropagation(); document.getElementById('online')?.scrollIntoView({ behavior: 'smooth', block: 'center' }); } }, 'Spela online'),
         h('a.btn.outline', { href: '/bot' }, 'Mot datorn'),
         h('a.btn.outline', { href: '/puzzles/daily' }, 'Dagens problem')),
       h('div.hero-stats', online.el, playing.el, players.el)),
-    h('div.hero-art', h('div.hero-glow'), h('div.hero-board', board.el)));
-  return { el, destroy() { clearInterval(timer); } };
+    h('div.hero-art',
+      h('div.hero-glow'),
+      h('div.hero-stage', h('div.hero-board', board.el)),
+      h('div.hero-info', caption, moveLine)));
+  return { el, destroy() { alive = false; clearTimeout(timer); clearInterval(statTimer); } };
 }
 
 // Guldbanner för veckoturneringen med nedräkning och belöning.
@@ -252,7 +290,7 @@ function weeklyBanner() {
     const t = data?.tournament;
     if (!t) return;
     const now = Date.now() + offset;
-    if (t.status === 'running') { clock.replaceChildren(h('div.livebadge', '● Pågår nu')); return; }
+    if (t.status === 'running') { clock.replaceChildren(h('div.livebadge', h('span.livedot'), 'Pågår nu')); return; }
     const ms = Math.max(0, t.starts_at - now), s = Math.floor(ms / 1000);
     clock.replaceChildren(unit(Math.floor(s / 86400), 'dagar'), unit(Math.floor(s / 3600) % 24, 'tim'), unit(Math.floor(s / 60) % 60, 'min'), unit(s % 60, 'sek'));
   }
@@ -262,15 +300,15 @@ function weeklyBanner() {
     el.hidden = false;
     const join = () => (state.user ? api(`/api/tournaments/${t.id}/join`, {}).then(() => go(`/tournament/${t.id}`)).catch((e) => alert(e.message)) : go('/login'));
     el.replaceChildren(
-      h('div.weekly-crown', '👑'),
+      h('div.weekly-crown', icon('crown', 64)),
       h('div.weekly-main',
         h('span.eyebrow', 'Veckoturnering'),
         h('h2', t.name),
         h('p', `Arena ${t.tc} · ${t.duration} min · varje söndag kl. 18 · ${t.players} anmälda`),
-        h('ul.rewards', h('li', '👑 Krona vid namnet i en vecka'), h('li', '✨ Exklusivt guldbräde'), h('li', '🏆 Pokal och prestation')),
+        h('ul.rewards', h('li', icon('crown', 14), 'Krona vid namnet i en vecka'), h('li', icon('spark', 14), 'Exklusivt guldbräde'), h('li', icon('trophy', 14), 'Pokal och prestation')),
         data.lastWinner && h('p.muted', 'Förra veckans mästare: ', h('a.user', { href: `/profile/${encodeURIComponent(data.lastWinner.username)}` }, data.lastWinner.username))),
       h('div.weekly-side', clock,
-        t.joined ? h('a.btn.primary', { href: `/tournament/${t.id}` }, '✓ Du är anmäld') : h('button.primary', { onclick: join }, 'Anmäl dig'),
+        t.joined ? h('a.btn.primary', { href: `/tournament/${t.id}` }, icon('check', 16), ' Du är anmäld') : h('button.primary', { onclick: join }, 'Anmäl dig'),
         h('a.btn.outline', { href: `/tournament/${t.id}` }, 'Visa turneringen')));
     tick();
   }
