@@ -218,7 +218,14 @@ const updateClass = Object.fromEntries(CLASSES.map((k) => [k, mirrored(`UPDATE u
 async function restoreFromRemote() {
   if (!remote) return;
   await remote.executeMultiple(SCHEMA);
+  // Lägg bara till de kolumner som saknas (en fråga per tabell i stället för ett försök per kolumn – snabbare uppstart).
+  const have = new Map();
+  for (const table of new Set(EXTRA_COLUMNS.map(([t]) => t))) {
+    const res = await remote.execute({ sql: 'SELECT name FROM pragma_table_info(?)', args: [table] });
+    have.set(table, new Set(res.rows.map((r) => r.name)));
+  }
   for (const [table, col] of EXTRA_COLUMNS) {
+    if (have.get(table).has(col.split(' ')[0])) continue;
     try { await remote.execute(`ALTER TABLE ${table} ADD COLUMN ${col}`); } catch { /* kolumnen finns redan */ }
   }
   await remote.execute('UPDATE users SET peak = rating WHERE peak < rating');
@@ -226,7 +233,7 @@ async function restoreFromRemote() {
   let total = 0;
   for (const table of TABLES) {
     for (let last = 0; ;) {
-      const res = await remote.execute({ sql: `SELECT rowid AS _rid, * FROM ${table} WHERE rowid > ? ORDER BY rowid LIMIT 500`, args: [last] });
+      const res = await remote.execute({ sql: `SELECT rowid AS _rid, * FROM ${table} WHERE rowid > ? ORDER BY rowid LIMIT 3000`, args: [last] });
       if (!res.rows.length) break;
       const cols = res.columns.slice(1);
       const insert = db.prepare(`INSERT OR REPLACE INTO ${table} (${cols.join(', ')}) VALUES (${cols.map(() => '?').join(', ')})`);
@@ -994,6 +1001,7 @@ function runMigrations() {
     console.log(`Ratingen nollställd för ${info.changes} spelare.`);
   }
 }
+app.get('/api/ping', (req, res) => res.json({ ok: true, up: Math.round(process.uptime()) }));
 // Okända /api-adresser ska ge ett tydligt fel i stället för en tom sida.
 app.use('/api', (req, res) => res.status(404).json({ error: 'Finns inte.' }));
 
@@ -1003,7 +1011,12 @@ restoreFromRemote()
     runMigrations();
     features.boot();
     resumeTournaments();
-    server.listen(PORT, () => console.log(`Schack Online körs på port ${PORT}${process.env.PORT ? '' : ` – http://schackonline.localhost:${PORT}`}`));
+    const bootStart = process.uptime();
+    server.listen(PORT, () => console.log(`Schack Online körs på port ${PORT} (uppstart ${bootStart.toFixed(1)} s)${process.env.PORT ? '' : ` – http://schackonline.localhost:${PORT}`}`));
+    // Gratisservern hos Render somnar efter 15 minuter utan besök och tar sedan lång tid att vakna.
+    // Servern besöker därför sig själv var tionde minut, så att den alltid är vaken.
+    const selfUrl = process.env.RENDER_EXTERNAL_URL;
+    if (selfUrl) setInterval(() => fetch(`${selfUrl}/api/ping`).catch(() => {}), 10 * 60 * 1000);
   });
 // Webbhotellet stänger servern med SIGTERM när den somnar: hinn spara det sista till Turso först.
 process.on('SIGTERM', () => {
